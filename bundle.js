@@ -173,7 +173,11 @@ var main = function(opts) {
   opts.pointerLock = true;
 
   var shell = createShell(opts);
-  var camera = require("game-shell-fps-camera")(shell)
+  var camera = createCamera(shell);
+
+  camera.position[0] = -20;
+  camera.position[1] = -33;
+  camera.position[2] = -40;
 
   var game = {};
   game.isClient = true;
@@ -8893,7 +8897,7 @@ var scratch0 = vec3.create();
 var y_axis = vec3.fromValues(0, 1, 0);
 
 var attachCamera = function(shell) {
-  var camera = createBasicCamera([-22, -14, -48]); 
+  var camera = createBasicCamera();
 
   shell.bind('move-left', 'left', 'A');
   shell.bind('move-right', 'right', 'D');
