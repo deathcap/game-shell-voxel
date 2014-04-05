@@ -8927,8 +8927,13 @@ var createBasicCamera = require('basic-camera');
 var scratch0 = vec3.create();
 var y_axis = vec3.fromValues(0, 1, 0);
 
-var attachCamera = function(shell) {
+var enableFlight; // TODO: expose
+
+var attachCamera = function(shell, opts) {
   var camera = createBasicCamera();
+
+  opts = opts || {};
+  enableFlight = opts.enableFlight !== undefined ? opts.enableFlight : true;
 
   shell.bind('move-left', 'left', 'A');
   shell.bind('move-right', 'right', 'D');
@@ -8941,6 +8946,7 @@ var attachCamera = function(shell) {
   var max_dyaw = Math.PI / 2;
   var scale = 0.0002;
   var speed = 1.0;
+  var cameraVector = vec3.create();
 
   shell.on('tick', function() {
     if (!shell.pointerLock) {
@@ -8948,28 +8954,30 @@ var attachCamera = function(shell) {
     }
 
     // movement relative to camera
+    camera.getCameraVector(cameraVector);
     if (shell.wasDown('move-forward')) {
-      vec3.scaleAndAdd(camera.position, camera.position, camera.cameraVector, speed);
+      vec3.scaleAndAdd(camera.position, camera.position, cameraVector, speed);
     }
     if (shell.wasDown('move-back')) {
-      vec3.scaleAndAdd(camera.position, camera.position, camera.cameraVector, -speed);
+      vec3.scaleAndAdd(camera.position, camera.position, cameraVector, -speed);
     }
     if (shell.wasDown('move-right')) {
-      vec3.cross(scratch0, camera.cameraVector, y_axis);
+      vec3.cross(scratch0, cameraVector, y_axis);
       vec3.scaleAndAdd(camera.position, camera.position, scratch0, speed);
     }
     if (shell.wasDown('move-left')) {
-      vec3.cross(scratch0, camera.cameraVector, y_axis);
+      vec3.cross(scratch0, cameraVector, y_axis);
       vec3.scaleAndAdd(camera.position, camera.position, scratch0, -speed);
     }
 
-    // flight straight up or down
-    // TODO: option to disable flying
-    if (shell.wasDown('move-up')) {
-      camera.position[1] -= 1;
-    }
-    if (shell.wasDown('move-down')) {
-      camera.position[1] += 1;
+    // fly straight up or down
+    if (enableFlight) {
+      if (shell.wasDown('move-up')) {
+        camera.position[1] -= 1;
+      }
+      if (shell.wasDown('move-down')) {
+        camera.position[1] += 1;
+      }
     }
 
 
@@ -8989,15 +8997,11 @@ var attachCamera = function(shell) {
 
     //console.log(dpitch,dyaw);
 
-    // TODO: fix unintentional rolling
     camera.rotateX(dpitch);
     camera.rotateY(dyaw);
   });
 
-  camera.lookAt = function(eye, center, up) { console.log(eye, center, up); }; // TODO: add to basic-camera, as in orbit-camera
-
-  window.camera = camera;
-  window.shell = shell;
+  camera.lookAt = function(eye, center, up) { console.log(eye, center, up); }; // TODO: add to basic-camera, as in orbit-camera (https://github.com/hughsk/basic-camera/issues/5)
 
   return camera;
 };
@@ -9008,36 +9012,40 @@ module.exports = attachCamera;
 },{"basic-camera":36,"gl-matrix":38}],36:[function(require,module,exports){
 var glm = require('gl-matrix')
 var vec3 = glm.vec3
-var mat3 = glm.mat3
 var mat4 = glm.mat4
 
 module.exports = noclip
+
+var scratch0 = mat4.create()
 
 function noclip(position) {
   if (!(this instanceof noclip)) return new noclip(position)
 
   this.position = position || vec3.create()
   this.rotationX = this.rotationY = this.rotationZ = 0.0
-  this.cameraVector = vec3.create()
 }
 
 noclip.prototype.view = function(output) {
   if (!output) output = mat4.create()
 
-  mat4.rotateX(output, output, this.rotationX)
-  mat4.rotateY(output, output, this.rotationY)
-  mat4.rotateZ(output, output, this.rotationZ)
-
-  this.cameraVector[0] = output[2]
-  this.cameraVector[1] = output[6]
-  this.cameraVector[2] = output[10]
+  mat4.identity(scratch0)
+  mat4.rotateX(scratch0, scratch0, this.rotationX)
+  mat4.rotateY(scratch0, scratch0, this.rotationY)
+  mat4.rotateZ(scratch0, scratch0, this.rotationZ)
 
   mat4.translate(output
-    , output
+    , scratch0
     , this.position
   )
 
   return output
+}
+
+noclip.prototype.getCameraVector = function(v) {
+  v[0] = scratch0[2]
+  v[1] = scratch0[6]
+  v[2] = scratch0[10]
+  return v
 }
 
 noclip.prototype.rotateX   = function(angle) {
