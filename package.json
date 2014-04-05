@@ -5,7 +5,8 @@
   "main": "main.js",
   "dependencies": {
     "ao-mesher": "^0.2.9",
-    "game-shell-fps-camera": "git://github.com/deathcap/game-shell-fps-camera.git",
+    "game-shell-fps-camera": "git://github.com/deathcap/game-shell-fps-camera.git#3d69d8d2cde740b69855d92a02a8f9e23666ea40",
+    "voxel-stitch": "git://github.com/deathcap/voxel-stitch.git#f368d5628a746726b69540a3f8767f04049ded2a",
     "ao-shader": "^0.2.3",
     "gl-buffer": "^2.0.6",
     "gl-matrix": "^2.2.1",
@@ -20,12 +21,13 @@
     "ndarray-ops": "^1.2.1",
     "brfs": "^1.0.0",
     "voxel-plugins": "^0.3.0",
-    "kb-bindings": "^0.2.0",
-    "kb-bindings-ui": "^0.2.0",
-    "dat-gui": "^0.5.0",
-    "voxel-plugins-ui": "^0.2.0"
+    "dat-gui": "^0.5.0"
   },
   "devDependencies": {
+    "kb-bindings": "^0.2.0",
+    "kb-bindings-ui": "^0.2.0",
+    "voxel-plugins-ui": "^0.2.0",
+    "voxel-registry": "^0.3.0",
     "beefy": "^1.1.0",
     "browserify": "^3.38.0"
   },
