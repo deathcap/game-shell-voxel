@@ -6,7 +6,7 @@ var createTileMap = require("gl-tile-map")
 var ndarray = require("ndarray")
 var createWireShader = require("./lib/wireShader.js")
 var createAOShader = require("ao-shader")
-var examples = require("./lib/examples.js")
+var createTerrain = require("./lib/terrain.js") // TODO: replace with shama's chunker mentioned in https://github.com/voxel/issues/issues/4#issuecomment-39644684
 var createVoxelMesh = require("./lib/createMesh.js")
 var glm = require("gl-matrix")
 var mat4 = glm.mat4
@@ -18,7 +18,7 @@ var TILE_SIZE = 16  // TODO: heterogenous
 
 var main = function(opts) {
   opts = opts || {};
-  opts.clearColor = [0,0,0,0];
+  opts.clearColor = [0.75, 0.8, 0.9, 1.0]
   opts.pointerLock = true;
 
   var shell = createShell(opts);
@@ -48,8 +48,21 @@ var main = function(opts) {
 //Config variables
 var texture, shader, mesh, wireShader
 
+// bit in voxel array to indicate voxel is opaque (transparent if not set)
+var OPAQUE = 1<<15;
+
 shell.on("gl-init", function() {
   var gl = shell.gl
+
+  /* TODO: fix alpha transparency, this has no effect - maybe need to change ao-shader?
+  //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+  //gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+  gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.BLEND)
+  */
+  // premultiply alpha when loading textures, so can use gl.ONE blending, see http://stackoverflow.com/questions/11521035/blending-with-html-background-in-webgl
+  // TODO: move to gl-texture2d?
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true)
 
   //Create shaders
   shader = createAOShader(gl)
@@ -66,7 +79,26 @@ shell.on("gl-init", function() {
   stitcher.on('addedAll', updateTexture)
   stitcher.stitch()
 
-  mesh = createVoxelMesh(shell.gl, 'Terrain', examples.Terrain, stitcher.voxelSideTextureIDs)
+  //Lookup voxel materials for terrain generation
+  var registry = plugins.get('voxel-registry')
+  var terrainMaterials = {};
+  for (var blockName in registry.blockName2Index) {
+    var blockIndex = registry.blockName2Index[blockName];
+    if (registry.getProp(blockName, 'transparent')) {
+      terrainMaterials[blockName] = blockIndex - 1
+    } else {
+      terrainMaterials[blockName] = OPAQUE|(blockIndex - 1) // TODO: separate arrays? https://github.com/mikolalysenko/ao-mesher/issues/2
+    }
+  }
+
+  // test manually assigned high block index - clone wool texture (if shows up as dirt, wrapped around)
+  // before https://github.com/mikolalysenko/ao-mesher/issues/2 max is 255, after max is 32767
+  var highIndex = 32767
+  terrainMaterials.highBlock = OPAQUE|highIndex
+  for (var k = 0; k < 6; k++)
+    stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
+
+  mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
   var c = mesh.center
   camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
 
