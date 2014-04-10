@@ -4,21 +4,24 @@ var createShell = require('./');
 var createGUI = require('dat-gui');
 
 require('voxel-plugins-ui');
-//require('kb-bindings-ui');
+require('kb-bindings-ui');
 require('voxel-registry');
 require('voxel-stitch');
 require('./lib/blocks.js');
 require('voxel-drop');
+require('voxel-keys');
+require('voxel-artpacks');
 
 createShell({require: require, pluginOpts:
   {
     'voxel-registry': {},
     'voxel-stitch': {},
     'voxel-plugins-ui': {gui: new createGUI.GUI()},
-    //'kb-bindings-ui': {gui: new createGUI.GUI()}, // TODO: add compatibility, game-shell bindings object is different than kb-bindings
+    'kb-bindings-ui': {},
     './lib/blocks.js': {},
     'voxel-drop': {},
+    'voxel-keys': {},
+    'voxel-artpacks': {}
   }
 });
 
-document.querySelector('.dg.ac').style.zIndex = 1; // fix datgui behind canvas
