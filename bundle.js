@@ -5,26 +5,29 @@ var createShell = require('./');
 var createGUI = require('dat-gui');
 
 require('voxel-plugins-ui');
-//require('kb-bindings-ui');
+require('kb-bindings-ui');
 require('voxel-registry');
 require('voxel-stitch');
 require('./lib/blocks.js');
 require('voxel-drop');
+require('voxel-keys');
+require('voxel-artpacks');
 
 createShell({require: require, pluginOpts:
   {
     'voxel-registry': {},
     'voxel-stitch': {},
     'voxel-plugins-ui': {gui: new createGUI.GUI()},
-    //'kb-bindings-ui': {gui: new createGUI.GUI()}, // TODO: add compatibility, game-shell bindings object is different than kb-bindings
+    'kb-bindings-ui': {},
     './lib/blocks.js': {},
     'voxel-drop': {},
+    'voxel-keys': {},
+    'voxel-artpacks': {}
   }
 });
 
-document.querySelector('.dg.ac').style.zIndex = 1; // fix datgui behind canvas
 
-},{"./":6,"./lib/blocks.js":2,"dat-gui":34,"voxel-drop":153,"voxel-plugins-ui":178,"voxel-registry":182,"voxel-stitch":239}],2:[function(require,module,exports){
+},{"./":6,"./lib/blocks.js":2,"dat-gui":34,"kb-bindings-ui":165,"voxel-artpacks":183,"voxel-drop":190,"voxel-keys":215,"voxel-plugins-ui":218,"voxel-registry":222,"voxel-stitch":279}],2:[function(require,module,exports){
 'use strict';
 
 // sample blocks for demo.js TODO: move to voxel-land as a proper plugin, refactor with lib/examples.js terrain gen
@@ -118,7 +121,7 @@ function createVoxelMesh(gl, voxels, voxelSideTextureIDs) {
 
 module.exports = createVoxelMesh
 
-},{"ao-mesher":7,"gl-buffer":41,"gl-vao":136,"ndarray":151,"ndarray-ops":146}],4:[function(require,module,exports){
+},{"ao-mesher":7,"gl-buffer":41,"gl-vao":164,"ndarray":181,"ndarray-ops":176}],4:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -199,7 +202,7 @@ module.exports = function(materials) {
 
 
 
-},{"ndarray":151,"ndarray-fill":137}],5:[function(require,module,exports){
+},{"ndarray":181,"ndarray-fill":167}],5:[function(require,module,exports){
 "use strict"
 var createShader = require("gl-shader")
 
@@ -217,6 +220,7 @@ void main() {\
 }")
 }
 },{"gl-shader":61}],6:[function(require,module,exports){
+(function (global){
 "use strict"
 
 var createShell = require("gl-now")
@@ -235,6 +239,9 @@ var createPlugins = require('voxel-plugins')
 //Tile size parameters
 var TILE_SIZE = 16  // TODO: heterogenous
 
+var game = {};
+global.game = game; // for debugging
+
 var main = function(opts) {
   opts = opts || {};
   opts.clearColor = [0.75, 0.8, 0.9, 1.0]
@@ -242,22 +249,16 @@ var main = function(opts) {
 
   var shell = createShell(opts);
   var camera = createCamera(shell);
-  /* 
-  global.shell = shell
-  global.camera = camera
-  */
 
   camera.position[0] = -20;
   camera.position[1] = -33;
   camera.position[2] = -40;
 
-  var game = {};
   game.isClient = true;
-  game.buttons = {};
-  game.buttons.bindings = shell.bindings;
+  game.shell = shell;
 
+  // TODO: should this be moved into gl-init?? see z-index note below
   var plugins = createPlugins(game, {require: opts.require || require});
-  shell.plugins = plugins;
 
   for (var name in opts.pluginOpts) {
     plugins.add(name, opts.pluginOpts[name]);
@@ -273,6 +274,12 @@ var OPAQUE = 1<<15;
 shell.on("gl-init", function() {
   var gl = shell.gl
 
+  // since the plugins are loaded before gl-init, the <canvas> element will be
+  // below other UI widgets in the DOM tree, so by default the z-order will cause
+  // the canvas to cover the other widgets - to fix this, set z-index below
+  shell.canvas.style.zIndex = '-1';
+  shell.canvas.parentElement.style.zIndex = '-1';
+
   // TODO: is this right? see https://github.com/mikolalysenko/ao-shader/issues/2
   //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
   gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
@@ -287,8 +294,9 @@ shell.on("gl-init", function() {
   wireShader = createWireShader(gl)
   
   //Create texture atlas
-  var stitcher = shell.plugins.get('voxel-stitch') // TODO: load not as a plugin?
+  var stitcher = game.plugins.get('voxel-stitch') // TODO: load not as a plugin?
   var updateTexture = function() {
+    console.log('updateTexture() calling createTileMap()')
     texture = createTileMap(gl, stitcher.atlas, 2)
     texture.magFilter = gl.NEAREST
     texture.minFilter = gl.LINEAR_MIPMAP_LINEAR
@@ -377,7 +385,8 @@ shell.on("gl-render", function(t) {
 module.exports = main
 
 
-},{"./lib/createMesh.js":3,"./lib/terrain.js":4,"./lib/wireShader.js":5,"ao-shader":20,"game-shell-fps-camera":37,"gl-matrix":47,"gl-now":48,"gl-tile-map":130,"ndarray":151,"voxel-plugins":179}],7:[function(require,module,exports){
+}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./lib/createMesh.js":3,"./lib/terrain.js":4,"./lib/wireShader.js":5,"ao-shader":20,"game-shell-fps-camera":37,"gl-matrix":47,"gl-now":48,"gl-tile-map":158,"ndarray":181,"voxel-plugins":219}],7:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -1987,7 +1996,7 @@ function wrappedNDArrayCtor(data, shape, stride, offset) {
 
 module.exports = wrappedNDArrayCtor
 }).call(this,require("buffer").Buffer)
-},{"buffer":241,"iota-array":16}],16:[function(require,module,exports){
+},{"buffer":281,"iota-array":16}],16:[function(require,module,exports){
 module.exports=require(13)
 },{}],17:[function(require,module,exports){
 /**
@@ -2540,7 +2549,7 @@ module.exports  = function(gl) {
     "precision highp float;\n\nuniform float tileSize;\nuniform sampler2D tileMap;\n\nvarying vec3  normal;\nvarying vec2  tileCoord;\nvarying vec2  texCoord;\nvarying float ambientOcclusion;\n\nvoid main() {\n\n  vec2 uv      = texCoord;\n  vec4 color   = vec4(0,0,0,0);\n  float weight = 0.0;\n\n  vec2 tileOffset = 2.0 * tileSize * tileCoord;\n  float denom     = 2.0 * tileSize * 16.0;\n\n  for(int dx=0; dx<2; ++dx) {\n    for(int dy=0; dy<2; ++dy) {\n      vec2 offset = 2.0 * fract(0.5 * (uv + vec2(dx, dy)));\n      float w = pow(1.0 - max(abs(offset.x-1.0), abs(offset.y-1.0)), 16.0);\n      \n      vec2 tc = (tileOffset + tileSize * offset) / denom;\n      color  += w * texture2D(tileMap, tc);\n      weight += w;\n    }\n  }\n  color /= weight;\n  \n  if(color.w < 0.5) {\n    discard;\n  }\n  \n  float light = ambientOcclusion + max(0.15*dot(normal, vec3(1,1,1)), 0.0);\n  \n  gl_FragColor = vec4(color.xyz * light, color.w);\n}\n")
 }
 
-},{"fs":240,"gl-shader":21}],21:[function(require,module,exports){
+},{"fs":280,"gl-shader":21}],21:[function(require,module,exports){
 "use strict"
 
 var glslExports = require("glsl-exports")
@@ -4199,7 +4208,7 @@ function through (write, end) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"stream":249}],28:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],28:[function(require,module,exports){
 module.exports = tokenize
 
 var through = require('through')
@@ -4934,7 +4943,7 @@ function through (write, end, opts) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"stream":249}],33:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],33:[function(require,module,exports){
 module.exports=require(11)
 },{}],34:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
@@ -9377,10 +9386,10 @@ var attachCamera = function(shell, opts) {
 
   shell.bind('move-left', 'left', 'A');
   shell.bind('move-right', 'right', 'D');
-  shell.bind('move-forward', 'forward', 'W');
-  shell.bind('move-back', 'back', 'S');
-  shell.bind('move-up', 'up', 'space');
-  shell.bind('move-down', 'down', 'shift');
+  shell.bind('move-forward', 'up', 'W');
+  shell.bind('move-back', 'down', 'S');
+  shell.bind('move-up', 'space');
+  shell.bind('move-down', 'shift');
 
   var max_dpitch = Math.PI / 2;
   var max_dyaw = Math.PI / 2;
@@ -13907,7 +13916,7 @@ function createBuffer(gl, data, type, usage) {
 }
 
 module.exports = createBuffer
-},{"ndarray":151,"ndarray-ops":146,"typedarray-pool":44,"webglew":46}],42:[function(require,module,exports){
+},{"ndarray":181,"ndarray-ops":176,"typedarray-pool":44,"webglew":46}],42:[function(require,module,exports){
 module.exports=require(17)
 },{}],43:[function(require,module,exports){
 module.exports=require(18)
@@ -14258,7 +14267,7 @@ exports.clearCache = function clearCache() {
 }
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"bit-twiddle":42,"buffer":241,"dup":43}],45:[function(require,module,exports){
+},{"bit-twiddle":42,"buffer":281,"dup":43}],45:[function(require,module,exports){
 /* (The MIT License)
  *
  * Copyright (c) 2012 Brandon Benvie <http://bbenvie.com>
@@ -14552,6 +14561,7 @@ function createGLShell(options) {
 
   //First create shell
   var shell = makeGameShell(options)
+  var scale = shell.scale || 1
 
   shell.on("init", function initGLNow() {
   
@@ -14580,24 +14590,20 @@ function createGLShell(options) {
     canvas.style.top = "0px"
     shell.element.appendChild(canvas)
 
-    //Load width/height
-    canvas.width = shell.width
-    canvas.height = shell.height
-    
     //Add variables to game-shell
     shell.canvas = canvas
     shell.gl = gl
-    
+
+    //Load width/height
+    resize()
+
     //Load default parameters
     shell.clearFlags = options.clearFlags === undefined ? (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT) : options.clearFlags
     shell.clearColor = options.clearColor || [0.2, 0.4, 0.8, 1.0]
     shell.clearDepth = options.clearDepth || 1.0
     shell.clearStencil = options.clearStencil || 0
-    
-    shell.on("resize", function(w, h) {
-      canvas.width = w
-      canvas.height = h
-    })
+
+    shell.on("resize", resize)
 
     //Hook render event
     shell.on("render", function renderGLNow(t) {
@@ -14606,8 +14612,8 @@ function createGLShell(options) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, null)
       
       //Set viewport
-      gl.viewport(0, 0, shell.width, shell.height)
-      
+      gl.viewport(0, 0, (shell._width / scale)|0, (shell._height / scale)|0)
+
       //Clear buffers
       if(shell.clearFlags & gl.STENCIL_BUFFER_BIT) {
         gl.clearStencil(shell.clearStencil)
@@ -14629,7 +14635,56 @@ function createGLShell(options) {
     //WebGL initialized
     shell.emit("gl-init")
   })
-  
+
+  function resize() {
+    var nw = (shell._width/scale)|0
+    var nh = (shell._height/scale)|0
+    shell.canvas.width = nw
+    shell.canvas.height = nh
+    shell.canvas.style.width = shell._width + 'px'
+    shell.canvas.style.height = shell._height + 'px'
+    shell.emit("gl-resize", nw, nh)
+  }
+
+  Object.defineProperty(shell, 'scale', {
+    get: function() {
+      return scale
+    },
+    set: function(_scale) {
+      _scale = +_scale
+      if((_scale <= 0) || isNaN(_scale) || (scale === _scale)) {
+        return scale
+      }
+      scale = _scale
+      resize()
+      return scale
+    }
+  })
+
+  Object.defineProperty(shell, "width", {
+    get: function() {
+      return (shell._width / scale)|0
+    }
+  })
+
+  Object.defineProperty(shell, "height", {
+    get: function() {
+      return (shell._height / scale)|0
+    }
+  })
+
+  Object.defineProperty(shell, "mouse", {
+    get: function() {
+      return [shell.mouseX/scale, shell.mouseY/scale]
+    }
+  })
+
+  Object.defineProperty(shell, "prevMouse", {
+    get: function() {
+      return [shell.prevMouseX/scale, shell.prevMouseY/scale]
+    }
+  })
+
   return shell
 }
 
@@ -15098,7 +15153,7 @@ function GameShell() {
   this.tickTime = this._tickRate
   this.frameTime = 10.0
   this.stickyFullscreen = false
-  this.stickyPointLock = false
+  this.stuckyPointLock = false
   
   //Scroll stuff
   this.scroll = [0,0,0]
@@ -15728,7 +15783,8 @@ function createShell(options) {
 }
 
 module.exports = createShell
-},{"./lib/hrtime-polyfill.js":49,"./lib/mousewheel-polyfill.js":50,"./lib/raf-polyfill.js":51,"binary-search-bounds":52,"domready":53,"events":244,"invert-hash":54,"iota-array":55,"uniq":56,"util":257,"vkey":57}],59:[function(require,module,exports){
+
+},{"./lib/hrtime-polyfill.js":49,"./lib/mousewheel-polyfill.js":50,"./lib/raf-polyfill.js":51,"binary-search-bounds":52,"domready":53,"events":284,"invert-hash":54,"iota-array":55,"uniq":56,"util":297,"vkey":57}],59:[function(require,module,exports){
 module.exports=require(45)
 },{}],60:[function(require,module,exports){
 module.exports=require(46)
@@ -15780,7 +15836,7 @@ function compileShader(gl, vertexSource, fragmentSource) {
   return createShader(gl, vertexSource, fragmentSource, uniforms, attributes)
 }
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"buffer":241,"gl-shader-core":67,"glsl-extract":68,"through":99,"uniq":100}],62:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"gl-shader-core":67,"glsl-extract":68,"through":99,"uniq":100}],62:[function(require,module,exports){
 "use strict"
 
 module.exports = coallesceUniforms
@@ -16337,7 +16393,7 @@ function tostring() {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"./lib/collect":69,"./lib/format":71,"./lib/preprocess":72,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"buffer":241,"glsl-parser":80,"glsl-tokenizer":85,"through":99,"utf8-stream":89}],69:[function(require,module,exports){
+},{"./lib/collect":69,"./lib/format":71,"./lib/preprocess":72,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"glsl-parser":80,"glsl-tokenizer":85,"through":99,"utf8-stream":89}],69:[function(require,module,exports){
 'use strict'
 
 module.exports = collect_storages
@@ -18185,7 +18241,7 @@ proto.tab = function() {
 
 },{}],79:[function(require,module,exports){
 module.exports=require(27)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"stream":249}],80:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],80:[function(require,module,exports){
 arguments[4][23][0].apply(exports,arguments)
 },{"./lib/index":82}],81:[function(require,module,exports){
 module.exports=require(24)
@@ -19153,7 +19209,7 @@ function is_precision(token) {
 module.exports=require(26)
 },{}],84:[function(require,module,exports){
 module.exports=require(27)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"stream":249}],85:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],85:[function(require,module,exports){
 module.exports=require(28)
 },{"./lib/builtins":86,"./lib/literals":87,"./lib/operators":88,"through":99}],86:[function(require,module,exports){
 module.exports=require(29)
@@ -19225,7 +19281,7 @@ function nbytes (b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":241,"readable-stream/transform":98}],90:[function(require,module,exports){
+},{"buffer":281,"readable-stream/transform":98}],90:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -19318,7 +19374,7 @@ function forEach (xs, f) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./_stream_readable":91,"./_stream_writable":93,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"core-util-is":94,"inherits":95}],91:[function(require,module,exports){
+},{"./_stream_readable":91,"./_stream_writable":93,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"core-util-is":94,"inherits":95}],91:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -20281,7 +20337,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"buffer":241,"core-util-is":94,"events":244,"inherits":95,"isarray":96,"stream":249,"string_decoder/":97}],92:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"core-util-is":94,"events":284,"inherits":95,"isarray":96,"stream":289,"string_decoder/":97}],92:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20884,7 +20940,7 @@ function endWritable(stream, state, cb) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./_stream_duplex":90,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"buffer":241,"core-util-is":94,"inherits":95,"stream":249}],94:[function(require,module,exports){
+},{"./_stream_duplex":90,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"core-util-is":94,"inherits":95,"stream":289}],94:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -20994,7 +21050,7 @@ function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
 }).call(this,require("buffer").Buffer)
-},{"buffer":241}],95:[function(require,module,exports){
+},{"buffer":281}],95:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -21226,20 +21282,854 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":241}],98:[function(require,module,exports){
+},{"buffer":281}],98:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
 },{"./lib/_stream_transform.js":92}],99:[function(require,module,exports){
 module.exports=require(32)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"stream":249}],100:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],100:[function(require,module,exports){
 module.exports=require(11)
 },{}],101:[function(require,module,exports){
 module.exports=require(17)
 },{}],102:[function(require,module,exports){
+"use strict"
+
+var compile = require("cwise-compiler")
+
+var EmptyProc = {
+  body: "",
+  args: [],
+  thisVars: [],
+  localVars: []
+}
+
+function fixup(x) {
+  if(!x) {
+    return EmptyProc
+  }
+  for(var i=0; i<x.args.length; ++i) {
+    var a = x.args[i]
+    if(i === 0) {
+      x.args[i] = {name: a, lvalue:true, rvalue: !!x.rvalue, count:x.count||1 }
+    } else {
+      x.args[i] = {name: a, lvalue:false, rvalue:true, count: 1}
+    }
+  }
+  if(!x.thisVars) {
+    x.thisVars = []
+  }
+  if(!x.localVars) {
+    x.localVars = []
+  }
+  return x
+}
+
+function pcompile(user_args) {
+  return compile({
+    args:     user_args.args,
+    pre:      fixup(user_args.pre),
+    body:     fixup(user_args.body),
+    post:     fixup(user_args.proc),
+    funcName: user_args.funcName
+  })
+}
+
+function makeOp(user_args) {
+  var args = []
+  for(var i=0; i<user_args.args.length; ++i) {
+    args.push("a"+i)
+  }
+  var wrapper = new Function("P", [
+    "return function ", user_args.funcName, "_ndarrayops(", args.join(","), ") {P(", args.join(","), ");return a0}"
+  ].join(""))
+  return wrapper(pcompile(user_args))
+}
+
+var assign_ops = {
+  add:  "+",
+  sub:  "-",
+  mul:  "*",
+  div:  "/",
+  mod:  "%",
+  band: "&",
+  bor:  "|",
+  bxor: "^",
+  lshift: "<<",
+  rshift: ">>",
+  rrshift: ">>>"
+}
+;(function(){
+  for(var id in assign_ops) {
+    var op = assign_ops[id]
+    exports[id] = makeOp({
+      args: ["array","array","array"],
+      body: {args:["a","b","c"],
+             body: "a=b"+op+"c"},
+      funcName: id
+    })
+    exports[id+"eq"] = makeOp({
+      args: ["array","array"],
+      body: {args:["a","b"],
+             body:"a"+op+"=b"},
+      rvalue: true,
+      funcName: id+"eq"
+    })
+    exports[id+"s"] = makeOp({
+      args: ["array", "array", "scalar"],
+      body: {args:["a","b","s"],
+             body:"a=b"+op+"s"},
+      funcName: id+"s"
+    })
+    exports[id+"seq"] = makeOp({
+      args: ["array","scalar"],
+      body: {args:["a","s"],
+             body:"a"+op+"=s"},
+      rvalue: true,
+      funcName: id+"seq"
+    })
+  }
+})();
+
+var unary_ops = {
+  not: "!",
+  bnot: "~",
+  neg: "-",
+  recip: "1.0/"
+}
+;(function(){
+  for(var id in unary_ops) {
+    var op = unary_ops[id]
+    exports[id] = makeOp({
+      args: ["array", "array"],
+      body: {args:["a","b"],
+             body:"a="+op+"b"},
+      funcName: id
+    })
+    exports[id+"eq"] = makeOp({
+      args: ["array"],
+      body: {args:["a"],
+             body:"a="+op+"a"},
+      rvalue: true,
+      count: 2,
+      funcName: id+"eq"
+    })
+  }
+})();
+
+var binary_ops = {
+  and: "&&",
+  or: "||",
+  eq: "===",
+  neq: "!==",
+  lt: "<",
+  gt: ">",
+  leq: "<=",
+  geq: ">="
+}
+;(function() {
+  for(var id in binary_ops) {
+    var op = binary_ops[id]
+    exports[id] = makeOp({
+      args: ["array","array","array"],
+      body: {args:["a", "b", "c"],
+             body:"a=b"+op+"c"},
+      funcName: id
+    })
+    exports[id+"s"] = makeOp({
+      args: ["array","array","scalar"],
+      body: {args:["a", "b", "s"],
+             body:"a=b"+op+"s"},
+      funcName: id+"s"
+    })
+    exports[id+"eq"] = makeOp({
+      args: ["array", "array"],
+      body: {args:["a", "b"],
+             body:"a=a"+op+"b"},
+      rvalue:true,
+      count:2,
+      funcName: id+"eq"
+    })
+    exports[id+"seq"] = makeOp({
+      args: ["array", "scalar"],
+      body: {args:["a","s"],
+             body:"a=a"+op+"s"},
+      rvalue:true,
+      count:2,
+      funcName: id+"seq"
+    })
+  }
+})();
+
+var math_unary = [
+  "abs",
+  "acos",
+  "asin",
+  "atan",
+  "ceil",
+  "cos",
+  "exp",
+  "floor",
+  "log",
+  "round",
+  "sin",
+  "sqrt",
+  "tan"
+]
+;(function() {
+  for(var i=0; i<math_unary.length; ++i) {
+    var f = math_unary[i]
+    exports[f] = makeOp({
+                    args: ["array", "array"],
+                    pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                    body: {args:["a","b"], body:"a=this_f(b)", thisVars:["this_f"]},
+                    funcName: f
+                  })
+    exports[f+"eq"] = makeOp({
+                      args: ["array"],
+                      pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                      body: {args: ["a"], body:"a=this_f(a)", thisVars:["this_f"]},
+                      rvalue: true,
+                      count: 2,
+                      funcName: f+"eq"
+                    })
+  }
+})();
+
+var math_comm = [
+  "max",
+  "min",
+  "atan2",
+  "pow"
+]
+;(function(){
+  for(var i=0; i<math_comm.length; ++i) {
+    var f= math_comm[i]
+    exports[f] = makeOp({
+                  args:["array", "array", "array"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b","c"], body:"a=this_f(b,c)", thisVars:["this_f"]},
+                  funcName: f
+                })
+    exports[f+"s"] = makeOp({
+                  args:["array", "array", "scalar"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b","c"], body:"a=this_f(b,c)", thisVars:["this_f"]},
+                  funcName: f+"s"
+                  })
+    exports[f+"eq"] = makeOp({ args:["array", "array"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b"], body:"a=this_f(a,b)", thisVars:["this_f"]},
+                  rvalue: true,
+                  count: 2,
+                  funcName: f+"eq"
+                  })
+    exports[f+"seq"] = makeOp({ args:["array", "scalar"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b"], body:"a=this_f(a,b)", thisVars:["this_f"]},
+                  rvalue:true,
+                  count:2,
+                  funcName: f+"seq"
+                  })
+  }
+})();
+
+var math_noncomm = [
+  "atan2",
+  "pow"
+]
+;(function(){
+  for(var i=0; i<math_noncomm.length; ++i) {
+    var f= math_noncomm[i]
+    exports[f+"op"] = makeOp({
+                  args:["array", "array", "array"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b","c"], body:"a=this_f(c,b)", thisVars:["this_f"]},
+                  funcName: f+"op"
+                })
+    exports[f+"ops"] = makeOp({
+                  args:["array", "array", "scalar"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b","c"], body:"a=this_f(c,b)", thisVars:["this_f"]},
+                  funcName: f+"ops"
+                  })
+    exports[f+"opeq"] = makeOp({ args:["array", "array"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b"], body:"a=this_f(b,a)", thisVars:["this_f"]},
+                  rvalue: true,
+                  count: 2,
+                  funcName: f+"opeq"
+                  })
+    exports[f+"opseq"] = makeOp({ args:["array", "scalar"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b"], body:"a=this_f(b,a)", thisVars:["this_f"]},
+                  rvalue:true,
+                  count:2,
+                  funcName: f+"opseq"
+                  })
+  }
+})();
+
+exports.any = compile({
+  args:["array"],
+  pre: EmptyProc,
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "if(a){return true}", localVars: [], thisVars: []},
+  post: {args:[], localVars:[], thisVars:[], body:"return false"},
+  funcName: "any"
+})
+
+exports.all = compile({
+  args:["array"],
+  pre: EmptyProc,
+  body: {args:[{name:"x", lvalue:false, rvalue:true, count:1}], body: "if(!x){return false}", localVars: [], thisVars: []},
+  post: {args:[], localVars:[], thisVars:[], body:"return true"},
+  funcName: "all"
+})
+
+exports.sum = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "this_s+=a", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
+  funcName: "sum"
+})
+
+exports.prod = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=1"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "this_s*=a", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
+  funcName: "prod"
+})
+
+exports.norm2squared = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:2}], body: "this_s+=a*a", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
+  funcName: "norm2squared"
+})
+  
+exports.norm2 = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:2}], body: "this_s+=a*a", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return Math.sqrt(this_s)"},
+  funcName: "norm2"
+})
+  
+
+exports.norminf = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:4}], body:"if(-a>this_s){this_s=-a}else if(a>this_s){this_s=a}", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
+  funcName: "norminf"
+})
+
+exports.norm1 = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:3}], body: "this_s+=a<0?-a:a", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
+  funcName: "norm1"
+})
+
+exports.sup = compile({
+  args: [ "array" ],
+  pre:
+   { body: "this_h=-Infinity",
+     args: [],
+     thisVars: [ "this_h" ],
+     localVars: [] },
+  body:
+   { body: "if(_inline_1_arg0_>this_h)this_h=_inline_1_arg0_",
+     args: [{"name":"_inline_1_arg0_","lvalue":false,"rvalue":true,"count":2} ],
+     thisVars: [ "this_h" ],
+     localVars: [] },
+  post:
+   { body: "return this_h",
+     args: [],
+     thisVars: [ "this_h" ],
+     localVars: [] }
+ })
+
+exports.inf = compile({
+  args: [ "array" ],
+  pre:
+   { body: "this_h=Infinity",
+     args: [],
+     thisVars: [ "this_h" ],
+     localVars: [] },
+  body:
+   { body: "if(_inline_1_arg0_<this_h)this_h=_inline_1_arg0_",
+     args: [{"name":"_inline_1_arg0_","lvalue":false,"rvalue":true,"count":2} ],
+     thisVars: [ "this_h" ],
+     localVars: [] },
+  post:
+   { body: "return this_h",
+     args: [],
+     thisVars: [ "this_h" ],
+     localVars: [] }
+ })
+
+exports.argmin = compile({
+  args:["index","array","shape"],
+  pre:{
+    body:"{this_v=Infinity;this_i=_inline_0_arg2_.slice(0)}",
+    args:[
+      {name:"_inline_0_arg0_",lvalue:false,rvalue:false,count:0},
+      {name:"_inline_0_arg1_",lvalue:false,rvalue:false,count:0},
+      {name:"_inline_0_arg2_",lvalue:false,rvalue:true,count:1}
+      ],
+    thisVars:["this_i","this_v"],
+    localVars:[]},
+  body:{
+    body:"{if(_inline_1_arg1_<this_v){this_v=_inline_1_arg1_;for(var _inline_1_k=0;_inline_1_k<_inline_1_arg0_.length;++_inline_1_k){this_i[_inline_1_k]=_inline_1_arg0_[_inline_1_k]}}}",
+    args:[
+      {name:"_inline_1_arg0_",lvalue:false,rvalue:true,count:2},
+      {name:"_inline_1_arg1_",lvalue:false,rvalue:true,count:2}],
+    thisVars:["this_i","this_v"],
+    localVars:["_inline_1_k"]},
+  post:{
+    body:"{return this_i}",
+    args:[],
+    thisVars:["this_i"],
+    localVars:[]}
+})
+
+exports.argmax = compile({
+  args:["index","array","shape"],
+  pre:{
+    body:"{this_v=-Infinity;this_i=_inline_0_arg2_.slice(0)}",
+    args:[
+      {name:"_inline_0_arg0_",lvalue:false,rvalue:false,count:0},
+      {name:"_inline_0_arg1_",lvalue:false,rvalue:false,count:0},
+      {name:"_inline_0_arg2_",lvalue:false,rvalue:true,count:1}
+      ],
+    thisVars:["this_i","this_v"],
+    localVars:[]},
+  body:{
+    body:"{if(_inline_1_arg1_>this_v){this_v=_inline_1_arg1_;for(var _inline_1_k=0;_inline_1_k<_inline_1_arg0_.length;++_inline_1_k){this_i[_inline_1_k]=_inline_1_arg0_[_inline_1_k]}}}",
+    args:[
+      {name:"_inline_1_arg0_",lvalue:false,rvalue:true,count:2},
+      {name:"_inline_1_arg1_",lvalue:false,rvalue:true,count:2}],
+    thisVars:["this_i","this_v"],
+    localVars:["_inline_1_k"]},
+  post:{
+    body:"{return this_i}",
+    args:[],
+    thisVars:["this_i"],
+    localVars:[]}
+})  
+
+exports.random = makeOp({
+  args: ["array"],
+  pre: {args:[], body:"this_f=Math.random", thisVars:["this_f"]},
+  body: {args: ["a"], body:"a=this_f()", thisVars:["this_f"]},
+  funcName: "random"
+})
+
+exports.assign = makeOp({
+  args:["array", "array"],
+  body: {args:["a", "b"], body:"a=b"},
+  funcName: "assign" })
+
+exports.assigns = makeOp({
+  args:["array", "scalar"],
+  body: {args:["a", "b"], body:"a=b"},
+  funcName: "assigns" })
+
+
+exports.equals = compile({
+  args:["array", "array"],
+  pre: EmptyProc,
+  body: {args:[{name:"x", lvalue:false, rvalue:true, count:1},
+               {name:"y", lvalue:false, rvalue:true, count:1}], 
+        body: "if(x!==y){return false}", 
+        localVars: [], 
+        thisVars: []},
+  post: {args:[], localVars:[], thisVars:[], body:"return true"},
+  funcName: "equals"
+})
+
+
+
+},{"cwise-compiler":103}],103:[function(require,module,exports){
+"use strict"
+
+var createThunk = require("./lib/thunk.js")
+
+function Procedure() {
+  this.argTypes = []
+  this.shimArgs = []
+  this.arrayArgs = []
+  this.scalarArgs = []
+  this.indexArgs = []
+  this.shapeArgs = []
+  this.funcName = ""
+  this.pre = null
+  this.body = null
+  this.post = null
+  this.debug = false
+}
+
+function compileCwise(user_args) {
+  //Create procedure
+  var proc = new Procedure()
+  
+  //Parse blocks
+  proc.pre    = user_args.pre
+  proc.body   = user_args.body
+  proc.post   = user_args.post
+
+  //Parse arguments
+  var proc_args = user_args.args.slice(0)
+  proc.argTypes = proc_args
+  for(var i=0; i<proc_args.length; ++i) {
+    switch(proc_args[i]) {
+      case "array":
+        proc.arrayArgs.push(i)
+        proc.shimArgs.push("array" + i)
+        if(i < proc.pre.args.length && proc.pre.args[i].count>0) {
+          throw new Error("cwise: pre() block may not reference array args")
+        }
+        if(i < proc.post.args.length && proc.post.args[i].count>0) {
+          throw new Error("cwise: post() block may not reference array args")
+        }
+      break
+      case "scalar":
+        proc.scalarArgs.push(i)
+        proc.shimArgs.push("scalar" + i)
+      break
+      case "index":
+        proc.indexArgs.push(i)
+        if(i < proc.pre.args.length && proc.pre.args[i].count > 0) {
+          throw new Error("cwise: pre() block may not reference array index")
+        }
+        if(i < proc.body.args.length && proc.body.args[i].lvalue) {
+          throw new Error("cwise: body() block may not write to array index")
+        }
+        if(i < proc.post.args.length && proc.post.args[i].count > 0) {
+          throw new Error("cwise: post() block may not reference array index")
+        }
+      break
+      case "shape":
+        proc.shapeArgs.push(i)
+        if(i < proc.pre.args.length && proc.pre.args[i].lvalue) {
+          throw new Error("cwise: pre() block may not write to array shape")
+        }
+        if(i < proc.body.args.length && proc.body.args[i].lvalue) {
+          throw new Error("cwise: body() block may not write to array shape")
+        }
+        if(i < proc.post.args.length && proc.post.args[i].lvalue) {
+          throw new Error("cwise: post() block may not write to array shape")
+        }
+      break
+      default:
+        throw new Error("cwise: Unknown argument type " + proc_args[i])
+    }
+  }
+  
+  //Make sure at least one array argument was specified
+  if(proc.arrayArgs.length <= 0) {
+    throw new Error("cwise: No array arguments specified")
+  }
+  
+  //Make sure arguments are correct
+  if(proc.pre.args.length > proc_args.length) {
+    throw new Error("cwise: Too many arguments in pre() block")
+  }
+  if(proc.body.args.length > proc_args.length) {
+    throw new Error("cwise: Too many arguments in body() block")
+  }
+  if(proc.post.args.length > proc_args.length) {
+    throw new Error("cwise: Too many arguments in post() block")
+  }
+
+  //Check debug flag
+  proc.debug = !!user_args.printCode || !!user_args.debug
+  
+  //Retrieve name
+  proc.funcName = user_args.funcName || "cwise"
+  
+  //Read in block size
+  proc.blockSize = user_args.blockSize || 64
+
+  return createThunk(proc)
+}
+
+module.exports = compileCwise
+
+},{"./lib/thunk.js":105}],104:[function(require,module,exports){
+"use strict"
+
+var uniq = require("uniq")
+
+function innerFill(order, proc, body) {
+  var dimension = order.length
+    , nargs = proc.arrayArgs.length
+    , has_index = proc.indexArgs.length>0
+    , code = []
+    , vars = []
+    , idx=0, pidx=0, i, j
+  for(i=0; i<dimension; ++i) {
+    vars.push(["i",i,"=0"].join(""))
+  }
+  //Compute scan deltas
+  for(j=0; j<nargs; ++j) {
+    for(i=0; i<dimension; ++i) {
+      pidx = idx
+      idx = order[i]
+      if(i === 0) {
+        vars.push(["d",j,"s",i,"=t",j,"[",idx,"]"].join(""))
+      } else {
+        vars.push(["d",j,"s",i,"=(t",j,"[",idx,"]-s",pidx,"*t",j,"[",pidx,"])"].join(""))
+      }
+    }
+  }
+  code.push("var " + vars.join(","))
+  //Scan loop
+  for(i=dimension-1; i>=0; --i) {
+    idx = order[i]
+    code.push(["for(i",i,"=0;i",i,"<s",idx,";++i",i,"){"].join(""))
+  }
+  //Push body of inner loop
+  code.push(body)
+  //Advance scan pointers
+  for(i=0; i<dimension; ++i) {
+    pidx = idx
+    idx = order[i]
+    for(j=0; j<nargs; ++j) {
+      code.push(["p",j,"+=d",j,"s",i].join(""))
+    }
+    if(has_index) {
+      if(i > 0) {
+        code.push(["index[",pidx,"]-=s",pidx].join(""))
+      }
+      code.push(["++index[",idx,"]"].join(""))
+    }
+    code.push("}")
+  }
+  return code.join("\n")
+}
+
+function outerFill(matched, order, proc, body) {
+  var dimension = order.length
+    , nargs = proc.arrayArgs.length
+    , blockSize = proc.blockSize
+    , has_index = proc.indexArgs.length > 0
+    , code = []
+  for(var i=0; i<nargs; ++i) {
+    code.push(["var offset",i,"=p",i].join(""))
+  }
+  //Generate matched loops
+  for(var i=matched; i<dimension; ++i) {
+    code.push(["for(var j"+i+"=SS[", order[i], "]|0;j", i, ">0;){"].join(""))
+    code.push(["if(j",i,"<",blockSize,"){"].join(""))
+    code.push(["s",order[i],"=j",i].join(""))
+    code.push(["j",i,"=0"].join(""))
+    code.push(["}else{s",order[i],"=",blockSize].join(""))
+    code.push(["j",i,"-=",blockSize,"}"].join(""))
+    if(has_index) {
+      code.push(["index[",order[i],"]=j",i].join(""))
+    }
+  }
+  for(var i=0; i<nargs; ++i) {
+    var indexStr = ["offset"+i]
+    for(var j=matched; j<dimension; ++j) {
+      indexStr.push(["j",j,"*t",i,"[",order[j],"]"].join(""))
+    }
+    code.push(["p",i,"=(",indexStr.join("+"),")"].join(""))
+  }
+  code.push(innerFill(order, proc, body))
+  for(var i=matched; i<dimension; ++i) {
+    code.push("}")
+  }
+  return code.join("\n")
+}
+
+//Count the number of compatible inner orders
+function countMatches(orders) {
+  var matched = 0, dimension = orders[0].length
+  while(matched < dimension) {
+    for(var j=1; j<orders.length; ++j) {
+      if(orders[j][matched] !== orders[0][matched]) {
+        return matched
+      }
+    }
+    ++matched
+  }
+  return matched
+}
+
+//Processes a block according to the given data types
+function processBlock(block, proc, dtypes) {
+  var code = block.body
+  var pre = []
+  var post = []
+  for(var i=0; i<block.args.length; ++i) {
+    var carg = block.args[i]
+    if(carg.count <= 0) {
+      continue
+    }
+    var re = new RegExp(carg.name, "g")
+    switch(proc.argTypes[i]) {
+      case "array":
+        var arrNum = proc.arrayArgs.indexOf(i)
+        if(carg.count === 1) {
+          if(dtypes[arrNum] === "generic") {
+            if(carg.lvalue) {
+              pre.push(["var l", arrNum, "=a", arrNum, ".get(p", arrNum, ")"].join(""))
+              code = code.replace(re, "l"+arrNum)
+              post.push(["a", arrNum, ".set(p", arrNum, ",l",arrNum,")"].join(""))
+            } else {
+              code = code.replace(re, ["a", arrNum, ".get(p", arrNum, ")"].join(""))
+            }
+          } else {
+            code = code.replace(re, ["a", arrNum, "[p", arrNum, "]"].join(""))
+          }
+        } else if(dtypes[arrNum] === "generic") {
+          pre.push(["var l", arrNum, "=a", arrNum, ".get(p", arrNum, ")"].join(""))
+          code = code.replace(re, "l"+arrNum)
+          if(carg.lvalue) {
+            post.push(["a", arrNum, ".set(p", arrNum, ",l",arrNum,")"].join(""))
+          }
+        } else {
+          pre.push(["var l", arrNum, "=a", arrNum, "[p", arrNum, "]"].join(""))
+          code = code.replace(re, "l"+arrNum)
+          if(carg.lvalue) {
+            post.push(["a", arrNum, "[p", arrNum, "]=l",arrNum].join(""))
+          }
+        }
+      break
+      case "scalar":
+        code = code.replace(re, "Y" + proc.scalarArgs.indexOf(i))
+      break
+      case "index":
+        code = code.replace(re, "index")
+      break
+      case "shape":
+        code = code.replace(re, "shape")
+      break
+    }
+  }
+  return [pre.join("\n"), code, post.join("\n")].join("\n").trim()
+}
+
+function typeSummary(dtypes) {
+  var summary = new Array(dtypes.length)
+  var allEqual = true
+  for(var i=0; i<dtypes.length; ++i) {
+    var t = dtypes[i]
+    var digits = t.match(/\d+/)
+    if(!digits) {
+      digits = ""
+    } else {
+      digits = digits[0]
+    }
+    if(t.charAt(0) === 0) {
+      summary[i] = "u" + t.charAt(1) + digits
+    } else {
+      summary[i] = t.charAt(0) + digits
+    }
+    if(i > 0) {
+      allEqual = allEqual && summary[i] === summary[i-1]
+    }
+  }
+  if(allEqual) {
+    return summary[0]
+  }
+  return summary.join("")
+}
+
+//Generates a cwise operator
+function generateCWiseOp(proc, typesig) {
+
+  //Compute dimension
+  var dimension = typesig[1].length|0
+  var orders = new Array(proc.arrayArgs.length)
+  var dtypes = new Array(proc.arrayArgs.length)
+
+  //First create arguments for procedure
+  var arglist = ["SS"]
+  var code = ["'use strict'"]
+  var vars = []
+  
+  for(var j=0; j<dimension; ++j) {
+    vars.push(["s", j, "=SS[", j, "]"].join(""))
+  }
+  for(var i=0; i<proc.arrayArgs.length; ++i) {
+    arglist.push("a"+i)
+    arglist.push("t"+i)
+    arglist.push("p"+i)
+    dtypes[i] = typesig[2*i]
+    orders[i] = typesig[2*i+1]
+  }
+  for(var i=0; i<proc.scalarArgs.length; ++i) {
+    arglist.push("Y" + i)
+  }
+  if(proc.shapeArgs.length > 0) {
+    vars.push("shape=SS.slice(0)")
+  }
+  if(proc.indexArgs.length > 0) {
+    var zeros = new Array(dimension)
+    for(var i=0; i<dimension; ++i) {
+      zeros[i] = "0"
+    }
+    vars.push(["index=[", zeros.join(","), "]"].join(""))
+  }
+
+  //Prepare this variables
+  var thisVars = uniq([].concat(proc.pre.thisVars)
+                      .concat(proc.body.thisVars)
+                      .concat(proc.post.thisVars))
+  vars = vars.concat(thisVars)
+  code.push("var " + vars.join(","))
+  for(var i=0; i<proc.arrayArgs.length; ++i) {
+    code.push("p"+i+"|=0")
+  }
+  
+  //Inline prelude
+  if(proc.pre.body.length > 3) {
+    code.push(processBlock(proc.pre, proc, dtypes))
+  }
+
+  //Process body
+  var body = processBlock(proc.body, proc, dtypes)
+  var matched = countMatches(orders)
+  if(matched < dimension) {
+    code.push(outerFill(matched, orders[0], proc, body))
+  } else {
+    code.push(innerFill(orders[0], proc, body))
+  }
+
+  //Inline epilog
+  if(proc.post.body.length > 3) {
+    code.push(processBlock(proc.post, proc, dtypes))
+  }
+  
+  if(proc.debug) {
+    console.log("Generated cwise routine for ", typesig, ":\n\n", code.join("\n"))
+  }
+  
+  var loopName = [(proc.funcName||"unnamed"), "_cwise_loop_", orders[0].join("s"),"m",matched,typeSummary(dtypes)].join("")
+  var f = new Function(["function ",loopName,"(", arglist.join(","),"){", code.join("\n"),"} return ", loopName].join(""))
+  return f()
+}
+module.exports = generateCWiseOp
+},{"uniq":106}],105:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"./compile.js":104}],106:[function(require,module,exports){
+module.exports=require(11)
+},{}],107:[function(require,module,exports){
 module.exports=require(18)
-},{}],103:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 module.exports=require(44)
-},{"bit-twiddle":101,"buffer":241,"dup":102}],104:[function(require,module,exports){
+},{"bit-twiddle":101,"buffer":281,"dup":107}],109:[function(require,module,exports){
+module.exports=require(45)
+},{}],110:[function(require,module,exports){
+module.exports=require(46)
+},{"weakmap":109}],111:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -21367,7 +22257,7 @@ Object.defineProperty(proto, "mipSamples", {
   },
   set: function(i) {
     var psamples = this._anisoSamples
-    this._anisoSamples = i|0
+    this._anisoSamples = Math.max(i, 1)|0
     if(psamples !== this._anisoSamples) {
       var ext = webglew(this.gl).EXT_texture_filter_anisotropic
       if(ext) {
@@ -21661,7 +22551,11 @@ function createTexture2D(gl) {
 }
 module.exports = createTexture2D
 
-},{"ndarray":151,"ndarray-ops":146,"typedarray-pool":103,"webglew":129}],105:[function(require,module,exports){
+},{"ndarray":112,"ndarray-ops":102,"typedarray-pool":108,"webglew":110}],112:[function(require,module,exports){
+module.exports=require(15)
+},{"buffer":281,"iota-array":113}],113:[function(require,module,exports){
+module.exports=require(13)
+},{}],114:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -21726,7 +22620,7 @@ function makeTileMipMap(tilearray, pad) {
   return levels
 }
 module.exports = makeTileMipMap
-},{"ndarray":151,"ndarray-downsample2x":106,"ndarray-ops":124}],106:[function(require,module,exports){
+},{"ndarray":112,"ndarray-downsample2x":115,"ndarray-ops":153}],115:[function(require,module,exports){
 "use strict"
 
 var fft = require("ndarray-fft")
@@ -21811,7 +22705,7 @@ function downsample2x(out, inp, clamp_lo, clamp_hi) {
 }
 
 module.exports = downsample2x
-},{"cwise":107,"ndarray-fft":115,"ndarray-ops":124,"ndarray-scratch":123}],107:[function(require,module,exports){
+},{"cwise":116,"ndarray-fft":124,"ndarray-ops":142,"ndarray-scratch":152}],116:[function(require,module,exports){
 "use strict"
 
 var parse   = require("cwise-parser")
@@ -21848,374 +22742,15 @@ function createCWise(user_args) {
 
 module.exports = createCWise
 
-},{"cwise-compiler":108,"cwise-parser":112}],108:[function(require,module,exports){
-"use strict"
-
-var createThunk = require("./lib/thunk.js")
-
-function Procedure() {
-  this.argTypes = []
-  this.shimArgs = []
-  this.arrayArgs = []
-  this.scalarArgs = []
-  this.indexArgs = []
-  this.shapeArgs = []
-  this.funcName = ""
-  this.pre = null
-  this.body = null
-  this.post = null
-  this.debug = false
-}
-
-function compileCwise(user_args) {
-  //Create procedure
-  var proc = new Procedure()
-  
-  //Parse blocks
-  proc.pre    = user_args.pre
-  proc.body   = user_args.body
-  proc.post   = user_args.post
-
-  //Parse arguments
-  var proc_args = user_args.args.slice(0)
-  proc.argTypes = proc_args
-  for(var i=0; i<proc_args.length; ++i) {
-    switch(proc_args[i]) {
-      case "array":
-        proc.arrayArgs.push(i)
-        proc.shimArgs.push("array" + i)
-        if(i < proc.pre.args.length && proc.pre.args[i].count>0) {
-          throw new Error("cwise: pre() block may not reference array args")
-        }
-        if(i < proc.post.args.length && proc.post.args[i].count>0) {
-          throw new Error("cwise: post() block may not reference array args")
-        }
-      break
-      case "scalar":
-        proc.scalarArgs.push(i)
-        proc.shimArgs.push("scalar" + i)
-      break
-      case "index":
-        proc.indexArgs.push(i)
-        if(i < proc.pre.args.length && proc.pre.args[i].count > 0) {
-          throw new Error("cwise: pre() block may not reference array index")
-        }
-        if(i < proc.body.args.length && proc.body.args[i].lvalue) {
-          throw new Error("cwise: body() block may not write to array index")
-        }
-        if(i < proc.post.args.length && proc.post.args[i].count > 0) {
-          throw new Error("cwise: post() block may not reference array index")
-        }
-      break
-      case "shape":
-        proc.shapeArgs.push(i)
-        if(i < proc.pre.args.length && proc.pre.args[i].lvalue) {
-          throw new Error("cwise: pre() block may not write to array shape")
-        }
-        if(i < proc.body.args.length && proc.body.args[i].lvalue) {
-          throw new Error("cwise: body() block may not write to array shape")
-        }
-        if(i < proc.post.args.length && proc.post.args[i].lvalue) {
-          throw new Error("cwise: post() block may not write to array shape")
-        }
-      break
-      default:
-        throw new Error("cwise: Unknown argument type " + proc_args[i])
-    }
-  }
-  
-  //Make sure at least one array argument was specified
-  if(proc.arrayArgs.length <= 0) {
-    throw new Error("cwise: No array arguments specified")
-  }
-  
-  //Make sure arguments are correct
-  if(proc.pre.args.length > proc_args.length) {
-    throw new Error("cwise: Too many arguments in pre() block")
-  }
-  if(proc.body.args.length > proc_args.length) {
-    throw new Error("cwise: Too many arguments in body() block")
-  }
-  if(proc.post.args.length > proc_args.length) {
-    throw new Error("cwise: Too many arguments in post() block")
-  }
-
-  //Check debug flag
-  proc.debug = !!user_args.printCode || !!user_args.debug
-  
-  //Retrieve name
-  proc.funcName = user_args.funcName || "cwise"
-  
-  //Read in block size
-  proc.blockSize = user_args.blockSize || 64
-
-  return createThunk(proc)
-}
-
-module.exports = compileCwise
-
-},{"./lib/thunk.js":110}],109:[function(require,module,exports){
-"use strict"
-
-var uniq = require("uniq")
-
-function innerFill(order, proc, body) {
-  var dimension = order.length
-    , nargs = proc.arrayArgs.length
-    , has_index = proc.indexArgs.length>0
-    , code = []
-    , vars = []
-    , idx=0, pidx=0, i, j
-  for(i=0; i<dimension; ++i) {
-    vars.push(["i",i,"=0"].join(""))
-  }
-  //Compute scan deltas
-  for(j=0; j<nargs; ++j) {
-    for(i=0; i<dimension; ++i) {
-      pidx = idx
-      idx = order[i]
-      if(i === 0) {
-        vars.push(["d",j,"s",i,"=t",j,"[",idx,"]"].join(""))
-      } else {
-        vars.push(["d",j,"s",i,"=(t",j,"[",idx,"]-s",pidx,"*t",j,"[",pidx,"])"].join(""))
-      }
-    }
-  }
-  code.push("var " + vars.join(","))
-  //Scan loop
-  for(i=dimension-1; i>=0; --i) {
-    idx = order[i]
-    code.push(["for(i",i,"=0;i",i,"<s",idx,";++i",i,"){"].join(""))
-  }
-  //Push body of inner loop
-  code.push(body)
-  //Advance scan pointers
-  for(i=0; i<dimension; ++i) {
-    pidx = idx
-    idx = order[i]
-    for(j=0; j<nargs; ++j) {
-      code.push(["p",j,"+=d",j,"s",i].join(""))
-    }
-    if(has_index) {
-      if(i > 0) {
-        code.push(["index[",pidx,"]-=s",pidx].join(""))
-      }
-      code.push(["++index[",idx,"]"].join(""))
-    }
-    code.push("}")
-  }
-  return code.join("\n")
-}
-
-function outerFill(matched, order, proc, body) {
-  var dimension = order.length
-    , nargs = proc.arrayArgs.length
-    , blockSize = proc.blockSize
-    , has_index = proc.indexArgs.length > 0
-    , code = []
-  for(var i=0; i<nargs; ++i) {
-    code.push(["var offset",i,"=p",i].join(""))
-  }
-  //Generate matched loops
-  for(var i=matched; i<dimension; ++i) {
-    code.push(["for(var j"+i+"=SS[", order[i], "]|0;j", i, ">0;){"].join(""))
-    code.push(["if(j",i,"<",blockSize,"){"].join(""))
-    code.push(["s",order[i],"=j",i].join(""))
-    code.push(["j",i,"=0"].join(""))
-    code.push(["}else{s",order[i],"=",blockSize].join(""))
-    code.push(["j",i,"-=",blockSize,"}"].join(""))
-    if(has_index) {
-      code.push(["index[",order[i],"]=j",i].join(""))
-    }
-  }
-  for(var i=0; i<nargs; ++i) {
-    var indexStr = ["offset"+i]
-    for(var j=matched; j<dimension; ++j) {
-      indexStr.push(["j",j,"*t",i,"[",order[j],"]"].join(""))
-    }
-    code.push(["p",i,"=(",indexStr.join("+"),")"].join(""))
-  }
-  code.push(innerFill(order, proc, body))
-  for(var i=matched; i<dimension; ++i) {
-    code.push("}")
-  }
-  return code.join("\n")
-}
-
-//Count the number of compatible inner orders
-function countMatches(orders) {
-  var matched = 0, dimension = orders[0].length
-  while(matched < dimension) {
-    for(var j=1; j<orders.length; ++j) {
-      if(orders[j][matched] !== orders[0][matched]) {
-        return matched
-      }
-    }
-    ++matched
-  }
-  return matched
-}
-
-//Processes a block according to the given data types
-function processBlock(block, proc, dtypes) {
-  var code = block.body
-  var pre = []
-  var post = []
-  for(var i=0; i<block.args.length; ++i) {
-    var carg = block.args[i]
-    if(carg.count <= 0) {
-      continue
-    }
-    var re = new RegExp(carg.name, "g")
-    switch(proc.argTypes[i]) {
-      case "array":
-        var arrNum = proc.arrayArgs.indexOf(i)
-        if(carg.count === 1) {
-          if(dtypes[arrNum] === "generic") {
-            if(carg.lvalue) {
-              pre.push(["var l", arrNum, "=a", arrNum, ".get(p", arrNum, ")"].join(""))
-              code = code.replace(re, "l"+arrNum)
-              post.push(["a", arrNum, ".set(p", arrNum, ",l",arrNum,")"].join(""))
-            } else {
-              code = code.replace(re, ["a", arrNum, ".get(p", arrNum, ")"].join(""))
-            }
-          } else {
-            code = code.replace(re, ["a", arrNum, "[p", arrNum, "]"].join(""))
-          }
-        } else if(dtypes[arrNum] === "generic") {
-          pre.push(["var l", arrNum, "=a", arrNum, ".get(p", arrNum, ")"].join(""))
-          code = code.replace(re, "l"+arrNum)
-          if(carg.lvalue) {
-            post.push(["a", arrNum, ".set(p", arrNum, ",l",arrNum,")"].join(""))
-          }
-        } else {
-          pre.push(["var l", arrNum, "=a", arrNum, "[p", arrNum, "]"].join(""))
-          code = code.replace(re, "l"+arrNum)
-          if(carg.lvalue) {
-            post.push(["a", arrNum, "[p", arrNum, "]=l",arrNum].join(""))
-          }
-        }
-      break
-      case "scalar":
-        code = code.replace(re, "Y" + proc.scalarArgs.indexOf(i))
-      break
-      case "index":
-        code = code.replace(re, "index")
-      break
-      case "shape":
-        code = code.replace(re, "shape")
-      break
-    }
-  }
-  return [pre.join("\n"), code, post.join("\n")].join("\n").trim()
-}
-
-function typeSummary(dtypes) {
-  var summary = new Array(dtypes.length)
-  var allEqual = true
-  for(var i=0; i<dtypes.length; ++i) {
-    var t = dtypes[i]
-    var digits = t.match(/\d+/)
-    if(!digits) {
-      digits = ""
-    } else {
-      digits = digits[0]
-    }
-    if(t.charAt(0) === 0) {
-      summary[i] = "u" + t.charAt(1) + digits
-    } else {
-      summary[i] = t.charAt(0) + digits
-    }
-    if(i > 0) {
-      allEqual = allEqual && summary[i] === summary[i-1]
-    }
-  }
-  if(allEqual) {
-    return summary[0]
-  }
-  return summary.join("")
-}
-
-//Generates a cwise operator
-function generateCWiseOp(proc, typesig) {
-
-  //Compute dimension
-  var dimension = typesig[1].length|0
-  var orders = new Array(proc.arrayArgs.length)
-  var dtypes = new Array(proc.arrayArgs.length)
-
-  //First create arguments for procedure
-  var arglist = ["SS"]
-  var code = ["'use strict'"]
-  var vars = []
-  
-  for(var j=0; j<dimension; ++j) {
-    vars.push(["s", j, "=SS[", j, "]"].join(""))
-  }
-  for(var i=0; i<proc.arrayArgs.length; ++i) {
-    arglist.push("a"+i)
-    arglist.push("t"+i)
-    arglist.push("p"+i)
-    dtypes[i] = typesig[2*i]
-    orders[i] = typesig[2*i+1]
-  }
-  for(var i=0; i<proc.scalarArgs.length; ++i) {
-    arglist.push("Y" + i)
-  }
-  if(proc.shapeArgs.length > 0) {
-    vars.push("shape=SS.slice(0)")
-  }
-  if(proc.indexArgs.length > 0) {
-    var zeros = new Array(dimension)
-    for(var i=0; i<dimension; ++i) {
-      zeros[i] = "0"
-    }
-    vars.push(["index=[", zeros.join(","), "]"].join(""))
-  }
-
-  //Prepare this variables
-  var thisVars = uniq([].concat(proc.pre.thisVars)
-                      .concat(proc.body.thisVars)
-                      .concat(proc.post.thisVars))
-  vars = vars.concat(thisVars)
-  code.push("var " + vars.join(","))
-  for(var i=0; i<proc.arrayArgs.length; ++i) {
-    code.push("p"+i+"|=0")
-  }
-  
-  //Inline prelude
-  if(proc.pre.body.length > 3) {
-    code.push(processBlock(proc.pre, proc, dtypes))
-  }
-
-  //Process body
-  var body = processBlock(proc.body, proc, dtypes)
-  var matched = countMatches(orders)
-  if(matched < dimension) {
-    code.push(outerFill(matched, orders[0], proc, body))
-  } else {
-    code.push(innerFill(orders[0], proc, body))
-  }
-
-  //Inline epilog
-  if(proc.post.body.length > 3) {
-    code.push(processBlock(proc.post, proc, dtypes))
-  }
-  
-  if(proc.debug) {
-    console.log("Generated cwise routine for ", typesig, ":\n\n", code.join("\n"))
-  }
-  
-  var loopName = [(proc.funcName||"unnamed"), "_cwise_loop_", orders[0].join("s"),"m",matched,typeSummary(dtypes)].join("")
-  var f = new Function(["function ",loopName,"(", arglist.join(","),"){", code.join("\n"),"} return ", loopName].join(""))
-  return f()
-}
-module.exports = generateCWiseOp
-},{"uniq":111}],110:[function(require,module,exports){
+},{"cwise-compiler":117,"cwise-parser":121}],117:[function(require,module,exports){
+arguments[4][103][0].apply(exports,arguments)
+},{"./lib/thunk.js":119}],118:[function(require,module,exports){
+module.exports=require(104)
+},{"uniq":120}],119:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":109}],111:[function(require,module,exports){
+},{"./compile.js":118}],120:[function(require,module,exports){
 module.exports=require(11)
-},{}],112:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 "use strict"
 
 var esprima = require("esprima")
@@ -22411,7 +22946,7 @@ function preprocess(func) {
 }
 
 module.exports = preprocess
-},{"esprima":113,"uniq":114}],113:[function(require,module,exports){
+},{"esprima":122,"uniq":123}],122:[function(require,module,exports){
 /*
   Copyright (C) 2012 Ariya Hidayat <ariya.hidayat@gmail.com>
   Copyright (C) 2012 Mathias Bynens <mathias@qiwi.be>
@@ -26321,9 +26856,9 @@ parseStatement: true, parseSourceElement: true */
 }));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],114:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 module.exports=require(11)
-},{}],115:[function(require,module,exports){
+},{}],124:[function(require,module,exports){
 "use strict"
 
 var ops = require("ndarray-ops")
@@ -26408,7 +26943,7 @@ function ndfft(dir, x, y) {
 
 module.exports = ndfft
 
-},{"./lib/fft-matrix.js":116,"cwise":107,"ndarray":151,"ndarray-ops":124,"typedarray-pool":119}],116:[function(require,module,exports){
+},{"./lib/fft-matrix.js":125,"cwise":127,"ndarray":112,"ndarray-ops":135,"typedarray-pool":141}],125:[function(require,module,exports){
 var bits = require("bit-twiddle")
 
 function fft(dir, nrows, ncols, buffer, x_ptr, y_ptr, scratch_ptr) {
@@ -26627,43 +27162,25 @@ function fftBluestein(dir, nrows, ncols, buffer, x_ptr, y_ptr, scratch_ptr) {
   }
 }
 
-},{"bit-twiddle":117}],117:[function(require,module,exports){
+},{"bit-twiddle":126}],126:[function(require,module,exports){
 module.exports=require(17)
-},{}],118:[function(require,module,exports){
-module.exports=require(18)
-},{}],119:[function(require,module,exports){
-module.exports=require(19)
-},{"bit-twiddle":117,"dup":118}],120:[function(require,module,exports){
-module.exports=require(17)
-},{}],121:[function(require,module,exports){
-module.exports=require(18)
-},{}],122:[function(require,module,exports){
-module.exports=require(19)
-},{"bit-twiddle":120,"dup":121}],123:[function(require,module,exports){
-"use strict"
-
-var ndarray = require("ndarray")
-var pool = require("typedarray-pool")
-
-function malloc(shape, dtype) {
-  if(!dtype) {
-    dtype = "double"
-  }
-  var sz = 1
-  var stride = new Array(shape.length)
-  for(var i=shape.length-1; i>=0; --i) {
-    stride[i] = sz
-    sz *= shape[i]
-  }
-  return ndarray(pool.malloc(sz, dtype), shape, stride, 0)
-}
-exports.malloc = malloc
-
-function free(array) {
-  pool.free(array.data)
-}
-exports.free = free
-},{"ndarray":151,"typedarray-pool":122}],124:[function(require,module,exports){
+},{}],127:[function(require,module,exports){
+arguments[4][116][0].apply(exports,arguments)
+},{"cwise-compiler":128,"cwise-parser":132}],128:[function(require,module,exports){
+arguments[4][103][0].apply(exports,arguments)
+},{"./lib/thunk.js":130}],129:[function(require,module,exports){
+module.exports=require(104)
+},{"uniq":131}],130:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"./compile.js":129}],131:[function(require,module,exports){
+module.exports=require(11)
+},{}],132:[function(require,module,exports){
+module.exports=require(121)
+},{"esprima":133,"uniq":134}],133:[function(require,module,exports){
+module.exports=require(122)
+},{}],134:[function(require,module,exports){
+module.exports=require(11)
+},{}],135:[function(require,module,exports){
 "use strict"
 
 var compile = require("cwise-compiler")
@@ -27112,51 +27629,73 @@ exports.assigns = makeOp({
   funcName: "assigns" })
 
 
-},{"cwise-compiler":125}],125:[function(require,module,exports){
-arguments[4][108][0].apply(exports,arguments)
-},{"./lib/thunk.js":127}],126:[function(require,module,exports){
-module.exports=require(109)
-},{"uniq":128}],127:[function(require,module,exports){
+},{"cwise-compiler":136}],136:[function(require,module,exports){
+arguments[4][103][0].apply(exports,arguments)
+},{"./lib/thunk.js":138}],137:[function(require,module,exports){
+module.exports=require(104)
+},{"uniq":139}],138:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":126}],128:[function(require,module,exports){
+},{"./compile.js":137}],139:[function(require,module,exports){
 module.exports=require(11)
-},{}],129:[function(require,module,exports){
-"use strict";
+},{}],140:[function(require,module,exports){
+module.exports=require(18)
+},{}],141:[function(require,module,exports){
+module.exports=require(19)
+},{"bit-twiddle":126,"dup":140}],142:[function(require,module,exports){
+arguments[4][135][0].apply(exports,arguments)
+},{"cwise-compiler":143}],143:[function(require,module,exports){
+arguments[4][103][0].apply(exports,arguments)
+},{"./lib/thunk.js":145}],144:[function(require,module,exports){
+module.exports=require(104)
+},{"uniq":146}],145:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"./compile.js":144}],146:[function(require,module,exports){
+module.exports=require(11)
+},{}],147:[function(require,module,exports){
+module.exports=require(15)
+},{"buffer":281,"iota-array":148}],148:[function(require,module,exports){
+module.exports=require(13)
+},{}],149:[function(require,module,exports){
+module.exports=require(17)
+},{}],150:[function(require,module,exports){
+module.exports=require(18)
+},{}],151:[function(require,module,exports){
+module.exports=require(19)
+},{"bit-twiddle":149,"dup":150}],152:[function(require,module,exports){
+"use strict"
 
-var VENDOR_PREFIX = [
-  "WEBKIT_",
-  "MOZ_"
-];
+var ndarray = require("ndarray")
+var pool = require("typedarray-pool")
 
-function baseName(ext_name) {
-  for(var i=0; i<VENDOR_PREFIX.length; ++i) {
-    var prefix = VENDOR_PREFIX[i];
-    if(ext_name.indexOf(prefix) === 0) {
-      return ext_name.slice(prefix.length);
-    }
+function malloc(shape, dtype) {
+  if(!dtype) {
+    dtype = "double"
   }
-  return ext_name;
+  var sz = 1
+  var stride = new Array(shape.length)
+  for(var i=shape.length-1; i>=0; --i) {
+    stride[i] = sz
+    sz *= shape[i]
+  }
+  return ndarray(pool.malloc(sz, dtype), shape, stride, 0)
 }
+exports.malloc = malloc
 
-function initWebGLEW(gl) {
-  if(gl._webglew_struct) {
-    return gl._webglew_struct;
-  }
-  var extensions = {};
-  var supported = gl.getSupportedExtensions();
-  for(var i=0; i<supported.length; ++i) {
-    var ext = gl.getExtension(supported[i]);
-    if(!ext) {
-      continue;
-    }
-    extensions[supported[i]] = ext;
-    extensions[baseName(supported[i])] = ext; //Add version without VENDOR
-  }
-  gl._webglew_struct = extensions;
-  return extensions;
+function free(array) {
+  pool.free(array.data)
 }
-module.exports = initWebGLEW;
-},{}],130:[function(require,module,exports){
+exports.free = free
+},{"ndarray":147,"typedarray-pool":151}],153:[function(require,module,exports){
+arguments[4][135][0].apply(exports,arguments)
+},{"cwise-compiler":154}],154:[function(require,module,exports){
+arguments[4][103][0].apply(exports,arguments)
+},{"./lib/thunk.js":156}],155:[function(require,module,exports){
+module.exports=require(104)
+},{"uniq":157}],156:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"./compile.js":155}],157:[function(require,module,exports){
+module.exports=require(11)
+},{}],158:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -27191,7 +27730,7 @@ function createTileMap(gl, tiles, pad) {
 }
 
 module.exports = createTileMap
-},{"gl-texture2d":104,"ndarray":151,"tile-mip-map":105}],131:[function(require,module,exports){
+},{"gl-texture2d":111,"ndarray":112,"tile-mip-map":114}],159:[function(require,module,exports){
 "use strict"
 
 function doBind(gl, elements, attributes) {
@@ -27246,7 +27785,7 @@ function doBind(gl, elements, attributes) {
 }
 
 module.exports = doBind
-},{}],132:[function(require,module,exports){
+},{}],160:[function(require,module,exports){
 "use strict"
 
 var bindAttribs = require("./do-bind.js")
@@ -27284,7 +27823,7 @@ function createVAOEmulated(gl) {
 }
 
 module.exports = createVAOEmulated
-},{"./do-bind.js":131}],133:[function(require,module,exports){
+},{"./do-bind.js":159}],161:[function(require,module,exports){
 "use strict"
 
 var bindAttribs = require("./do-bind.js")
@@ -27370,11 +27909,11 @@ function createVAONative(gl, ext) {
 }
 
 module.exports = createVAONative
-},{"./do-bind.js":131}],134:[function(require,module,exports){
+},{"./do-bind.js":159}],162:[function(require,module,exports){
 module.exports=require(45)
-},{}],135:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 module.exports=require(46)
-},{"weakmap":134}],136:[function(require,module,exports){
+},{"weakmap":162}],164:[function(require,module,exports){
 "use strict"
 
 var webglew = require("webglew")
@@ -27394,7 +27933,129 @@ function createVAO(gl, attributes, elements) {
 }
 
 module.exports = createVAO
-},{"./lib/vao-emulated.js":132,"./lib/vao-native.js":133,"webglew":135}],137:[function(require,module,exports){
+},{"./lib/vao-emulated.js":160,"./lib/vao-native.js":161,"webglew":163}],165:[function(require,module,exports){
+'use strict';
+
+var vkey = require('vkey');
+
+module.exports = function(game, opts) {
+  return new BindingsUI(game, opts);
+};
+
+module.exports.pluginInfo = {
+  loadAfter: ['voxel-debug', 'voxel-plugins-ui'], // optional to load after and reuse same gui
+  clientOnly: true
+};
+
+function BindingsUI(game, opts) {
+  this.game = game;
+
+  opts = opts || {};
+
+  this.kb = opts.kb || (game && game.buttons); // might be undefined
+
+  // try to latch on to an existing datgui, otherwise make our own
+  this.gui = opts.gui;
+  if (!this.gui) {
+    if (game && game.plugins) {
+      if (game.plugins.get('voxel-debug')) this.gui = game.plugins.get('voxel-debug').gui;
+      else if (game.plugins.get('voxel-plugins-ui')) this.gui = game.plugins.get('voxel-plugins-ui').gui;
+    }
+  }
+  if (!this.gui) this.gui = new require('dat-gui').GUI();
+
+  this.hideKeys = opts.hideKeys || ['ime-', 'launch-', 'browser-']; // too long
+  this.folder = this.gui.addFolder('keys');
+
+  // clean up the valid key listing TODO: refactor with game-shell? it does almost the same
+  this.vkey2code = {};
+  this.vkeyBracket2Bare = {};
+  this.vkeyBare2Bracket = {};
+  this.keyListing = [];
+  for (var code in vkey) {
+    var keyName = vkey[code];
+
+    this.vkey2code[keyName] = code;
+
+    var keyNameBare = keyName.replace('<', '').replace('>', '');
+    this.vkeyBracket2Bare[keyName] = keyNameBare;
+    this.vkeyBare2Bracket[keyNameBare] = keyName;
+
+    if (!this.shouldHideKey(keyNameBare))
+      this.keyListing.push(keyNameBare);
+  }
+
+  // get keybindings
+  this.binding2Key = {};
+  if (this.kb && this.kb.bindings) {
+    // voxel-engine with kb-bindings - stores key -> binding
+    for (var key in this.kb.bindings) {
+      var binding = this.kb.bindings[key];
+      this.binding2Key[binding] = this.vkeyBracket2Bare[key] || key;
+      this.addBinding(binding);
+    }
+  } else if (this.game.shell && this.game.shell.bindings) {
+    // game-shell - stores binding -> key(s)
+    for (var binding in this.game.shell.bindings) {
+      var key = this.game.shell.bindings[binding];
+
+      if (Array.isArray(key)) {
+        key = key[0]; // TODO: support multiple keys. for now, only taking first
+      }
+
+      this.binding2Key[binding] = this.vkeyBracket2Bare[key] || key;
+      this.addBinding(binding);
+    }
+  }
+}
+
+BindingsUI.prototype.shouldHideKey = function(name) {
+  for (var i = 0; i < this.hideKeys.length; ++i) {
+    if (name.indexOf(this.hideKeys[i]) === 0) return true;
+  }
+  return false;
+};
+
+BindingsUI.prototype.addBinding = function (binding) {
+  var item = this.folder.add(this.binding2Key, binding, this.keyListing);
+
+  item.onChange(updateBinding(this, binding));
+};
+
+function updateBinding(self, binding) {
+  return function(newKeyNameBare) {
+    //if (self.vkey2code[newKeyName] === undefined) // invalid vkey
+
+    var newKeyName = self.vkeyBare2Bracket[newKeyNameBare];
+
+    self.removeBindings(binding);
+
+    if (self.kb && self.kb.bindings) {
+      self.kb.bindings[newKeyName] = binding;
+    } else {
+      self.game.shell.bind(binding, newKeyName);
+    }
+  };
+}
+
+// remove all keys bound to given binding
+BindingsUI.prototype.removeBindings = function(binding) {
+  if (this.kb && this.kb.bindings) {
+    for (var key in this.kb.bindings) {
+      var thisBinding = this.kb.bindings[key];
+      if (thisBinding === binding) {
+        delete this.kb.bindings[key];
+      }
+    }
+  } else {
+    this.game.shell.unbind(binding);
+  }
+};
+
+
+},{"vkey":166}],166:[function(require,module,exports){
+module.exports=require(57)
+},{}],167:[function(require,module,exports){
 "use strict"
 
 var fill = require("cwise")({
@@ -27409,498 +28070,641 @@ module.exports = function(array, f) {
   return array
 }
 
-},{"cwise":138}],138:[function(require,module,exports){
-arguments[4][107][0].apply(exports,arguments)
-},{"cwise-compiler":139,"cwise-parser":143}],139:[function(require,module,exports){
-arguments[4][108][0].apply(exports,arguments)
-},{"./lib/thunk.js":141}],140:[function(require,module,exports){
-module.exports=require(109)
-},{"uniq":142}],141:[function(require,module,exports){
+},{"cwise":168}],168:[function(require,module,exports){
+arguments[4][116][0].apply(exports,arguments)
+},{"cwise-compiler":169,"cwise-parser":173}],169:[function(require,module,exports){
+arguments[4][103][0].apply(exports,arguments)
+},{"./lib/thunk.js":171}],170:[function(require,module,exports){
+module.exports=require(104)
+},{"uniq":172}],171:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":140}],142:[function(require,module,exports){
+},{"./compile.js":170}],172:[function(require,module,exports){
 module.exports=require(11)
-},{}],143:[function(require,module,exports){
-module.exports=require(112)
-},{"esprima":144,"uniq":145}],144:[function(require,module,exports){
-module.exports=require(113)
-},{}],145:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
+module.exports=require(121)
+},{"esprima":174,"uniq":175}],174:[function(require,module,exports){
+module.exports=require(122)
+},{}],175:[function(require,module,exports){
 module.exports=require(11)
-},{}],146:[function(require,module,exports){
-"use strict"
-
-var compile = require("cwise-compiler")
-
-var EmptyProc = {
-  body: "",
-  args: [],
-  thisVars: [],
-  localVars: []
-}
-
-function fixup(x) {
-  if(!x) {
-    return EmptyProc
-  }
-  for(var i=0; i<x.args.length; ++i) {
-    var a = x.args[i]
-    if(i === 0) {
-      x.args[i] = {name: a, lvalue:true, rvalue: !!x.rvalue, count:x.count||1 }
-    } else {
-      x.args[i] = {name: a, lvalue:false, rvalue:true, count: 1}
-    }
-  }
-  if(!x.thisVars) {
-    x.thisVars = []
-  }
-  if(!x.localVars) {
-    x.localVars = []
-  }
-  return x
-}
-
-function pcompile(user_args) {
-  return compile({
-    args:     user_args.args,
-    pre:      fixup(user_args.pre),
-    body:     fixup(user_args.body),
-    post:     fixup(user_args.proc),
-    funcName: user_args.funcName
-  })
-}
-
-function makeOp(user_args) {
-  var args = []
-  for(var i=0; i<user_args.args.length; ++i) {
-    args.push("a"+i)
-  }
-  var wrapper = new Function("P", [
-    "return function ", user_args.funcName, "_ndarrayops(", args.join(","), ") {P(", args.join(","), ");return a0}"
-  ].join(""))
-  return wrapper(pcompile(user_args))
-}
-
-var assign_ops = {
-  add:  "+",
-  sub:  "-",
-  mul:  "*",
-  div:  "/",
-  mod:  "%",
-  band: "&",
-  bor:  "|",
-  bxor: "^",
-  lshift: "<<",
-  rshift: ">>",
-  rrshift: ">>>"
-}
-;(function(){
-  for(var id in assign_ops) {
-    var op = assign_ops[id]
-    exports[id] = makeOp({
-      args: ["array","array","array"],
-      body: {args:["a","b","c"],
-             body: "a=b"+op+"c"},
-      funcName: id
-    })
-    exports[id+"eq"] = makeOp({
-      args: ["array","array"],
-      body: {args:["a","b"],
-             body:"a"+op+"=b"},
-      rvalue: true,
-      funcName: id+"eq"
-    })
-    exports[id+"s"] = makeOp({
-      args: ["array", "array", "scalar"],
-      body: {args:["a","b","s"],
-             body:"a=b"+op+"s"},
-      funcName: id+"s"
-    })
-    exports[id+"seq"] = makeOp({
-      args: ["array","scalar"],
-      body: {args:["a","s"],
-             body:"a"+op+"=s"},
-      rvalue: true,
-      funcName: id+"seq"
-    })
-  }
-})();
-
-var unary_ops = {
-  not: "!",
-  bnot: "~",
-  neg: "-",
-  recip: "1.0/"
-}
-;(function(){
-  for(var id in unary_ops) {
-    var op = unary_ops[id]
-    exports[id] = makeOp({
-      args: ["array", "array"],
-      body: {args:["a","b"],
-             body:"a="+op+"b"},
-      funcName: id
-    })
-    exports[id+"eq"] = makeOp({
-      args: ["array"],
-      body: {args:["a"],
-             body:"a="+op+"a"},
-      rvalue: true,
-      count: 2,
-      funcName: id+"eq"
-    })
-  }
-})();
-
-var binary_ops = {
-  and: "&&",
-  or: "||",
-  eq: "===",
-  neq: "!==",
-  lt: "<",
-  gt: ">",
-  leq: "<=",
-  geq: ">="
-}
-;(function() {
-  for(var id in binary_ops) {
-    var op = binary_ops[id]
-    exports[id] = makeOp({
-      args: ["array","array","array"],
-      body: {args:["a", "b", "c"],
-             body:"a=b"+op+"c"},
-      funcName: id
-    })
-    exports[id+"s"] = makeOp({
-      args: ["array","array","scalar"],
-      body: {args:["a", "b", "s"],
-             body:"a=b"+op+"s"},
-      funcName: id+"s"
-    })
-    exports[id+"eq"] = makeOp({
-      args: ["array", "array"],
-      body: {args:["a", "b"],
-             body:"a=a"+op+"b"},
-      rvalue:true,
-      count:2,
-      funcName: id+"eq"
-    })
-    exports[id+"seq"] = makeOp({
-      args: ["array", "scalar"],
-      body: {args:["a","s"],
-             body:"a=a"+op+"s"},
-      rvalue:true,
-      count:2,
-      funcName: id+"seq"
-    })
-  }
-})();
-
-var math_unary = [
-  "abs",
-  "acos",
-  "asin",
-  "atan",
-  "ceil",
-  "cos",
-  "exp",
-  "floor",
-  "log",
-  "round",
-  "sin",
-  "sqrt",
-  "tan"
-]
-;(function() {
-  for(var i=0; i<math_unary.length; ++i) {
-    var f = math_unary[i]
-    exports[f] = makeOp({
-                    args: ["array", "array"],
-                    pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                    body: {args:["a","b"], body:"a=this_f(b)", thisVars:["this_f"]},
-                    funcName: f
-                  })
-    exports[f+"eq"] = makeOp({
-                      args: ["array"],
-                      pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                      body: {args: ["a"], body:"a=this_f(a)", thisVars:["this_f"]},
-                      rvalue: true,
-                      count: 2,
-                      funcName: f+"eq"
-                    })
-  }
-})();
-
-var math_comm = [
-  "max",
-  "min",
-  "atan2",
-  "pow"
-]
-;(function(){
-  for(var i=0; i<math_comm.length; ++i) {
-    var f= math_comm[i]
-    exports[f] = makeOp({
-                  args:["array", "array", "array"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b","c"], body:"a=this_f(b,c)", thisVars:["this_f"]},
-                  funcName: f
-                })
-    exports[f+"s"] = makeOp({
-                  args:["array", "array", "scalar"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b","c"], body:"a=this_f(b,c)", thisVars:["this_f"]},
-                  funcName: f+"s"
-                  })
-    exports[f+"eq"] = makeOp({ args:["array", "array"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b"], body:"a=this_f(a,b)", thisVars:["this_f"]},
-                  rvalue: true,
-                  count: 2,
-                  funcName: f+"eq"
-                  })
-    exports[f+"seq"] = makeOp({ args:["array", "scalar"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b"], body:"a=this_f(a,b)", thisVars:["this_f"]},
-                  rvalue:true,
-                  count:2,
-                  funcName: f+"seq"
-                  })
-  }
-})();
-
-var math_noncomm = [
-  "atan2",
-  "pow"
-]
-;(function(){
-  for(var i=0; i<math_noncomm.length; ++i) {
-    var f= math_noncomm[i]
-    exports[f+"op"] = makeOp({
-                  args:["array", "array", "array"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b","c"], body:"a=this_f(c,b)", thisVars:["this_f"]},
-                  funcName: f+"op"
-                })
-    exports[f+"ops"] = makeOp({
-                  args:["array", "array", "scalar"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b","c"], body:"a=this_f(c,b)", thisVars:["this_f"]},
-                  funcName: f+"ops"
-                  })
-    exports[f+"opeq"] = makeOp({ args:["array", "array"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b"], body:"a=this_f(b,a)", thisVars:["this_f"]},
-                  rvalue: true,
-                  count: 2,
-                  funcName: f+"opeq"
-                  })
-    exports[f+"opseq"] = makeOp({ args:["array", "scalar"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b"], body:"a=this_f(b,a)", thisVars:["this_f"]},
-                  rvalue:true,
-                  count:2,
-                  funcName: f+"opseq"
-                  })
-  }
-})();
-
-exports.any = compile({
-  args:["array"],
-  pre: EmptyProc,
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "if(a){return true}", localVars: [], thisVars: []},
-  post: {args:[], localVars:[], thisVars:[], body:"return false"},
-  funcName: "any"
-})
-
-exports.all = compile({
-  args:["array"],
-  pre: EmptyProc,
-  body: {args:[{name:"x", lvalue:false, rvalue:true, count:1}], body: "if(!x){return false}", localVars: [], thisVars: []},
-  post: {args:[], localVars:[], thisVars:[], body:"return true"},
-  funcName: "all"
-})
-
-exports.sum = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "this_s+=a", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
-  funcName: "sum"
-})
-
-exports.prod = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=1"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "this_s*=a", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
-  funcName: "prod"
-})
-
-exports.norm2squared = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:2}], body: "this_s+=a*a", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
-  funcName: "norm2squared"
-})
-  
-exports.norm2 = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:2}], body: "this_s+=a*a", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return Math.sqrt(this_s)"},
-  funcName: "norm2"
-})
-  
-
-exports.norminf = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:4}], body:"if(-a>this_s){this_s=-a}else if(a>this_s){this_s=a}", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
-  funcName: "norminf"
-})
-
-exports.norm1 = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:3}], body: "this_s+=a<0?-a:a", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
-  funcName: "norm1"
-})
-
-exports.sup = compile({
-  args: [ "array" ],
-  pre:
-   { body: "this_h=-Infinity",
-     args: [],
-     thisVars: [ "this_h" ],
-     localVars: [] },
-  body:
-   { body: "if(_inline_1_arg0_>this_h)this_h=_inline_1_arg0_",
-     args: [{"name":"_inline_1_arg0_","lvalue":false,"rvalue":true,"count":2} ],
-     thisVars: [ "this_h" ],
-     localVars: [] },
-  post:
-   { body: "return this_h",
-     args: [],
-     thisVars: [ "this_h" ],
-     localVars: [] }
- })
-
-exports.inf = compile({
-  args: [ "array" ],
-  pre:
-   { body: "this_h=Infinity",
-     args: [],
-     thisVars: [ "this_h" ],
-     localVars: [] },
-  body:
-   { body: "if(_inline_1_arg0_<this_h)this_h=_inline_1_arg0_",
-     args: [{"name":"_inline_1_arg0_","lvalue":false,"rvalue":true,"count":2} ],
-     thisVars: [ "this_h" ],
-     localVars: [] },
-  post:
-   { body: "return this_h",
-     args: [],
-     thisVars: [ "this_h" ],
-     localVars: [] }
- })
-
-exports.argmin = compile({
-  args:["index","array","shape"],
-  pre:{
-    body:"{this_v=Infinity;this_i=_inline_0_arg2_.slice(0)}",
-    args:[
-      {name:"_inline_0_arg0_",lvalue:false,rvalue:false,count:0},
-      {name:"_inline_0_arg1_",lvalue:false,rvalue:false,count:0},
-      {name:"_inline_0_arg2_",lvalue:false,rvalue:true,count:1}
-      ],
-    thisVars:["this_i","this_v"],
-    localVars:[]},
-  body:{
-    body:"{if(_inline_1_arg1_<this_v){this_v=_inline_1_arg1_;for(var _inline_1_k=0;_inline_1_k<_inline_1_arg0_.length;++_inline_1_k){this_i[_inline_1_k]=_inline_1_arg0_[_inline_1_k]}}}",
-    args:[
-      {name:"_inline_1_arg0_",lvalue:false,rvalue:true,count:2},
-      {name:"_inline_1_arg1_",lvalue:false,rvalue:true,count:2}],
-    thisVars:["this_i","this_v"],
-    localVars:["_inline_1_k"]},
-  post:{
-    body:"{return this_i}",
-    args:[],
-    thisVars:["this_i"],
-    localVars:[]}
-})
-
-exports.argmax = compile({
-  args:["index","array","shape"],
-  pre:{
-    body:"{this_v=-Infinity;this_i=_inline_0_arg2_.slice(0)}",
-    args:[
-      {name:"_inline_0_arg0_",lvalue:false,rvalue:false,count:0},
-      {name:"_inline_0_arg1_",lvalue:false,rvalue:false,count:0},
-      {name:"_inline_0_arg2_",lvalue:false,rvalue:true,count:1}
-      ],
-    thisVars:["this_i","this_v"],
-    localVars:[]},
-  body:{
-    body:"{if(_inline_1_arg1_>this_v){this_v=_inline_1_arg1_;for(var _inline_1_k=0;_inline_1_k<_inline_1_arg0_.length;++_inline_1_k){this_i[_inline_1_k]=_inline_1_arg0_[_inline_1_k]}}}",
-    args:[
-      {name:"_inline_1_arg0_",lvalue:false,rvalue:true,count:2},
-      {name:"_inline_1_arg1_",lvalue:false,rvalue:true,count:2}],
-    thisVars:["this_i","this_v"],
-    localVars:["_inline_1_k"]},
-  post:{
-    body:"{return this_i}",
-    args:[],
-    thisVars:["this_i"],
-    localVars:[]}
-})  
-
-exports.random = makeOp({
-  args: ["array"],
-  pre: {args:[], body:"this_f=Math.random", thisVars:["this_f"]},
-  body: {args: ["a"], body:"a=this_f()", thisVars:["this_f"]},
-  funcName: "random"
-})
-
-exports.assign = makeOp({
-  args:["array", "array"],
-  body: {args:["a", "b"], body:"a=b"},
-  funcName: "assign" })
-
-exports.assigns = makeOp({
-  args:["array", "scalar"],
-  body: {args:["a", "b"], body:"a=b"},
-  funcName: "assigns" })
-
-
-exports.equals = compile({
-  args:["array", "array"],
-  pre: EmptyProc,
-  body: {args:[{name:"x", lvalue:false, rvalue:true, count:1},
-               {name:"y", lvalue:false, rvalue:true, count:1}], 
-        body: "if(x!==y){return false}", 
-        localVars: [], 
-        thisVars: []},
-  post: {args:[], localVars:[], thisVars:[], body:"return true"},
-  funcName: "equals"
-})
-
-
-
-},{"cwise-compiler":147}],147:[function(require,module,exports){
-arguments[4][108][0].apply(exports,arguments)
-},{"./lib/thunk.js":149}],148:[function(require,module,exports){
-module.exports=require(109)
-},{"uniq":150}],149:[function(require,module,exports){
+},{}],176:[function(require,module,exports){
+arguments[4][102][0].apply(exports,arguments)
+},{"cwise-compiler":177}],177:[function(require,module,exports){
+arguments[4][103][0].apply(exports,arguments)
+},{"./lib/thunk.js":179}],178:[function(require,module,exports){
+module.exports=require(104)
+},{"uniq":180}],179:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":148}],150:[function(require,module,exports){
+},{"./compile.js":178}],180:[function(require,module,exports){
 module.exports=require(11)
-},{}],151:[function(require,module,exports){
+},{}],181:[function(require,module,exports){
 module.exports=require(15)
-},{"buffer":241,"iota-array":152}],152:[function(require,module,exports){
+},{"buffer":281,"iota-array":182}],182:[function(require,module,exports){
 module.exports=require(13)
-},{}],153:[function(require,module,exports){
+},{}],183:[function(require,module,exports){
+// Generated by CoffeeScript 1.7.0
+(function() {
+  var APDialog, APPlugin, ModalDialog, createSelector,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  ModalDialog = require('voxel-modal-dialog');
+
+  createSelector = require('artpacks-ui');
+
+  module.exports = function(game, opts) {
+    return new APPlugin(game, opts);
+  };
+
+  module.exports.pluginInfo = {
+    clientOnly: true,
+    loadAfter: ['voxel-keys']
+  };
+
+  APPlugin = (function() {
+    function APPlugin(game, opts) {
+      var bindKey, _ref, _ref1, _ref2;
+      this.game = game;
+            if ((_ref = this.getArtpacks()) != null) {
+        _ref;
+      } else {
+        throw new Error('voxel-artpacks requires game.materials as voxel-texture-shader, or voxel-stitch');
+      };
+      this.keys = (function() {
+        if ((_ref1 = this.game.plugins.get('voxel-keys')) != null) {
+          return _ref1;
+        } else {
+          throw new Error('voxel-artpacks requires voxel-keys plugin');
+        }
+      }).call(this);
+      bindKey = (_ref2 = opts.bindKey) != null ? _ref2 : (this.game.shell ? 'P' : false);
+      if (bindKey) {
+        this.game.shell.bind('packs', bindKey);
+      }
+      this.dialog = new APDialog(this, this.game);
+      this.enable();
+    }
+
+    APPlugin.prototype.enable = function() {
+      return this.keys.down.on('packs', this.onDown = this.dialog.open.bind(this.dialog));
+    };
+
+    APPlugin.prototype.disable = function() {
+      if (this.onDown != null) {
+        return this.keys.down.removeListener('packs', this.onDown);
+      }
+    };
+
+    APPlugin.prototype.getArtpacks = function() {
+      var _ref, _ref1, _ref2, _ref3;
+      return (_ref = (_ref1 = this.game.materials) != null ? _ref1.artPacks : void 0) != null ? _ref : (_ref2 = this.game.plugins) != null ? (_ref3 = _ref2.get('voxel-stitch')) != null ? _ref3.artpacks : void 0 : void 0;
+    };
+
+    return APPlugin;
+
+  })();
+
+  APDialog = (function(_super) {
+    __extends(APDialog, _super);
+
+    function APDialog(plugin, game) {
+      var contents, refreshButton, selector;
+      this.plugin = plugin;
+      this.game = game;
+      contents = [];
+      contents.push(document.createTextNode('Drag packs below to change priority, or drop a .zip to load new pack:'));
+      selector = createSelector(this.plugin.getArtpacks());
+      selector.container.style.margin = '5px';
+      contents.push(selector.container);
+      refreshButton = document.createElement('button');
+      refreshButton.textContent = 'Preview';
+      refreshButton.style.width = '100%';
+      refreshButton.addEventListener('click', (function(_this) {
+        return function(ev) {
+          var i, old_names, stitcher;
+          stitcher = _this.game.plugins.get('voxel-stitch');
+          if (stitcher != null) {
+            refreshButton["true"] = false;
+            stitcher.on('addedAll', function() {
+              return refreshButton.disabled = false;
+            });
+            return stitcher.stitch();
+          } else {
+            old_names = _this.game.materials.names;
+            _this.game.texture_opts.game = self.game;
+            i = 0;
+            _this.game.materials = _this.game.texture_modules[i](_this.game.texture_opts);
+            _this.game.materials.load(old_names);
+            return _this.game.showAllChunks();
+          }
+        };
+      })(this));
+      contents.push(refreshButton);
+      APDialog.__super__.constructor.call(this, game, {
+        contents: contents,
+        escapeKeys: [192, 80]
+      });
+    }
+
+    return APDialog;
+
+  })(ModalDialog);
+
+}).call(this);
+
+},{"artpacks-ui":184,"voxel-modal-dialog":185}],184:[function(require,module,exports){
+// Generated by CoffeeScript 1.7.0
+(function() {
+  var APSelector;
+
+  module.exports = function(artPacks) {
+    return new APSelector(artPacks);
+  };
+
+  APSelector = (function() {
+    function APSelector(artPacks, opts) {
+      var _ref;
+      this.artPacks = artPacks;
+      this.container = document.createElement('div');
+      this.draggingIndex = void 0;
+      if (opts == null) {
+        opts = {};
+      }
+      this.logoSize = (_ref = opts.logoSize) != null ? _ref : 64;
+      this.enable();
+    }
+
+    APSelector.prototype.enable = function() {
+      this.refresh();
+      this.artPacks.on('refresh', this.refresh.bind(this));
+      document.addEventListener('dragover', this.onDocDragOver.bind(this));
+      return document.addEventListener('drop', this.onDocDrop.bind(this));
+    };
+
+    APSelector.prototype.disable = function() {};
+
+    APSelector.prototype.refresh = function() {
+      var i, iReverse, logo, node, pack, _i, _len, _ref, _results;
+      while (this.container.firstChild) {
+        this.container.removeChild(this.container.firstChild);
+      }
+      _ref = this.artPacks.packs.slice(0).reverse();
+      _results = [];
+      for (iReverse = _i = 0, _len = _ref.length; _i < _len; iReverse = ++_i) {
+        pack = _ref[iReverse];
+        i = this.artPacks.packs.length - 1 - iReverse;
+        if (pack == null) {
+          continue;
+        }
+        node = document.createElement('div');
+        node.setAttribute('draggable', 'true');
+        node.setAttribute('style', 'border: 1px solid black; -webkit-user-select: none; -moz-user-select: none; cursor: move; padding: 10px; display: flex; align-items: center;');
+        node.addEventListener('dragstart', this.onDragStart.bind(this, node, i), false);
+        node.addEventListener('dragend', this.onDragEnd.bind(this, node, i), false);
+        node.addEventListener('dragenter', this.onDragEnter.bind(this, node, i), false);
+        node.addEventListener('dragleave', this.onDragLeave.bind(this, node, i), false);
+        node.addEventListener('dragover', this.onDragOver.bind(this, node, i), false);
+        node.addEventListener('drop', this.onDrop.bind(this, node, i), false);
+        logo = new Image();
+        logo.src = pack.getPackLogo();
+        logo.width = logo.height = this.logoSize;
+        logo.style.paddingRight = '5px';
+        node.appendChild(logo);
+        node.appendChild(document.createTextNode(pack.getDescription()));
+        _results.push(this.container.appendChild(node));
+      }
+      return _results;
+    };
+
+    APSelector.prototype.onDragStart = function(node, i, ev) {
+      this.draggingIndex = i;
+      node.style.opacity = '0.4';
+      ev.dataTransfer.effectAllowed = 'move';
+      return ev.dataTransfer.setData('text/plain', '' + i);
+    };
+
+    APSelector.prototype.onDragEnd = function(node, i) {
+      this.draggingIndex = void 0;
+      return node.style.opacity = '';
+    };
+
+    APSelector.prototype.onDragEnter = function(node, i) {
+      if (i === this.draggingIndex) {
+        return;
+      }
+      return node.style.border = '1px dashed black';
+    };
+
+    APSelector.prototype.onDragLeave = function(node, i) {
+      if (i === this.draggingIndex) {
+        return;
+      }
+      return node.style.border = '1px solid black';
+    };
+
+    APSelector.prototype.onDragOver = function(node, i, ev) {
+      ev.preventDefault();
+      return ev.dataTransfer.dropEffect = 'move';
+    };
+
+    APSelector.prototype.onDrop = function(node, i, ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      if (ev.dataTransfer.files.length !== 0) {
+        return this.addDroppedFiles(ev.dataTransfer.files, i);
+      } else {
+        this.draggingIndex = +ev.dataTransfer.getData('text/plain');
+        return this.artPacks.swap(this.draggingIndex, i);
+      }
+    };
+
+    APSelector.prototype.addDroppedFiles = function(files, at) {
+      var file, reader, _i, _len, _results;
+      if (at == null) {
+        at = void 0;
+      }
+      _results = [];
+      for (_i = 0, _len = files.length; _i < _len; _i++) {
+        file = files[_i];
+        reader = new FileReader();
+        reader.addEventListener('load', (function(_this) {
+          return function(readEvent) {
+            if (readEvent.total !== readEvent.loaded) {
+              return;
+            }
+            return _this.artPacks.addPack(readEvent.currentTarget.result, file.name);
+          };
+        })(this));
+        _results.push(reader.readAsArrayBuffer(file));
+      }
+      return _results;
+    };
+
+    APSelector.prototype.onDocDragOver = function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      return ev.dataTransfer.dropEffect = 'move';
+    };
+
+    APSelector.prototype.onDocDrop = function(ev) {
+      if (ev.dataTransfer.files.length !== 0) {
+        ev.stopPropagation();
+        ev.preventDefault();
+        return this.addDroppedFiles(ev.dataTransfer.files);
+      }
+    };
+
+    return APSelector;
+
+  })();
+
+}).call(this);
+
+},{}],185:[function(require,module,exports){
+// Generated by CoffeeScript 1.7.0
+(function() {
+  var Modal, ModalDialog,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  Modal = require('voxel-modal');
+
+  ModalDialog = (function(_super) {
+    __extends(ModalDialog, _super);
+
+    function ModalDialog(game, opts) {
+      var content, _i, _len, _ref;
+      this.game = game;
+      if (opts == null) {
+        opts = {};
+      }
+      if (opts.contents == null) {
+        opts.contents = [];
+      }
+      if (typeof document !== "undefined" && document !== null) {
+        this.aligner = document.createElement('div');
+        this.aligner.setAttribute('class', 'voxel-modal-dialog-aligner');
+        this.aligner.setAttribute('style', 'display: flex; align-items: center; justify-content: center; top: 0px; left: 0px; width: 100%; height: 90%; position: fixed; pointer-events: none;');
+        this.box = document.createElement('div');
+        this.box.setAttribute('class', 'voxel-modal-dialog');
+        this.box.style.border = '6px outset gray';
+        this.box.style.visibility = 'hidden';
+        this.box.style.zIndex = 1;
+        this.box.style.pointerEvents = 'auto';
+        this.box.style.backgroundImage = 'linear-gradient(rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.5) 100%)';
+        _ref = opts.contents;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          content = _ref[_i];
+          this.box.appendChild(content);
+        }
+        this.aligner.appendChild(this.box);
+        document.body.appendChild(this.aligner);
+      }
+      opts.element = this.box;
+      ModalDialog.__super__.constructor.call(this, game, opts);
+    }
+
+    return ModalDialog;
+
+  })(Modal);
+
+  module.exports = ModalDialog;
+
+}).call(this);
+
+},{"voxel-modal":186}],186:[function(require,module,exports){
+/*jshint globalstrict: true*/
+'use strict';
+
+module.exports = Modal;
+
+var ever = require('ever');
+
+function Modal(game, opts) 
+{
+  this.game = game;
+
+  opts = opts || {};
+  this.element = opts.element;
+  if (!this.element) throw new Error('voxel-modal requires "element" option');
+
+  // shortcut to close:
+  // ` (backquote) -- NOT escape due to pointer-lock https://github.com/deathcap/voxel-modal/issues/1
+  // if you don't have "`", alternative is to click the game canvas (closes automatically on attain)
+  this.escapeKeys = opts.escapeKeys || [192]; 
+
+  this.isOpen = false;
+}
+
+Modal.prototype.open = function() {
+  if (this.isOpen) return;
+
+  var self = this;
+
+  if (this.game.interact) {
+    this.game.interact.release();
+
+    this.game.interact.on('attain', this.onAttain = function() {
+      // clicked game, beyond dialog TODO: game-shell needs this, too!
+      self.close();
+    });
+  } else if (this.game.shell) {
+    // exit pointer lock so user can interact with the modal element
+    this.game.shell.pointerLock = false;
+
+    // but re-"want" it so clicking the canvas (outside the modal) will
+    // activate pointer lock (misleading assignment; requires user interaction)
+    this.game.shell.pointerLock = true;
+
+    // when user successfully acquires pointer lock by clicking the game-shell
+    // canvas, get out of the way
+    // TODO: ask game-shell to emit an event for us, support non-WebKit vendor prefixes
+    var self = this;
+    ever(document).on('webkitpointerlockchange', self.onPointerLockChange = function() {
+      if (document.webkitPointerLockElement) {
+        // pointer lock was acquired - close ourselves, resume gameplay
+        self.close();
+        ever(document).removeListener('webkitpointerlockchange', self.onPointerLockChange); // can't seem to use .once with ever (TypeError document removeListener)
+      }
+    });
+  }
+
+  ever(document.body).on('keydown', this.onKeydown = function(ev) {
+    if (self.escapeKeys.indexOf(ev.keyCode) !== -1) {
+      self.close();
+      ev.preventDefault();
+    }
+  });
+
+  this.element.style.visibility = '';
+  this.isOpen = true;
+};
+
+Modal.prototype.close = function() {
+  if (!this.isOpen) return;
+
+  ever(document.body).removeListener('keydown', this.onKeydown);
+
+  this.element.style.visibility = 'hidden';
+
+  // resume game interaction
+  if (this.game.interact) {
+    this.game.interact.removeListener('attain', this.onAttain);
+    this.game.interact.request();
+  } else if (this.game.shell) {
+    this.game.shell.pointerLock = true;
+  }
+
+  this.isOpen = false;
+};
+
+Modal.prototype.toggle = function() {
+  if (this.isOpen)
+    this.close();
+  else
+    this.open();
+};
+
+},{"ever":187}],187:[function(require,module,exports){
+var EventEmitter = require('events').EventEmitter;
+
+module.exports = function (elem) {
+    return new Ever(elem);
+};
+
+function Ever (elem) {
+    this.element = elem;
+}
+
+Ever.prototype = new EventEmitter;
+
+Ever.prototype.on = function (name, cb, useCapture) {
+    if (!this._events) this._events = {};
+    if (!this._events[name]) this._events[name] = [];
+    this._events[name].push(cb);
+    this.element.addEventListener(name, cb, useCapture || false);
+
+    return this;
+};
+Ever.prototype.addListener = Ever.prototype.on;
+
+Ever.prototype.removeListener = function (type, listener, useCapture) {
+    if (!this._events) this._events = {};
+    this.element.removeEventListener(type, listener, useCapture || false);
+    
+    var xs = this.listeners(type);
+    var ix = xs.indexOf(listener);
+    if (ix >= 0) xs.splice(ix, 1);
+
+    return this;
+};
+
+Ever.prototype.removeAllListeners = function (type) {
+    var self = this;
+    function removeAll (t) {
+        var xs = self.listeners(t);
+        for (var i = 0; i < xs.length; i++) {
+            self.removeListener(t, xs[i]);
+        }
+    }
+    
+    if (type) {
+        removeAll(type)
+    }
+    else if (self._events) {
+        for (var key in self._events) {
+            if (key) removeAll(key);
+        }
+    }
+    return EventEmitter.prototype.removeAllListeners.apply(self, arguments);
+}
+
+var initSignatures = require('./init.json');
+
+Ever.prototype.emit = function (name, ev) {
+    if (typeof name === 'object') {
+        ev = name;
+        name = ev.type;
+    }
+    
+    if (!isEvent(ev)) {
+        var type = Ever.typeOf(name);
+        
+        var opts = ev || {};
+        if (opts.type === undefined) opts.type = name;
+        
+        ev = document.createEvent(type + 's');
+        var init = typeof ev['init' + type] === 'function'
+            ? 'init' + type : 'initEvent'
+        ;
+        
+        var sig = initSignatures[init];
+        var used = {};
+        var args = [];
+        
+        for (var i = 0; i < sig.length; i++) {
+            var key = sig[i];
+            args.push(opts[key]);
+            used[key] = true;
+        }
+        ev[init].apply(ev, args);
+        
+        // attach remaining unused options to the object
+        for (var key in opts) {
+            if (!used[key]) ev[key] = opts[key];
+        }
+    }
+    return this.element.dispatchEvent(ev);
+};
+
+function isEvent (ev) {
+    var s = Object.prototype.toString.call(ev);
+    return /\[object \S+Event\]/.test(s);
+}
+
+Ever.types = require('./types.json');
+Ever.typeOf = (function () {
+    var types = {};
+    for (var key in Ever.types) {
+        var ts = Ever.types[key];
+        for (var i = 0; i < ts.length; i++) {
+            types[ts[i]] = key;
+        }
+    }
+    
+    return function (name) {
+        return types[name] || 'Event';
+    };
+})();;
+
+},{"./init.json":188,"./types.json":189,"events":284}],188:[function(require,module,exports){
+module.exports={
+  "initEvent" : [
+    "type",
+    "canBubble", 
+    "cancelable"
+  ],
+  "initUIEvent" : [
+    "type",
+    "canBubble", 
+    "cancelable", 
+    "view", 
+    "detail"
+  ],
+  "initMouseEvent" : [
+    "type",
+    "canBubble", 
+    "cancelable", 
+    "view", 
+    "detail", 
+    "screenX", 
+    "screenY", 
+    "clientX", 
+    "clientY", 
+    "ctrlKey", 
+    "altKey", 
+    "shiftKey", 
+    "metaKey", 
+    "button",
+    "relatedTarget"
+  ],
+  "initMutationEvent" : [
+    "type",
+    "canBubble", 
+    "cancelable", 
+    "relatedNode", 
+    "prevValue", 
+    "newValue", 
+    "attrName", 
+    "attrChange"
+  ]
+}
+
+},{}],189:[function(require,module,exports){
+module.exports={
+  "MouseEvent" : [
+    "click",
+    "mousedown",
+    "mouseup",
+    "mouseover",
+    "mousemove",
+    "mouseout"
+  ],
+  "KeyBoardEvent" : [
+    "keydown",
+    "keyup",
+    "keypress"
+  ],
+  "MutationEvent" : [
+    "DOMSubtreeModified",
+    "DOMNodeInserted",
+    "DOMNodeRemoved",
+    "DOMNodeRemovedFromDocument",
+    "DOMNodeInsertedIntoDocument",
+    "DOMAttrModified",
+    "DOMCharacterDataModified"
+  ],
+  "HTMLEvent" : [
+    "load",
+    "unload",
+    "abort",
+    "error",
+    "select",
+    "change",
+    "submit",
+    "reset",
+    "focus",
+    "blur",
+    "resize",
+    "scroll"
+  ],
+  "UIEvent" : [
+    "DOMFocusIn",
+    "DOMFocusOut",
+    "DOMActivate"
+  ]
+}
+
+},{}],190:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var DropPlugin, coffee_script, ever, playerdat;
@@ -28083,7 +28887,7 @@ module.exports=require(13)
 
 }).call(this);
 
-},{"coffee-script":154,"ever":163,"playerdat":166,"string.prototype.endswith":177}],154:[function(require,module,exports){
+},{"coffee-script":191,"ever":200,"playerdat":203,"string.prototype.endswith":214}],191:[function(require,module,exports){
 (function (process,global){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -28422,7 +29226,7 @@ module.exports=require(13)
 }).call(this);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./helpers":155,"./lexer":156,"./nodes":157,"./parser":158,"./register":159,"./sourcemap":162,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"fs":240,"module":240,"path":247,"vm":258}],155:[function(require,module,exports){
+},{"./helpers":192,"./lexer":193,"./nodes":194,"./parser":195,"./register":196,"./sourcemap":199,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"fs":280,"module":280,"path":287,"vm":298}],192:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -28678,7 +29482,7 @@ module.exports=require(13)
 }).call(this);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246}],156:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286}],193:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var BOM, BOOL, CALLABLE, CODE, COFFEE_ALIASES, COFFEE_ALIAS_MAP, COFFEE_KEYWORDS, COMMENT, COMPARE, COMPOUND_ASSIGN, HEREDOC, HEREDOC_ILLEGAL, HEREDOC_INDENT, HEREGEX, HEREGEX_OMIT, IDENTIFIER, INDENTABLE_CLOSERS, INDEXABLE, INVERSES, JSTOKEN, JS_FORBIDDEN, JS_KEYWORDS, LINE_BREAK, LINE_CONTINUER, LOGIC, Lexer, MATH, MULTILINER, MULTI_DENT, NOT_REGEX, NOT_SPACED_REGEX, NUMBER, OPERATOR, REGEX, RELATION, RESERVED, Rewriter, SHIFT, SIMPLESTR, STRICT_PROSCRIBED, TRAILING_SPACES, UNARY, UNARY_MATH, WHITESPACE, compact, count, invertLiterate, key, last, locationDataToString, repeat, starts, throwSyntaxError, _ref, _ref1,
@@ -29606,7 +30410,7 @@ module.exports=require(13)
 
 }).call(this);
 
-},{"./helpers":155,"./rewriter":160}],157:[function(require,module,exports){
+},{"./helpers":192,"./rewriter":197}],194:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var Access, Arr, Assign, Base, Block, Call, Class, Code, CodeFragment, Comment, Existence, Expansion, Extends, For, HEXNUM, IDENTIFIER, IDENTIFIER_STR, IS_REGEX, IS_STRING, If, In, Index, LEVEL_ACCESS, LEVEL_COND, LEVEL_LIST, LEVEL_OP, LEVEL_PAREN, LEVEL_TOP, Literal, METHOD_DEF, NEGATE, NO, NUMBER, Obj, Op, Param, Parens, RESERVED, Range, Return, SIMPLENUM, STRICT_PROSCRIBED, Scope, Slice, Splat, Switch, TAB, THIS, Throw, Try, UTILITIES, Value, While, YES, addLocationDataFn, compact, del, ends, extend, flatten, fragmentsToText, isLiteralArguments, isLiteralThis, last, locationDataToString, merge, multident, parseNum, some, starts, throwSyntaxError, unfoldSoak, utility, _ref, _ref1,
@@ -32766,7 +33570,7 @@ module.exports=require(13)
 
 }).call(this);
 
-},{"./helpers":155,"./lexer":156,"./scope":161}],158:[function(require,module,exports){
+},{"./helpers":192,"./lexer":193,"./scope":198}],195:[function(require,module,exports){
 (function (process){
 /* parser generated by jison 0.4.13 */
 /*
@@ -33493,7 +34297,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"fs":240,"path":247}],159:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"fs":280,"path":287}],196:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var CoffeeScript, Module, binary, child_process, ext, findExtension, fork, helpers, loadFile, path, _i, _len, _ref;
@@ -33561,7 +34365,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{"./coffee-script":154,"./helpers":155,"child_process":240,"module":240,"path":247}],160:[function(require,module,exports){
+},{"./coffee-script":191,"./helpers":192,"child_process":280,"module":280,"path":287}],197:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var BALANCED_PAIRS, CALL_CLOSERS, EXPRESSION_CLOSE, EXPRESSION_END, EXPRESSION_START, IMPLICIT_CALL, IMPLICIT_END, IMPLICIT_FUNC, IMPLICIT_UNSPACED_CALL, INVERSES, LINEBREAKS, SINGLE_CLOSERS, SINGLE_LINERS, generate, left, rite, _i, _len, _ref,
@@ -34038,7 +34842,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{}],161:[function(require,module,exports){
+},{}],198:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var Scope, extend, last, _ref;
@@ -34186,7 +34990,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{"./helpers":155}],162:[function(require,module,exports){
+},{"./helpers":192}],199:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var LineMap, SourceMap;
@@ -34349,207 +35153,13 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{}],163:[function(require,module,exports){
-var EventEmitter = require('events').EventEmitter;
-
-module.exports = function (elem) {
-    return new Ever(elem);
-};
-
-function Ever (elem) {
-    this.element = elem;
-}
-
-Ever.prototype = new EventEmitter;
-
-Ever.prototype.on = function (name, cb, useCapture) {
-    if (!this._events) this._events = {};
-    if (!this._events[name]) this._events[name] = [];
-    this._events[name].push(cb);
-    this.element.addEventListener(name, cb, useCapture || false);
-
-    return this;
-};
-Ever.prototype.addListener = Ever.prototype.on;
-
-Ever.prototype.removeListener = function (type, listener, useCapture) {
-    if (!this._events) this._events = {};
-    this.element.removeEventListener(type, listener, useCapture || false);
-    
-    var xs = this.listeners(type);
-    var ix = xs.indexOf(listener);
-    if (ix >= 0) xs.splice(ix, 1);
-
-    return this;
-};
-
-Ever.prototype.removeAllListeners = function (type) {
-    var self = this;
-    function removeAll (t) {
-        var xs = self.listeners(t);
-        for (var i = 0; i < xs.length; i++) {
-            self.removeListener(t, xs[i]);
-        }
-    }
-    
-    if (type) {
-        removeAll(type)
-    }
-    else if (self._events) {
-        for (var key in self._events) {
-            if (key) removeAll(key);
-        }
-    }
-    return EventEmitter.prototype.removeAllListeners.apply(self, arguments);
-}
-
-var initSignatures = require('./init.json');
-
-Ever.prototype.emit = function (name, ev) {
-    if (typeof name === 'object') {
-        ev = name;
-        name = ev.type;
-    }
-    
-    if (!isEvent(ev)) {
-        var type = Ever.typeOf(name);
-        
-        var opts = ev || {};
-        if (opts.type === undefined) opts.type = name;
-        
-        ev = document.createEvent(type + 's');
-        var init = typeof ev['init' + type] === 'function'
-            ? 'init' + type : 'initEvent'
-        ;
-        
-        var sig = initSignatures[init];
-        var used = {};
-        var args = [];
-        
-        for (var i = 0; i < sig.length; i++) {
-            var key = sig[i];
-            args.push(opts[key]);
-            used[key] = true;
-        }
-        ev[init].apply(ev, args);
-        
-        // attach remaining unused options to the object
-        for (var key in opts) {
-            if (!used[key]) ev[key] = opts[key];
-        }
-    }
-    return this.element.dispatchEvent(ev);
-};
-
-function isEvent (ev) {
-    var s = Object.prototype.toString.call(ev);
-    return /\[object \S+Event\]/.test(s);
-}
-
-Ever.types = require('./types.json');
-Ever.typeOf = (function () {
-    var types = {};
-    for (var key in Ever.types) {
-        var ts = Ever.types[key];
-        for (var i = 0; i < ts.length; i++) {
-            types[ts[i]] = key;
-        }
-    }
-    
-    return function (name) {
-        return types[name] || 'Event';
-    };
-})();;
-
-},{"./init.json":164,"./types.json":165,"events":244}],164:[function(require,module,exports){
-module.exports={
-  "initEvent" : [
-    "type",
-    "canBubble", 
-    "cancelable"
-  ],
-  "initUIEvent" : [
-    "type",
-    "canBubble", 
-    "cancelable", 
-    "view", 
-    "detail"
-  ],
-  "initMouseEvent" : [
-    "type",
-    "canBubble", 
-    "cancelable", 
-    "view", 
-    "detail", 
-    "screenX", 
-    "screenY", 
-    "clientX", 
-    "clientY", 
-    "ctrlKey", 
-    "altKey", 
-    "shiftKey", 
-    "metaKey", 
-    "button",
-    "relatedTarget"
-  ],
-  "initMutationEvent" : [
-    "type",
-    "canBubble", 
-    "cancelable", 
-    "relatedNode", 
-    "prevValue", 
-    "newValue", 
-    "attrName", 
-    "attrChange"
-  ]
-}
-
-},{}],165:[function(require,module,exports){
-module.exports={
-  "MouseEvent" : [
-    "click",
-    "mousedown",
-    "mouseup",
-    "mouseover",
-    "mousemove",
-    "mouseout"
-  ],
-  "KeyBoardEvent" : [
-    "keydown",
-    "keyup",
-    "keypress"
-  ],
-  "MutationEvent" : [
-    "DOMSubtreeModified",
-    "DOMNodeInserted",
-    "DOMNodeRemoved",
-    "DOMNodeRemovedFromDocument",
-    "DOMNodeInsertedIntoDocument",
-    "DOMAttrModified",
-    "DOMCharacterDataModified"
-  ],
-  "HTMLEvent" : [
-    "load",
-    "unload",
-    "abort",
-    "error",
-    "select",
-    "change",
-    "submit",
-    "reset",
-    "focus",
-    "blur",
-    "resize",
-    "scroll"
-  ],
-  "UIEvent" : [
-    "DOMFocusIn",
-    "DOMFocusOut",
-    "DOMActivate"
-  ]
-}
-
-},{}],166:[function(require,module,exports){
+},{}],200:[function(require,module,exports){
+module.exports=require(187)
+},{"./init.json":201,"./types.json":202,"events":284}],201:[function(require,module,exports){
+module.exports=require(188)
+},{}],202:[function(require,module,exports){
+module.exports=require(189)
+},{}],203:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
@@ -34663,7 +35273,7 @@ module.exports = {
 
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":241,"inventory":167,"itempile":172,"nbt":175}],167:[function(require,module,exports){
+},{"buffer":281,"inventory":204,"itempile":209,"nbt":212}],204:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var EventEmitter, Inventory, ItemPile, deepEqual,
@@ -34826,7 +35436,7 @@ module.exports = {
 
 }).call(this);
 
-},{"deep-equal":168,"events":244,"itempile":169}],168:[function(require,module,exports){
+},{"deep-equal":205,"events":284,"itempile":206}],205:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var Object_keys = typeof Object.keys === 'function'
     ? Object.keys
@@ -34914,7 +35524,7 @@ function objEquiv(a, b, opts) {
   return true;
 }
 
-},{}],169:[function(require,module,exports){
+},{}],206:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var ItemPile, clone, deepEqual;
@@ -35096,7 +35706,7 @@ function objEquiv(a, b, opts) {
 
 }).call(this);
 
-},{"clone":170,"deep-equal":171}],170:[function(require,module,exports){
+},{"clone":207,"deep-equal":208}],207:[function(require,module,exports){
 (function (Buffer){
 "use strict";
 
@@ -35259,15 +35869,15 @@ clone.clonePrototype = function(parent) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":241}],171:[function(require,module,exports){
-module.exports=require(168)
-},{}],172:[function(require,module,exports){
-module.exports=require(169)
-},{"clone":173,"deep-equal":174}],173:[function(require,module,exports){
-module.exports=require(170)
-},{"buffer":241}],174:[function(require,module,exports){
-module.exports=require(168)
-},{}],175:[function(require,module,exports){
+},{"buffer":281}],208:[function(require,module,exports){
+module.exports=require(205)
+},{}],209:[function(require,module,exports){
+module.exports=require(206)
+},{"clone":210,"deep-equal":211}],210:[function(require,module,exports){
+module.exports=require(207)
+},{"buffer":281}],211:[function(require,module,exports){
+module.exports=require(205)
+},{}],212:[function(require,module,exports){
 (function (Buffer){
 /*
 	NBT.js - a JavaScript parser for NBT archives
@@ -35437,7 +36047,7 @@ module.exports=require(168)
 }).apply(exports || (nbt = {}));
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":241,"node-int64":176,"zlib":260}],176:[function(require,module,exports){
+},{"buffer":281,"node-int64":213,"zlib":300}],213:[function(require,module,exports){
 (function (Buffer){
 //     Int64.js
 //
@@ -35643,7 +36253,7 @@ Int64.prototype = {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":241}],177:[function(require,module,exports){
+},{"buffer":281}],214:[function(require,module,exports){
 /*! http://mths.be/endswith v0.1.0 by @mathias */
 if (!String.prototype.endsWith) {
 	(function() {
@@ -35696,7 +36306,139 @@ if (!String.prototype.endsWith) {
 	}());
 }
 
-},{}],178:[function(require,module,exports){
+},{}],215:[function(require,module,exports){
+'use strict';
+
+var vkey = require('vkey');
+var EventEmitter = require('events').EventEmitter;
+var inherits = require('inherits');
+
+module.exports = function(game, opts) {
+  return new KeysPlugin(game, opts);
+};
+module.exports.pluginInfo = {
+  clientOnly: true // TODO: server-based keybindings? send keys to server, have it tell client what to do?
+};
+
+function KeysPlugin(game, opts) {
+  this.game = game;
+  if (this.game.buttons && this.game.buttons.bindings) {
+    this.getBindingName = this.getBindingNameKB;
+  } else if (this.game.shell && this.game.shell.bindings) {
+    this.getBindingName = this.getBindingNameGS;
+  } else {
+    throw new Error('voxel-keys requires either kb-bindings or game-shell');
+  }
+
+  this.states = {};
+
+  this.down = new EventEmitter();
+  this.up = new EventEmitter();
+  this.changed = new EventEmitter();
+
+  this.enable();
+}
+
+// get bound name of pressed key from event, or undefined if none
+
+// for kb-bindings
+KeysPlugin.prototype.getBindingNameKB = function(code) {
+  var key = vkey[code];
+  if (key === undefined) return undefined;
+
+  var bindingName = this.game.buttons.bindings[key];
+
+  return bindingName;
+};
+
+// for game-shell
+KeysPlugin.prototype.getBindingNameGS = function(code) {
+  var key = vkey[code];
+  if (key === undefined) return undefined;
+
+  // TODO: optimize inverse lookup, cache?
+  for (var bindingName in this.game.shell.bindings) {
+    if (this.game.shell.bindings[bindingName].indexOf(key) !== -1) {
+      return bindingName;
+    }
+  }
+};
+
+KeysPlugin.prototype.enable = function() {
+  var self = this;
+
+  if (this.game.interact) {
+    // voxel-engine interact module, controls pointer lock
+    this.game.interact.on('attain', this.onAttain = function() {
+      self.activate(true);
+    });
+    this.game.interact.on('release', this.onRelease = function() {
+      self.activate(false);
+    });
+  } else {
+    // when game-shell, always listen and check .pointerLock property
+    self.activate(true);
+  }
+};
+
+KeysPlugin.prototype.disable = function() {
+  this.activate(false);
+  this.game.interact.removeListener('attain', this.onAttain);
+  this.game.interact.removeListener('release', this.onRelease);
+};
+
+KeysPlugin.prototype.activate = function(flag) {
+  if (flag) {
+    document.body.addEventListener('keydown', this.onKeyDown = this.keyDown.bind(this));
+    document.body.addEventListener('keyup', this.onKeyUp = this.keyUp.bind(this));
+  } else {
+    document.body.removeEventListener('keydown', this.onKeyDown);
+    document.body.removeEventListener('keyup', this.onKeyUp);
+    this.states = {};
+  }
+};
+
+
+KeysPlugin.prototype.keyDown = function(ev) {
+  if (this.game.shell && !this.game.shell.pointerLock) return; // game-shell pointer lock not acquired
+
+  var code = ev.keyCode; // TODO: keyCode is deprecated in favor of (unimplemented) key, according to https://developer.mozilla.org/en-US/docs/Web/Reference/Events/keydown
+
+  // released -> pressed
+  if (!this.states[code]) {
+    var binding = this.getBindingName(code);
+    if (binding) {
+      this.down.emit(binding);
+      this.changed.emit(binding);
+    }
+  }
+
+  this.states[code] += 1;
+};
+
+KeysPlugin.prototype.keyUp = function(ev) {
+  if (this.game.shell && !this.game.shell.pointerLock) return;
+
+  var code = ev.keyCode;
+
+  // pressed -> released
+  if (this.states[code] !== 0) {
+    var binding = this.getBindingName(code);
+    if (binding) {
+      this.up.emit(binding);
+      this.changed.emit(binding);
+    }
+  }
+
+  this.states[code] = 0;
+};
+
+
+},{"events":284,"inherits":216,"vkey":217}],216:[function(require,module,exports){
+module.exports=require(95)
+},{}],217:[function(require,module,exports){
+module.exports=require(57)
+},{}],218:[function(require,module,exports){
 'use strict';
 
 module.exports = function(game, opts) {
@@ -35761,7 +36503,7 @@ function setStateForPlugin(self, name) {
   };
 }
 
-},{}],179:[function(require,module,exports){
+},{}],219:[function(require,module,exports){
 (function (process){
 'use strict';
 var EventEmitter = require('events').EventEmitter;
@@ -36078,7 +36820,7 @@ Plugins.prototype.destroy = function(name) {
 inherits(Plugins, EventEmitter);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"events":244,"inherits":180,"tsort":181}],180:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"events":284,"inherits":220,"tsort":221}],220:[function(require,module,exports){
 module.exports = inherits
 
 function inherits (c, p, proto) {
@@ -36109,7 +36851,7 @@ function inherits (c, p, proto) {
 //inherits(Child, Parent)
 //new Child
 
-},{}],181:[function(require,module,exports){
+},{}],221:[function(require,module,exports){
 var util = require('util');
 
 module.exports = function tsort(initial) {
@@ -36183,7 +36925,7 @@ Graph.prototype.sort = function() {
   }
 };
 
-},{"util":257}],182:[function(require,module,exports){
+},{"util":297}],222:[function(require,module,exports){
 
 var toArray = require('toarray');
 
@@ -36422,12 +37164,12 @@ Registry.prototype.getTextureURL = function(name) {
 
 
 
-},{"toarray":183}],183:[function(require,module,exports){
+},{"toarray":223}],223:[function(require,module,exports){
 module.exports = function(item) {
   if(item === undefined)  return [];
   return Object.prototype.toString.call(item) === "[object Array]" ? item : [item];
 }
-},{}],184:[function(require,module,exports){
+},{}],224:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var ArtPackArchive, ArtPacks, Buffer, EventEmitter, ZIP, arrayBufferToString, binaryXHR, fs, getFrames, getPixels, graycolorize, path, savePixels, splitNamespace,
@@ -36912,7 +37654,7 @@ module.exports = function(item) {
 
 }).call(this);
 
-},{"binary-xhr":185,"events":244,"fs":240,"get-pixels":187,"graycolorize":190,"mcmeta":194,"native-buffer-browserify":207,"path":247,"save-pixels":218,"zip":234}],185:[function(require,module,exports){
+},{"binary-xhr":225,"events":284,"fs":280,"get-pixels":227,"graycolorize":230,"mcmeta":234,"native-buffer-browserify":247,"path":287,"save-pixels":258,"zip":274}],225:[function(require,module,exports){
 var inherits = require('inherits')
 
 module.exports = function(url, cb) {
@@ -36940,9 +37682,9 @@ function BinaryXHR(url, cb) {
   xhr.send(null)
 }
 
-},{"inherits":186}],186:[function(require,module,exports){
-module.exports=require(180)
-},{}],187:[function(require,module,exports){
+},{"inherits":226}],226:[function(require,module,exports){
+module.exports=require(220)
+},{}],227:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -36964,7 +37706,7 @@ module.exports = function getPixels(url, cb) {
   img.src = url
 }
 
-},{"ndarray":188}],188:[function(require,module,exports){
+},{"ndarray":228}],228:[function(require,module,exports){
 (function (Buffer){
 "use strict"
 
@@ -37325,9 +38067,9 @@ function wrappedNDArrayCtor(data, shape, stride, offset) {
 
 module.exports = wrappedNDArrayCtor
 }).call(this,require("buffer").Buffer)
-},{"buffer":241,"iota-array":189}],189:[function(require,module,exports){
+},{"buffer":281,"iota-array":229}],229:[function(require,module,exports){
 module.exports=require(13)
-},{}],190:[function(require,module,exports){
+},{}],230:[function(require,module,exports){
 'use strict';
 
 var color = require('onecolor');
@@ -37411,11 +38153,11 @@ var graycolorize = function(pixels, colors) {
 module.exports = graycolorize;
 module.exports.generateMap = generateMap;
 
-},{"ndarray":191,"onecolor":193}],191:[function(require,module,exports){
-module.exports=require(188)
-},{"buffer":241,"iota-array":192}],192:[function(require,module,exports){
+},{"ndarray":231,"onecolor":233}],231:[function(require,module,exports){
+module.exports=require(228)
+},{"buffer":281,"iota-array":232}],232:[function(require,module,exports){
 module.exports=require(13)
-},{}],193:[function(require,module,exports){
+},{}],233:[function(require,module,exports){
 /*jshint evil:true, onevar:false*/
 /*global define*/
 var installedColorSpaces = [],
@@ -38171,7 +38913,7 @@ ONECOLOR.installMethod('toAlpha', function (color) {
 // Convenience functions
 
 
-},{}],194:[function(require,module,exports){
+},{}],234:[function(require,module,exports){
 'use strict';
 
 var getPixels = require('get-pixels');
@@ -38313,13 +39055,13 @@ module.exports.getFrames = getFrames;
 module.exports.parseFramesInfo = parseFramesInfo;
 module.exports.splitTiles = splitTiles;
 
-},{"get-pixels":195,"save-pixels":206}],195:[function(require,module,exports){
-arguments[4][187][0].apply(exports,arguments)
-},{"ndarray":196}],196:[function(require,module,exports){
-module.exports=require(188)
-},{"buffer":241,"iota-array":197}],197:[function(require,module,exports){
+},{"get-pixels":235,"save-pixels":246}],235:[function(require,module,exports){
+arguments[4][227][0].apply(exports,arguments)
+},{"ndarray":236}],236:[function(require,module,exports){
+module.exports=require(228)
+},{"buffer":281,"iota-array":237}],237:[function(require,module,exports){
 module.exports=require(13)
-},{}],198:[function(require,module,exports){
+},{}],238:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -38521,7 +39263,7 @@ ChunkStream.prototype._process = function() {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":241,"stream":249,"util":257}],199:[function(require,module,exports){
+},{"buffer":281,"stream":289,"util":297}],239:[function(require,module,exports){
 // Copyright (c) 2012 Kuba Niegowski
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -38561,7 +39303,7 @@ module.exports = {
     COLOR_ALPHA: 4
 };
 
-},{}],200:[function(require,module,exports){
+},{}],240:[function(require,module,exports){
 // Copyright (c) 2012 Kuba Niegowski
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -38642,7 +39384,7 @@ for (var i = 0; i < 256; i++) {
     crcTable[i] = c;
 }
 
-},{"stream":249,"util":257}],201:[function(require,module,exports){
+},{"stream":289,"util":297}],241:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -38960,7 +39702,7 @@ var PaethPredictor = function(left, above, upLeft) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./chunkstream":198,"buffer":241,"util":257,"zlib":260}],202:[function(require,module,exports){
+},{"./chunkstream":238,"buffer":281,"util":297,"zlib":300}],242:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -39074,7 +39816,7 @@ Packer.prototype._packIEND = function() {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./constants":199,"./crc":200,"./filter":201,"buffer":241,"stream":249,"util":257,"zlib":260}],203:[function(require,module,exports){
+},{"./constants":239,"./crc":240,"./filter":241,"buffer":281,"stream":289,"util":297,"zlib":300}],243:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -39437,7 +40179,7 @@ Parser.prototype._reverseFiltered = function(data, width, height) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./chunkstream":198,"./constants":199,"./crc":200,"./filter":201,"buffer":241,"util":257,"zlib":260}],204:[function(require,module,exports){
+},{"./chunkstream":238,"./constants":239,"./crc":240,"./filter":241,"buffer":281,"util":297,"zlib":300}],244:[function(require,module,exports){
 (function (process,Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -39588,9 +40330,9 @@ PNG.prototype.bitblt = function(dst, sx, sy, w, h, dx, dy) {
 };
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"./packer":202,"./parser":203,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"buffer":241,"stream":249,"util":257}],205:[function(require,module,exports){
+},{"./packer":242,"./parser":243,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"stream":289,"util":297}],245:[function(require,module,exports){
 module.exports=require(32)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"stream":249}],206:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],246:[function(require,module,exports){
 "use strict"
 
 var PNG = require("pngjs").PNG
@@ -39682,7 +40424,7 @@ module.exports = function savePixels(array, type) {
   }
 }
 
-},{"pngjs":204,"through":205}],207:[function(require,module,exports){
+},{"pngjs":244,"through":245}],247:[function(require,module,exports){
 var base64 = require('base64-js')
 var ieee754 = require('ieee754')
 
@@ -40683,7 +41425,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":208,"ieee754":209}],208:[function(require,module,exports){
+},{"base64-js":248,"ieee754":249}],248:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -40806,7 +41548,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	module.exports.fromByteArray = uint8ToBase64
 }())
 
-},{}],209:[function(require,module,exports){
+},{}],249:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -40892,25 +41634,25 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],210:[function(require,module,exports){
-module.exports=require(198)
-},{"buffer":241,"stream":249,"util":257}],211:[function(require,module,exports){
-module.exports=require(199)
-},{}],212:[function(require,module,exports){
-module.exports=require(200)
-},{"stream":249,"util":257}],213:[function(require,module,exports){
-module.exports=require(201)
-},{"./chunkstream":210,"buffer":241,"util":257,"zlib":260}],214:[function(require,module,exports){
-arguments[4][202][0].apply(exports,arguments)
-},{"./constants":211,"./crc":212,"./filter":213,"buffer":241,"stream":249,"util":257,"zlib":260}],215:[function(require,module,exports){
-arguments[4][203][0].apply(exports,arguments)
-},{"./chunkstream":210,"./constants":211,"./crc":212,"./filter":213,"buffer":241,"util":257,"zlib":260}],216:[function(require,module,exports){
-arguments[4][204][0].apply(exports,arguments)
-},{"./packer":214,"./parser":215,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"buffer":241,"stream":249,"util":257}],217:[function(require,module,exports){
+},{}],250:[function(require,module,exports){
+module.exports=require(238)
+},{"buffer":281,"stream":289,"util":297}],251:[function(require,module,exports){
+module.exports=require(239)
+},{}],252:[function(require,module,exports){
+module.exports=require(240)
+},{"stream":289,"util":297}],253:[function(require,module,exports){
+module.exports=require(241)
+},{"./chunkstream":250,"buffer":281,"util":297,"zlib":300}],254:[function(require,module,exports){
+arguments[4][242][0].apply(exports,arguments)
+},{"./constants":251,"./crc":252,"./filter":253,"buffer":281,"stream":289,"util":297,"zlib":300}],255:[function(require,module,exports){
+arguments[4][243][0].apply(exports,arguments)
+},{"./chunkstream":250,"./constants":251,"./crc":252,"./filter":253,"buffer":281,"util":297,"zlib":300}],256:[function(require,module,exports){
+arguments[4][244][0].apply(exports,arguments)
+},{"./packer":254,"./parser":255,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"stream":289,"util":297}],257:[function(require,module,exports){
 module.exports=require(32)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"stream":249}],218:[function(require,module,exports){
-arguments[4][206][0].apply(exports,arguments)
-},{"pngjs":216,"through":217}],219:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],258:[function(require,module,exports){
+arguments[4][246][0].apply(exports,arguments)
+},{"pngjs":256,"through":257}],259:[function(require,module,exports){
 
 var bops = require("bops");
 
@@ -40969,7 +41711,7 @@ function consolidate(buffers) {
 }
 
 
-},{"bops":221}],220:[function(require,module,exports){
+},{"bops":261}],260:[function(require,module,exports){
 /* Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>
  * Version: 1.0.0.1
  * LastModified: Dec 25 1999
@@ -41725,7 +42467,7 @@ exports.inflate = function (input) {
 };
 
 
-},{"./buffer-io":219,"bops":221}],221:[function(require,module,exports){
+},{"./buffer-io":259,"bops":261}],261:[function(require,module,exports){
 var proto = {}
 module.exports = proto
 
@@ -41746,7 +42488,7 @@ function mix(from, into) {
   }
 }
 
-},{"./copy.js":224,"./create.js":225,"./from.js":226,"./is.js":227,"./join.js":228,"./read.js":230,"./subarray.js":231,"./to.js":232,"./write.js":233}],222:[function(require,module,exports){
+},{"./copy.js":264,"./create.js":265,"./from.js":266,"./is.js":267,"./join.js":268,"./read.js":270,"./subarray.js":271,"./to.js":272,"./write.js":273}],262:[function(require,module,exports){
 (function (exports) {
 	'use strict';
 
@@ -41832,7 +42574,7 @@ function mix(from, into) {
 	module.exports.fromByteArray = uint8ToBase64;
 }());
 
-},{}],223:[function(require,module,exports){
+},{}],263:[function(require,module,exports){
 module.exports = to_utf8
 
 var out = []
@@ -41907,7 +42649,7 @@ function reduced(list) {
   return out
 }
 
-},{}],224:[function(require,module,exports){
+},{}],264:[function(require,module,exports){
 module.exports = copy
 
 var slice = [].slice
@@ -41961,12 +42703,12 @@ function slow_copy(from, to, j, i, jend) {
   }
 }
 
-},{}],225:[function(require,module,exports){
+},{}],265:[function(require,module,exports){
 module.exports = function(size) {
   return new Uint8Array(size)
 }
 
-},{}],226:[function(require,module,exports){
+},{}],266:[function(require,module,exports){
 module.exports = from
 
 var base64 = require('base64-js')
@@ -42102,13 +42844,13 @@ function from_base64(str) {
   return new Uint8Array(base64.toByteArray(str)) 
 }
 
-},{"base64-js":222}],227:[function(require,module,exports){
+},{"base64-js":262}],267:[function(require,module,exports){
 
 module.exports = function(buffer) {
   return buffer instanceof Uint8Array;
 }
 
-},{}],228:[function(require,module,exports){
+},{}],268:[function(require,module,exports){
 module.exports = join
 
 function join(targets, hint) {
@@ -42146,7 +42888,7 @@ function get_length(targets) {
   return size
 }
 
-},{}],229:[function(require,module,exports){
+},{}],269:[function(require,module,exports){
 var proto
   , map
 
@@ -42168,7 +42910,7 @@ function get(target) {
   return out
 }
 
-},{}],230:[function(require,module,exports){
+},{}],270:[function(require,module,exports){
 module.exports = {
     readUInt8:      read_uint8
   , readInt8:       read_int8
@@ -42257,14 +42999,14 @@ function read_double_be(target, at) {
   return dv.getFloat64(at + target.byteOffset, false)
 }
 
-},{"./mapped.js":229}],231:[function(require,module,exports){
+},{"./mapped.js":269}],271:[function(require,module,exports){
 module.exports = subarray
 
 function subarray(buf, from, to) {
   return buf.subarray(from || 0, to || buf.length)
 }
 
-},{}],232:[function(require,module,exports){
+},{}],272:[function(require,module,exports){
 module.exports = to
 
 var base64 = require('base64-js')
@@ -42302,7 +43044,7 @@ function to_base64(buf) {
 }
 
 
-},{"base64-js":222,"to-utf8":223}],233:[function(require,module,exports){
+},{"base64-js":262,"to-utf8":263}],273:[function(require,module,exports){
 module.exports = {
     writeUInt8:      write_uint8
   , writeInt8:       write_int8
@@ -42390,7 +43132,7 @@ function write_double_be(target, value, at) {
   return dv.setFloat64(at + target.byteOffset, value, false)
 }
 
-},{"./mapped.js":229}],234:[function(require,module,exports){
+},{"./mapped.js":269}],274:[function(require,module,exports){
 (function (process){
 // Tom Robinson
 // Kris Kowal
@@ -42855,15 +43597,15 @@ var decodeDateTime = function (date, time) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./inflate":220,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"bops":221,"fs":240}],235:[function(require,module,exports){
+},{"./inflate":260,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"bops":261,"fs":280}],275:[function(require,module,exports){
 module.exports=require(95)
-},{}],236:[function(require,module,exports){
+},{}],276:[function(require,module,exports){
 module.exports=require(15)
-},{"buffer":241,"iota-array":237}],237:[function(require,module,exports){
+},{"buffer":281,"iota-array":277}],277:[function(require,module,exports){
 module.exports=require(13)
-},{}],238:[function(require,module,exports){
-module.exports=require(183)
-},{}],239:[function(require,module,exports){
+},{}],278:[function(require,module,exports){
+module.exports=require(223)
+},{}],279:[function(require,module,exports){
 'use strict';
 
 var createArtpacks = require('artpacks');
@@ -42884,7 +43626,7 @@ function StitchPlugin(game, opts) {
   if (!this.registry) throw new Error('voxel-stitcher requires voxel-registry plugin');
 
   opts = opts || {};
-  opts.artpacks = opts.artpacks || ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-2.2-dev-ResourcePack-20140308.zip'];
+  opts.artpacks = opts.artpacks || ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-v2.2.1-dev-ResourcePack-20140322.zip'];
   this.artpacks = createArtpacks(opts.artpacks);
 
   // texture atlas width and height
@@ -43009,6 +43751,9 @@ StitchPlugin.prototype.stitch = function() {
 
   // now asynchronously load each texture
   this.countLoading = textureNames.length;
+  this.countLoaded = 0;
+
+  console.log('about to load '+this.countLoading);
 
   for (var j = 0; j < textureNames.length; j += 1) {
     var textureName = textureNames[j];
@@ -43035,7 +43780,9 @@ StitchPlugin.prototype.incrementSlot = function() {
 StitchPlugin.prototype.addTextureName = function(textureName, tileY, tileX) {
   var self = this;
 
+  console.log('addTextureName',textureName,tileY,tileX);
   this.artpacks.getTextureNdarray(textureName, function(pixels) {
+    console.log('addTextureName callback',textureName,'calling addTexturePixels',tileY,tileX);
     self.addTexturePixels(pixels, tileY, tileX);
   }, function(err) {
     console.log(err);
@@ -43064,6 +43811,7 @@ StitchPlugin.prototype.addTexturePixels = function(pixels, tileY, tileX) {
   this.emit('added');
   this.countLoaded += 1;
   if (this.countLoaded >= this.countLoading) {
+    console.log('addTexturePixels countLoaded',this.countLoaded,'/',this.countLoading);
     this.emit('addedAll');
   }
 };
@@ -43076,9 +43824,9 @@ StitchPlugin.prototype.disable = function() {
 
 
 
-},{"artpacks":184,"events":244,"inherits":235,"ndarray":236,"toarray":238}],240:[function(require,module,exports){
+},{"artpacks":224,"events":284,"inherits":275,"ndarray":276,"toarray":278}],280:[function(require,module,exports){
 
-},{}],241:[function(require,module,exports){
+},{}],281:[function(require,module,exports){
 /**
  * The buffer module from node.js, for the browser.
  *
@@ -44190,11 +44938,11 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":242,"ieee754":243}],242:[function(require,module,exports){
-module.exports=require(208)
-},{}],243:[function(require,module,exports){
-module.exports=require(209)
-},{}],244:[function(require,module,exports){
+},{"base64-js":282,"ieee754":283}],282:[function(require,module,exports){
+module.exports=require(248)
+},{}],283:[function(require,module,exports){
+module.exports=require(249)
+},{}],284:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -44496,9 +45244,9 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],245:[function(require,module,exports){
+},{}],285:[function(require,module,exports){
 module.exports=require(95)
-},{}],246:[function(require,module,exports){
+},{}],286:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -44560,7 +45308,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],247:[function(require,module,exports){
+},{}],287:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -44788,7 +45536,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246}],248:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286}],288:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -44862,7 +45610,7 @@ function onend() {
   });
 }
 
-},{"./readable.js":252,"./writable.js":254,"inherits":245,"process/browser.js":250}],249:[function(require,module,exports){
+},{"./readable.js":292,"./writable.js":294,"inherits":285,"process/browser.js":290}],289:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -44991,7 +45739,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"./duplex.js":248,"./passthrough.js":251,"./readable.js":252,"./transform.js":253,"./writable.js":254,"events":244,"inherits":245}],250:[function(require,module,exports){
+},{"./duplex.js":288,"./passthrough.js":291,"./readable.js":292,"./transform.js":293,"./writable.js":294,"events":284,"inherits":285}],290:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -45046,7 +45794,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],251:[function(require,module,exports){
+},{}],291:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -45089,7 +45837,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./transform.js":253,"inherits":245}],252:[function(require,module,exports){
+},{"./transform.js":293,"inherits":285}],292:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -46026,7 +46774,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./index.js":249,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"buffer":241,"events":244,"inherits":245,"process/browser.js":250,"string_decoder":255}],253:[function(require,module,exports){
+},{"./index.js":289,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"events":284,"inherits":285,"process/browser.js":290,"string_decoder":295}],293:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -46232,7 +46980,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./duplex.js":248,"inherits":245}],254:[function(require,module,exports){
+},{"./duplex.js":288,"inherits":285}],294:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -46620,7 +47368,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./index.js":249,"buffer":241,"inherits":245,"process/browser.js":250}],255:[function(require,module,exports){
+},{"./index.js":289,"buffer":281,"inherits":285,"process/browser.js":290}],295:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -46813,14 +47561,14 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":241}],256:[function(require,module,exports){
+},{"buffer":281}],296:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],257:[function(require,module,exports){
+},{}],297:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -47410,7 +48158,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":256,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"inherits":245}],258:[function(require,module,exports){
+},{"./support/isBuffer":296,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"inherits":285}],298:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -47550,7 +48298,7 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":259}],259:[function(require,module,exports){
+},{"indexof":299}],299:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -47561,7 +48309,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],260:[function(require,module,exports){
+},{}],300:[function(require,module,exports){
 (function (Buffer){
 var Zlib = module.exports = require('./zlib');
 
@@ -47608,7 +48356,7 @@ Zlib.gzip = function gzip(stringOrBuffer, callback) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./zlib":261,"buffer":241}],261:[function(require,module,exports){
+},{"./zlib":301,"buffer":281}],301:[function(require,module,exports){
 (function (process,Buffer){
 /** @license zlib.js 0.1.7 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */(function() {'use strict';function q(b){throw b;}var t=void 0,u=!0;var A="undefined"!==typeof Uint8Array&&"undefined"!==typeof Uint16Array&&"undefined"!==typeof Uint32Array;function E(b,a){this.index="number"===typeof a?a:0;this.m=0;this.buffer=b instanceof(A?Uint8Array:Array)?b:new (A?Uint8Array:Array)(32768);2*this.buffer.length<=this.index&&q(Error("invalid index"));this.buffer.length<=this.index&&this.f()}E.prototype.f=function(){var b=this.buffer,a,c=b.length,d=new (A?Uint8Array:Array)(c<<1);if(A)d.set(b);else for(a=0;a<c;++a)d[a]=b[a];return this.buffer=d};
 E.prototype.d=function(b,a,c){var d=this.buffer,f=this.index,e=this.m,g=d[f],k;c&&1<a&&(b=8<a?(G[b&255]<<24|G[b>>>8&255]<<16|G[b>>>16&255]<<8|G[b>>>24&255])>>32-a:G[b]>>8-a);if(8>a+e)g=g<<a|b,e+=a;else for(k=0;k<a;++k)g=g<<1|b>>a-k-1&1,8===++e&&(e=0,d[f++]=G[g],g=0,f===d.length&&(d=this.f()));d[f]=g;this.buffer=d;this.m=e;this.index=f};E.prototype.finish=function(){var b=this.buffer,a=this.index,c;0<this.m&&(b[a]<<=8-this.m,b[a]=G[b[a]],a++);A?c=b.subarray(0,a):(b.length=a,c=b);return c};
@@ -47666,4 +48414,4 @@ function xb(b,a){var c;b.subarray=b.slice;c=(new pb(b)).i();a||(a={});return a.n
 function Cb(b){var a=new Buffer(b.length),c,d;c=0;for(d=b.length;c<d;++c)a[c]=b[c];return a};}).call(this); //@ sourceMappingURL=node-zlib.js.map
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":246,"buffer":241}]},{},[1])
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281}]},{},[1])
