@@ -27,7 +27,7 @@ createShell({require: require, pluginOpts:
 });
 
 
-},{"./":6,"./lib/blocks.js":2,"dat-gui":34,"kb-bindings-ui":165,"voxel-artpacks":183,"voxel-drop":190,"voxel-keys":215,"voxel-plugins-ui":218,"voxel-registry":222,"voxel-stitch":279}],2:[function(require,module,exports){
+},{"./":6,"./lib/blocks.js":2,"dat-gui":34,"kb-bindings-ui":165,"voxel-artpacks":183,"voxel-drop":190,"voxel-keys":215,"voxel-plugins-ui":218,"voxel-registry":222,"voxel-stitch":288}],2:[function(require,module,exports){
 'use strict';
 
 // sample blocks for demo.js TODO: move to voxel-land as a proper plugin, refactor with lib/examples.js terrain gen
@@ -1996,7 +1996,7 @@ function wrappedNDArrayCtor(data, shape, stride, offset) {
 
 module.exports = wrappedNDArrayCtor
 }).call(this,require("buffer").Buffer)
-},{"buffer":281,"iota-array":16}],16:[function(require,module,exports){
+},{"buffer":290,"iota-array":16}],16:[function(require,module,exports){
 module.exports=require(13)
 },{}],17:[function(require,module,exports){
 /**
@@ -2549,7 +2549,7 @@ module.exports  = function(gl) {
     "precision highp float;\n\nuniform float tileSize;\nuniform sampler2D tileMap;\n\nvarying vec3  normal;\nvarying vec2  tileCoord;\nvarying vec2  texCoord;\nvarying float ambientOcclusion;\n\nvoid main() {\n\n  vec2 uv      = texCoord;\n  vec4 color   = vec4(0,0,0,0);\n  float weight = 0.0;\n\n  vec2 tileOffset = 2.0 * tileSize * tileCoord;\n  float denom     = 2.0 * tileSize * 16.0;\n\n  for(int dx=0; dx<2; ++dx) {\n    for(int dy=0; dy<2; ++dy) {\n      vec2 offset = 2.0 * fract(0.5 * (uv + vec2(dx, dy)));\n      float w = pow(1.0 - max(abs(offset.x-1.0), abs(offset.y-1.0)), 16.0);\n      \n      vec2 tc = (tileOffset + tileSize * offset) / denom;\n      color  += w * texture2D(tileMap, tc);\n      weight += w;\n    }\n  }\n  color /= weight;\n  \n  if(color.w < 0.5) {\n    discard;\n  }\n  \n  float light = ambientOcclusion + max(0.15*dot(normal, vec3(1,1,1)), 0.0);\n  \n  gl_FragColor = vec4(color.xyz * light, color.w);\n}\n")
 }
 
-},{"fs":280,"gl-shader":21}],21:[function(require,module,exports){
+},{"fs":289,"gl-shader":21}],21:[function(require,module,exports){
 "use strict"
 
 var glslExports = require("glsl-exports")
@@ -4208,7 +4208,7 @@ function through (write, end) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],28:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],28:[function(require,module,exports){
 module.exports = tokenize
 
 var through = require('through')
@@ -4943,7 +4943,7 @@ function through (write, end, opts) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],33:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],33:[function(require,module,exports){
 module.exports=require(11)
 },{}],34:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
@@ -14267,7 +14267,7 @@ exports.clearCache = function clearCache() {
 }
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"bit-twiddle":42,"buffer":281,"dup":43}],45:[function(require,module,exports){
+},{"bit-twiddle":42,"buffer":290,"dup":43}],45:[function(require,module,exports){
 /* (The MIT License)
  *
  * Copyright (c) 2012 Brandon Benvie <http://bbenvie.com>
@@ -15784,7 +15784,7 @@ function createShell(options) {
 
 module.exports = createShell
 
-},{"./lib/hrtime-polyfill.js":49,"./lib/mousewheel-polyfill.js":50,"./lib/raf-polyfill.js":51,"binary-search-bounds":52,"domready":53,"events":284,"invert-hash":54,"iota-array":55,"uniq":56,"util":297,"vkey":57}],59:[function(require,module,exports){
+},{"./lib/hrtime-polyfill.js":49,"./lib/mousewheel-polyfill.js":50,"./lib/raf-polyfill.js":51,"binary-search-bounds":52,"domready":53,"events":293,"invert-hash":54,"iota-array":55,"uniq":56,"util":306,"vkey":57}],59:[function(require,module,exports){
 module.exports=require(45)
 },{}],60:[function(require,module,exports){
 module.exports=require(46)
@@ -15836,7 +15836,7 @@ function compileShader(gl, vertexSource, fragmentSource) {
   return createShader(gl, vertexSource, fragmentSource, uniforms, attributes)
 }
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"gl-shader-core":67,"glsl-extract":68,"through":99,"uniq":100}],62:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"gl-shader-core":67,"glsl-extract":68,"through":99,"uniq":100}],62:[function(require,module,exports){
 "use strict"
 
 module.exports = coallesceUniforms
@@ -16393,7 +16393,7 @@ function tostring() {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"./lib/collect":69,"./lib/format":71,"./lib/preprocess":72,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"glsl-parser":80,"glsl-tokenizer":85,"through":99,"utf8-stream":89}],69:[function(require,module,exports){
+},{"./lib/collect":69,"./lib/format":71,"./lib/preprocess":72,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"glsl-parser":80,"glsl-tokenizer":85,"through":99,"utf8-stream":89}],69:[function(require,module,exports){
 'use strict'
 
 module.exports = collect_storages
@@ -18241,7 +18241,7 @@ proto.tab = function() {
 
 },{}],79:[function(require,module,exports){
 module.exports=require(27)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],80:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],80:[function(require,module,exports){
 arguments[4][23][0].apply(exports,arguments)
 },{"./lib/index":82}],81:[function(require,module,exports){
 module.exports=require(24)
@@ -19209,7 +19209,7 @@ function is_precision(token) {
 module.exports=require(26)
 },{}],84:[function(require,module,exports){
 module.exports=require(27)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],85:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],85:[function(require,module,exports){
 module.exports=require(28)
 },{"./lib/builtins":86,"./lib/literals":87,"./lib/operators":88,"through":99}],86:[function(require,module,exports){
 module.exports=require(29)
@@ -19281,7 +19281,7 @@ function nbytes (b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":281,"readable-stream/transform":98}],90:[function(require,module,exports){
+},{"buffer":290,"readable-stream/transform":98}],90:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -19374,7 +19374,7 @@ function forEach (xs, f) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./_stream_readable":91,"./_stream_writable":93,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"core-util-is":94,"inherits":95}],91:[function(require,module,exports){
+},{"./_stream_readable":91,"./_stream_writable":93,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"core-util-is":94,"inherits":95}],91:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -20337,7 +20337,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"core-util-is":94,"events":284,"inherits":95,"isarray":96,"stream":289,"string_decoder/":97}],92:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"core-util-is":94,"events":293,"inherits":95,"isarray":96,"stream":298,"string_decoder/":97}],92:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20940,7 +20940,7 @@ function endWritable(stream, state, cb) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./_stream_duplex":90,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"core-util-is":94,"inherits":95,"stream":289}],94:[function(require,module,exports){
+},{"./_stream_duplex":90,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"core-util-is":94,"inherits":95,"stream":298}],94:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -21050,7 +21050,7 @@ function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
 }).call(this,require("buffer").Buffer)
-},{"buffer":281}],95:[function(require,module,exports){
+},{"buffer":290}],95:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -21282,12 +21282,12 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":281}],98:[function(require,module,exports){
+},{"buffer":290}],98:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
 },{"./lib/_stream_transform.js":92}],99:[function(require,module,exports){
 module.exports=require(32)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],100:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],100:[function(require,module,exports){
 module.exports=require(11)
 },{}],101:[function(require,module,exports){
 module.exports=require(17)
@@ -22125,7 +22125,7 @@ module.exports=require(11)
 module.exports=require(18)
 },{}],108:[function(require,module,exports){
 module.exports=require(44)
-},{"bit-twiddle":101,"buffer":281,"dup":107}],109:[function(require,module,exports){
+},{"bit-twiddle":101,"buffer":290,"dup":107}],109:[function(require,module,exports){
 module.exports=require(45)
 },{}],110:[function(require,module,exports){
 module.exports=require(46)
@@ -22553,7 +22553,7 @@ module.exports = createTexture2D
 
 },{"ndarray":112,"ndarray-ops":102,"typedarray-pool":108,"webglew":110}],112:[function(require,module,exports){
 module.exports=require(15)
-},{"buffer":281,"iota-array":113}],113:[function(require,module,exports){
+},{"buffer":290,"iota-array":113}],113:[function(require,module,exports){
 module.exports=require(13)
 },{}],114:[function(require,module,exports){
 "use strict"
@@ -27653,7 +27653,7 @@ arguments[4][10][0].apply(exports,arguments)
 module.exports=require(11)
 },{}],147:[function(require,module,exports){
 module.exports=require(15)
-},{"buffer":281,"iota-array":148}],148:[function(require,module,exports){
+},{"buffer":290,"iota-array":148}],148:[function(require,module,exports){
 module.exports=require(13)
 },{}],149:[function(require,module,exports){
 module.exports=require(17)
@@ -28098,7 +28098,7 @@ arguments[4][10][0].apply(exports,arguments)
 module.exports=require(11)
 },{}],181:[function(require,module,exports){
 module.exports=require(15)
-},{"buffer":281,"iota-array":182}],182:[function(require,module,exports){
+},{"buffer":290,"iota-array":182}],182:[function(require,module,exports){
 module.exports=require(13)
 },{}],183:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
@@ -28183,7 +28183,7 @@ module.exports=require(13)
           var i, old_names, stitcher;
           stitcher = _this.game.plugins.get('voxel-stitch');
           if (stitcher != null) {
-            refreshButton["true"] = false;
+            refreshButton.disabled = true;
             stitcher.on('addedAll', function() {
               return refreshButton.disabled = false;
             });
@@ -28616,7 +28616,7 @@ Ever.typeOf = (function () {
     };
 })();;
 
-},{"./init.json":188,"./types.json":189,"events":284}],188:[function(require,module,exports){
+},{"./init.json":188,"./types.json":189,"events":293}],188:[function(require,module,exports){
 module.exports={
   "initEvent" : [
     "type",
@@ -29226,7 +29226,7 @@ module.exports={
 }).call(this);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./helpers":192,"./lexer":193,"./nodes":194,"./parser":195,"./register":196,"./sourcemap":199,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"fs":280,"module":280,"path":287,"vm":298}],192:[function(require,module,exports){
+},{"./helpers":192,"./lexer":193,"./nodes":194,"./parser":195,"./register":196,"./sourcemap":199,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"fs":289,"module":289,"path":296,"vm":307}],192:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -29482,7 +29482,7 @@ module.exports={
 }).call(this);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286}],193:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295}],193:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var BOM, BOOL, CALLABLE, CODE, COFFEE_ALIASES, COFFEE_ALIAS_MAP, COFFEE_KEYWORDS, COMMENT, COMPARE, COMPOUND_ASSIGN, HEREDOC, HEREDOC_ILLEGAL, HEREDOC_INDENT, HEREGEX, HEREGEX_OMIT, IDENTIFIER, INDENTABLE_CLOSERS, INDEXABLE, INVERSES, JSTOKEN, JS_FORBIDDEN, JS_KEYWORDS, LINE_BREAK, LINE_CONTINUER, LOGIC, Lexer, MATH, MULTILINER, MULTI_DENT, NOT_REGEX, NOT_SPACED_REGEX, NUMBER, OPERATOR, REGEX, RELATION, RESERVED, Rewriter, SHIFT, SIMPLESTR, STRICT_PROSCRIBED, TRAILING_SPACES, UNARY, UNARY_MATH, WHITESPACE, compact, count, invertLiterate, key, last, locationDataToString, repeat, starts, throwSyntaxError, _ref, _ref1,
@@ -34297,7 +34297,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"fs":280,"path":287}],196:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"fs":289,"path":296}],196:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var CoffeeScript, Module, binary, child_process, ext, findExtension, fork, helpers, loadFile, path, _i, _len, _ref;
@@ -34365,7 +34365,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{"./coffee-script":191,"./helpers":192,"child_process":280,"module":280,"path":287}],197:[function(require,module,exports){
+},{"./coffee-script":191,"./helpers":192,"child_process":289,"module":289,"path":296}],197:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var BALANCED_PAIRS, CALL_CLOSERS, EXPRESSION_CLOSE, EXPRESSION_END, EXPRESSION_START, IMPLICIT_CALL, IMPLICIT_END, IMPLICIT_FUNC, IMPLICIT_UNSPACED_CALL, INVERSES, LINEBREAKS, SINGLE_CLOSERS, SINGLE_LINERS, generate, left, rite, _i, _len, _ref,
@@ -35155,7 +35155,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 },{}],200:[function(require,module,exports){
 module.exports=require(187)
-},{"./init.json":201,"./types.json":202,"events":284}],201:[function(require,module,exports){
+},{"./init.json":201,"./types.json":202,"events":293}],201:[function(require,module,exports){
 module.exports=require(188)
 },{}],202:[function(require,module,exports){
 module.exports=require(189)
@@ -35273,7 +35273,7 @@ module.exports = {
 
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":281,"inventory":204,"itempile":209,"nbt":212}],204:[function(require,module,exports){
+},{"buffer":290,"inventory":204,"itempile":209,"nbt":212}],204:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var EventEmitter, Inventory, ItemPile, deepEqual,
@@ -35436,7 +35436,7 @@ module.exports = {
 
 }).call(this);
 
-},{"deep-equal":205,"events":284,"itempile":206}],205:[function(require,module,exports){
+},{"deep-equal":205,"events":293,"itempile":206}],205:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var Object_keys = typeof Object.keys === 'function'
     ? Object.keys
@@ -35869,13 +35869,13 @@ clone.clonePrototype = function(parent) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":281}],208:[function(require,module,exports){
+},{"buffer":290}],208:[function(require,module,exports){
 module.exports=require(205)
 },{}],209:[function(require,module,exports){
 module.exports=require(206)
 },{"clone":210,"deep-equal":211}],210:[function(require,module,exports){
 module.exports=require(207)
-},{"buffer":281}],211:[function(require,module,exports){
+},{"buffer":290}],211:[function(require,module,exports){
 module.exports=require(205)
 },{}],212:[function(require,module,exports){
 (function (Buffer){
@@ -36047,7 +36047,7 @@ module.exports=require(205)
 }).apply(exports || (nbt = {}));
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":281,"node-int64":213,"zlib":300}],213:[function(require,module,exports){
+},{"buffer":290,"node-int64":213,"zlib":309}],213:[function(require,module,exports){
 (function (Buffer){
 //     Int64.js
 //
@@ -36253,7 +36253,7 @@ Int64.prototype = {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":281}],214:[function(require,module,exports){
+},{"buffer":290}],214:[function(require,module,exports){
 /*! http://mths.be/endswith v0.1.0 by @mathias */
 if (!String.prototype.endsWith) {
 	(function() {
@@ -36434,7 +36434,7 @@ KeysPlugin.prototype.keyUp = function(ev) {
 };
 
 
-},{"events":284,"inherits":216,"vkey":217}],216:[function(require,module,exports){
+},{"events":293,"inherits":216,"vkey":217}],216:[function(require,module,exports){
 module.exports=require(95)
 },{}],217:[function(require,module,exports){
 module.exports=require(57)
@@ -36820,7 +36820,7 @@ Plugins.prototype.destroy = function(name) {
 inherits(Plugins, EventEmitter);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"events":284,"inherits":220,"tsort":221}],220:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"events":293,"inherits":220,"tsort":221}],220:[function(require,module,exports){
 module.exports = inherits
 
 function inherits (c, p, proto) {
@@ -36925,7 +36925,7 @@ Graph.prototype.sort = function() {
   }
 };
 
-},{"util":297}],222:[function(require,module,exports){
+},{"util":306}],222:[function(require,module,exports){
 
 var toArray = require('toarray');
 
@@ -37654,7 +37654,7 @@ module.exports = function(item) {
 
 }).call(this);
 
-},{"binary-xhr":225,"events":284,"fs":280,"get-pixels":227,"graycolorize":230,"mcmeta":234,"native-buffer-browserify":247,"path":287,"save-pixels":258,"zip":274}],225:[function(require,module,exports){
+},{"binary-xhr":225,"events":293,"fs":289,"get-pixels":227,"graycolorize":230,"mcmeta":234,"native-buffer-browserify":247,"path":296,"save-pixels":258,"zip":274}],225:[function(require,module,exports){
 var inherits = require('inherits')
 
 module.exports = function(url, cb) {
@@ -38067,7 +38067,7 @@ function wrappedNDArrayCtor(data, shape, stride, offset) {
 
 module.exports = wrappedNDArrayCtor
 }).call(this,require("buffer").Buffer)
-},{"buffer":281,"iota-array":229}],229:[function(require,module,exports){
+},{"buffer":290,"iota-array":229}],229:[function(require,module,exports){
 module.exports=require(13)
 },{}],230:[function(require,module,exports){
 'use strict';
@@ -38155,7 +38155,7 @@ module.exports.generateMap = generateMap;
 
 },{"ndarray":231,"onecolor":233}],231:[function(require,module,exports){
 module.exports=require(228)
-},{"buffer":281,"iota-array":232}],232:[function(require,module,exports){
+},{"buffer":290,"iota-array":232}],232:[function(require,module,exports){
 module.exports=require(13)
 },{}],233:[function(require,module,exports){
 /*jshint evil:true, onevar:false*/
@@ -39059,7 +39059,7 @@ module.exports.splitTiles = splitTiles;
 arguments[4][227][0].apply(exports,arguments)
 },{"ndarray":236}],236:[function(require,module,exports){
 module.exports=require(228)
-},{"buffer":281,"iota-array":237}],237:[function(require,module,exports){
+},{"buffer":290,"iota-array":237}],237:[function(require,module,exports){
 module.exports=require(13)
 },{}],238:[function(require,module,exports){
 (function (Buffer){
@@ -39263,7 +39263,7 @@ ChunkStream.prototype._process = function() {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":281,"stream":289,"util":297}],239:[function(require,module,exports){
+},{"buffer":290,"stream":298,"util":306}],239:[function(require,module,exports){
 // Copyright (c) 2012 Kuba Niegowski
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -39384,7 +39384,7 @@ for (var i = 0; i < 256; i++) {
     crcTable[i] = c;
 }
 
-},{"stream":289,"util":297}],241:[function(require,module,exports){
+},{"stream":298,"util":306}],241:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -39702,7 +39702,7 @@ var PaethPredictor = function(left, above, upLeft) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./chunkstream":238,"buffer":281,"util":297,"zlib":300}],242:[function(require,module,exports){
+},{"./chunkstream":238,"buffer":290,"util":306,"zlib":309}],242:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -39816,7 +39816,7 @@ Packer.prototype._packIEND = function() {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./constants":239,"./crc":240,"./filter":241,"buffer":281,"stream":289,"util":297,"zlib":300}],243:[function(require,module,exports){
+},{"./constants":239,"./crc":240,"./filter":241,"buffer":290,"stream":298,"util":306,"zlib":309}],243:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -40179,7 +40179,7 @@ Parser.prototype._reverseFiltered = function(data, width, height) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./chunkstream":238,"./constants":239,"./crc":240,"./filter":241,"buffer":281,"util":297,"zlib":300}],244:[function(require,module,exports){
+},{"./chunkstream":238,"./constants":239,"./crc":240,"./filter":241,"buffer":290,"util":306,"zlib":309}],244:[function(require,module,exports){
 (function (process,Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -40330,9 +40330,9 @@ PNG.prototype.bitblt = function(dst, sx, sy, w, h, dx, dy) {
 };
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"./packer":242,"./parser":243,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"stream":289,"util":297}],245:[function(require,module,exports){
+},{"./packer":242,"./parser":243,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"stream":298,"util":306}],245:[function(require,module,exports){
 module.exports=require(32)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],246:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],246:[function(require,module,exports){
 "use strict"
 
 var PNG = require("pngjs").PNG
@@ -41636,21 +41636,21 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
 
 },{}],250:[function(require,module,exports){
 module.exports=require(238)
-},{"buffer":281,"stream":289,"util":297}],251:[function(require,module,exports){
+},{"buffer":290,"stream":298,"util":306}],251:[function(require,module,exports){
 module.exports=require(239)
 },{}],252:[function(require,module,exports){
 module.exports=require(240)
-},{"stream":289,"util":297}],253:[function(require,module,exports){
+},{"stream":298,"util":306}],253:[function(require,module,exports){
 module.exports=require(241)
-},{"./chunkstream":250,"buffer":281,"util":297,"zlib":300}],254:[function(require,module,exports){
+},{"./chunkstream":250,"buffer":290,"util":306,"zlib":309}],254:[function(require,module,exports){
 arguments[4][242][0].apply(exports,arguments)
-},{"./constants":251,"./crc":252,"./filter":253,"buffer":281,"stream":289,"util":297,"zlib":300}],255:[function(require,module,exports){
+},{"./constants":251,"./crc":252,"./filter":253,"buffer":290,"stream":298,"util":306,"zlib":309}],255:[function(require,module,exports){
 arguments[4][243][0].apply(exports,arguments)
-},{"./chunkstream":250,"./constants":251,"./crc":252,"./filter":253,"buffer":281,"util":297,"zlib":300}],256:[function(require,module,exports){
+},{"./chunkstream":250,"./constants":251,"./crc":252,"./filter":253,"buffer":290,"util":306,"zlib":309}],256:[function(require,module,exports){
 arguments[4][244][0].apply(exports,arguments)
-},{"./packer":254,"./parser":255,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"stream":289,"util":297}],257:[function(require,module,exports){
+},{"./packer":254,"./parser":255,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"stream":298,"util":306}],257:[function(require,module,exports){
 module.exports=require(32)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],258:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],258:[function(require,module,exports){
 arguments[4][246][0].apply(exports,arguments)
 },{"pngjs":256,"through":257}],259:[function(require,module,exports){
 
@@ -43597,15 +43597,33 @@ var decodeDateTime = function (date, time) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./inflate":260,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"bops":261,"fs":280}],275:[function(require,module,exports){
+},{"./inflate":260,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"bops":261,"fs":289}],275:[function(require,module,exports){
 module.exports=require(95)
 },{}],276:[function(require,module,exports){
 module.exports=require(15)
-},{"buffer":281,"iota-array":277}],277:[function(require,module,exports){
+},{"buffer":290,"iota-array":277}],277:[function(require,module,exports){
 module.exports=require(13)
 },{}],278:[function(require,module,exports){
+module.exports=require(238)
+},{"buffer":290,"stream":298,"util":306}],279:[function(require,module,exports){
+module.exports=require(239)
+},{}],280:[function(require,module,exports){
+module.exports=require(240)
+},{"stream":298,"util":306}],281:[function(require,module,exports){
+module.exports=require(241)
+},{"./chunkstream":278,"buffer":290,"util":306,"zlib":309}],282:[function(require,module,exports){
+arguments[4][242][0].apply(exports,arguments)
+},{"./constants":279,"./crc":280,"./filter":281,"buffer":290,"stream":298,"util":306,"zlib":309}],283:[function(require,module,exports){
+arguments[4][243][0].apply(exports,arguments)
+},{"./chunkstream":278,"./constants":279,"./crc":280,"./filter":281,"buffer":290,"util":306,"zlib":309}],284:[function(require,module,exports){
+arguments[4][244][0].apply(exports,arguments)
+},{"./packer":282,"./parser":283,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"stream":298,"util":306}],285:[function(require,module,exports){
+module.exports=require(32)
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],286:[function(require,module,exports){
+arguments[4][246][0].apply(exports,arguments)
+},{"pngjs":284,"through":285}],287:[function(require,module,exports){
 module.exports=require(223)
-},{}],279:[function(require,module,exports){
+},{}],288:[function(require,module,exports){
 'use strict';
 
 var createArtpacks = require('artpacks');
@@ -43613,6 +43631,7 @@ var ndarray = require('ndarray');
 var inherits = require('inherits');
 var EventEmitter = require('events').EventEmitter;
 var toarray = require('toarray');
+var savePixels = require('save-pixels');
 
 module.exports = function(game, opts) {
   return new StitchPlugin(game, opts);
@@ -43628,6 +43647,7 @@ function StitchPlugin(game, opts) {
   opts = opts || {};
   opts.artpacks = opts.artpacks || ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-v2.2.1-dev-ResourcePack-20140322.zip'];
   this.artpacks = createArtpacks(opts.artpacks);
+  this.artpacks.on('refresh', this.refresh.bind(this));
 
   // texture atlas width and height
   this.atlasSize = opts.atlasSize !== undefined ? opts.atlasSize : 256;//2048; // requires downsampling each tile even if empty :( so make it smaller
@@ -43725,6 +43745,8 @@ var expandName = function(name, array) {
 
 var nameSideArray = new Array(6);
 
+// get all block textures, assign sides, and call refresh()
+// (should only be called once)
 StitchPlugin.prototype.stitch = function() {
   var textures = this.registry.getBlockPropsAll('texture');
   var textureNames = [];
@@ -43747,20 +43769,30 @@ StitchPlugin.prototype.stitch = function() {
       this.voxelSideTextureIDs.set(blockIndex, side, textureIndex);
     }
   }
-  console.log(this.voxelSideTextureIDs);
 
   // now asynchronously load each texture
   this.countLoading = textureNames.length;
   this.countLoaded = 0;
 
-  console.log('about to load '+this.countLoading);
-
+  // first assign all textures to slots, in order
+  this.textureNamesSlots = [];
   for (var j = 0; j < textureNames.length; j += 1) {
-    var textureName = textureNames[j];
-
-    this.addTextureName(textureName, this.nextY, this.nextX);
+    this.textureNamesSlots.push([textureNames[j], this.nextY, this.nextX]);
     this.incrementSlot();
   }
+
+  // then add to atlas
+  this.refresh();
+};
+
+// add textures
+// (may be called repeatedly to update textures if pack changes)
+StitchPlugin.prototype.refresh = function() {
+  var self = this;
+  this.textureNamesSlots.forEach(function(elem) {
+    var textureName = elem[0], tileY = elem[1], tileX = elem[2];
+    self.addTextureName(textureName, tileY, tileX);
+  });
 }
 
 StitchPlugin.prototype.incrementSlot = function() {
@@ -43780,23 +43812,20 @@ StitchPlugin.prototype.incrementSlot = function() {
 StitchPlugin.prototype.addTextureName = function(textureName, tileY, tileX) {
   var self = this;
 
-  console.log('addTextureName',textureName,tileY,tileX);
   this.artpacks.getTextureNdarray(textureName, function(pixels) {
-    console.log('addTextureName callback',textureName,'calling addTexturePixels',tileY,tileX);
     self.addTexturePixels(pixels, tileY, tileX);
   }, function(err) {
-    console.log(err);
+    console.log(err, textureName);
   });
 };
 
 StitchPlugin.prototype.addTexturePixels = function(pixels, tileY, tileX) {
   /* debug
-  var src = require('save-pixels')(pixels, 'canvas').toDataURL();
+  var src = savePixels(pixels, 'canvas').toDataURL();
   var img = new Image();
   img.src = src;
   document.body.appendChild(img);
   */
-  console.log(pixels);
 
   // copy to atlas
   // TODO: bitblt? ndarray-group?
@@ -43810,11 +43839,21 @@ StitchPlugin.prototype.addTexturePixels = function(pixels, tileY, tileX) {
 
   this.emit('added');
   this.countLoaded += 1;
-  if (this.countLoaded >= this.countLoading) {
-    console.log('addTexturePixels countLoaded',this.countLoaded,'/',this.countLoading);
+  if (this.countLoaded % this.countLoading === 0) {
     this.emit('addedAll');
   }
 };
+
+StitchPlugin.prototype.showAtlas = function() {
+  var img = new Image();
+  var pixels = ndarray(this.atlas.data,
+      //[this.atlas.shape[0] * this.atlas.shape[2], this.atlas.shape[1] * this.atlas.shape[3], this.atlas.shape[4]]); // reshapeTileMap from gl-tile-map, same
+      [this.tileSize * this.tileCount, this.tileSize * this.tileCount, 4]);
+
+  img.src = savePixels(pixels, 'canvas').toDataURL();
+  console.log(img.src);
+  document.body.appendChild(img);
+}
 
 StitchPlugin.prototype.enable = function() {
 };
@@ -43824,9 +43863,9 @@ StitchPlugin.prototype.disable = function() {
 
 
 
-},{"artpacks":224,"events":284,"inherits":275,"ndarray":276,"toarray":278}],280:[function(require,module,exports){
+},{"artpacks":224,"events":293,"inherits":275,"ndarray":276,"save-pixels":286,"toarray":287}],289:[function(require,module,exports){
 
-},{}],281:[function(require,module,exports){
+},{}],290:[function(require,module,exports){
 /**
  * The buffer module from node.js, for the browser.
  *
@@ -44938,11 +44977,11 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":282,"ieee754":283}],282:[function(require,module,exports){
+},{"base64-js":291,"ieee754":292}],291:[function(require,module,exports){
 module.exports=require(248)
-},{}],283:[function(require,module,exports){
+},{}],292:[function(require,module,exports){
 module.exports=require(249)
-},{}],284:[function(require,module,exports){
+},{}],293:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -45244,9 +45283,9 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],285:[function(require,module,exports){
+},{}],294:[function(require,module,exports){
 module.exports=require(95)
-},{}],286:[function(require,module,exports){
+},{}],295:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -45308,7 +45347,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],287:[function(require,module,exports){
+},{}],296:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -45536,7 +45575,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286}],288:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295}],297:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -45610,7 +45649,7 @@ function onend() {
   });
 }
 
-},{"./readable.js":292,"./writable.js":294,"inherits":285,"process/browser.js":290}],289:[function(require,module,exports){
+},{"./readable.js":301,"./writable.js":303,"inherits":294,"process/browser.js":299}],298:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -45739,7 +45778,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"./duplex.js":288,"./passthrough.js":291,"./readable.js":292,"./transform.js":293,"./writable.js":294,"events":284,"inherits":285}],290:[function(require,module,exports){
+},{"./duplex.js":297,"./passthrough.js":300,"./readable.js":301,"./transform.js":302,"./writable.js":303,"events":293,"inherits":294}],299:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -45794,7 +45833,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],291:[function(require,module,exports){
+},{}],300:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -45837,7 +45876,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./transform.js":293,"inherits":285}],292:[function(require,module,exports){
+},{"./transform.js":302,"inherits":294}],301:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -46774,7 +46813,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./index.js":289,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"events":284,"inherits":285,"process/browser.js":290,"string_decoder":295}],293:[function(require,module,exports){
+},{"./index.js":298,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"events":293,"inherits":294,"process/browser.js":299,"string_decoder":304}],302:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -46980,7 +47019,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./duplex.js":288,"inherits":285}],294:[function(require,module,exports){
+},{"./duplex.js":297,"inherits":294}],303:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -47368,7 +47407,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./index.js":289,"buffer":281,"inherits":285,"process/browser.js":290}],295:[function(require,module,exports){
+},{"./index.js":298,"buffer":290,"inherits":294,"process/browser.js":299}],304:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -47561,14 +47600,14 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":281}],296:[function(require,module,exports){
+},{"buffer":290}],305:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],297:[function(require,module,exports){
+},{}],306:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -48158,7 +48197,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":296,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"inherits":285}],298:[function(require,module,exports){
+},{"./support/isBuffer":305,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"inherits":294}],307:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -48298,7 +48337,7 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":299}],299:[function(require,module,exports){
+},{"indexof":308}],308:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -48309,7 +48348,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],300:[function(require,module,exports){
+},{}],309:[function(require,module,exports){
 (function (Buffer){
 var Zlib = module.exports = require('./zlib');
 
@@ -48356,7 +48395,7 @@ Zlib.gzip = function gzip(stringOrBuffer, callback) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./zlib":301,"buffer":281}],301:[function(require,module,exports){
+},{"./zlib":310,"buffer":290}],310:[function(require,module,exports){
 (function (process,Buffer){
 /** @license zlib.js 0.1.7 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */(function() {'use strict';function q(b){throw b;}var t=void 0,u=!0;var A="undefined"!==typeof Uint8Array&&"undefined"!==typeof Uint16Array&&"undefined"!==typeof Uint32Array;function E(b,a){this.index="number"===typeof a?a:0;this.m=0;this.buffer=b instanceof(A?Uint8Array:Array)?b:new (A?Uint8Array:Array)(32768);2*this.buffer.length<=this.index&&q(Error("invalid index"));this.buffer.length<=this.index&&this.f()}E.prototype.f=function(){var b=this.buffer,a,c=b.length,d=new (A?Uint8Array:Array)(c<<1);if(A)d.set(b);else for(a=0;a<c;++a)d[a]=b[a];return this.buffer=d};
 E.prototype.d=function(b,a,c){var d=this.buffer,f=this.index,e=this.m,g=d[f],k;c&&1<a&&(b=8<a?(G[b&255]<<24|G[b>>>8&255]<<16|G[b>>>16&255]<<8|G[b>>>24&255])>>32-a:G[b]>>8-a);if(8>a+e)g=g<<a|b,e+=a;else for(k=0;k<a;++k)g=g<<1|b>>a-k-1&1,8===++e&&(e=0,d[f++]=G[g],g=0,f===d.length&&(d=this.f()));d[f]=g;this.buffer=d;this.m=e;this.index=f};E.prototype.finish=function(){var b=this.buffer,a=this.index,c;0<this.m&&(b[a]<<=8-this.m,b[a]=G[b[a]],a++);A?c=b.subarray(0,a):(b.length=a,c=b);return c};
@@ -48414,4 +48453,4 @@ function xb(b,a){var c;b.subarray=b.slice;c=(new pb(b)).i();a||(a={});return a.n
 function Cb(b){var a=new Buffer(b.length),c,d;c=0;for(d=b.length;c<d;++c)a[c]=b[c];return a};}).call(this); //@ sourceMappingURL=node-zlib.js.map
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281}]},{},[1])
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290}]},{},[1])
