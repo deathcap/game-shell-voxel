@@ -16,7 +16,7 @@ require('voxel-artpacks');
 createShell({require: require, pluginOpts:
   {
     'voxel-registry': {},
-    'voxel-stitch': {},
+    'voxel-stitch': {debug: false},
     'voxel-plugins-ui': {gui: new createGUI.GUI()},
     'kb-bindings-ui': {},
     './lib/blocks.js': {},
@@ -27,7 +27,7 @@ createShell({require: require, pluginOpts:
 });
 
 
-},{"./":6,"./lib/blocks.js":2,"dat-gui":34,"kb-bindings-ui":165,"voxel-artpacks":183,"voxel-drop":190,"voxel-keys":215,"voxel-plugins-ui":218,"voxel-registry":222,"voxel-stitch":288}],2:[function(require,module,exports){
+},{"./":6,"./lib/blocks.js":2,"dat-gui":34,"kb-bindings-ui":107,"voxel-artpacks":156,"voxel-drop":163,"voxel-keys":188,"voxel-plugins-ui":191,"voxel-registry":195,"voxel-stitch":275}],2:[function(require,module,exports){
 'use strict';
 
 // sample blocks for demo.js TODO: move to voxel-land as a proper plugin, refactor with lib/examples.js terrain gen
@@ -42,7 +42,7 @@ function BlocksPlugin(game, opts) {
   registry.registerBlock('dirt', {texture: 'dirt'})
   registry.registerBlock('stone', {texture: 'stone'})
   registry.registerBlock('cobblestone', {texture: 'cobblestone'})
-  registry.registerBlock('lava', {texture: 'lava_still'})
+  registry.registerBlock('lava', {texture: 'lava_still', transparent: true})
   registry.registerBlock('water', {texture: 'water_flow', transparent: true})
   registry.registerBlock('glass', {texture: 'glass', transparent: true})
   registry.registerBlock('oreDiamond', {texture: 'diamond_ore'})
@@ -121,7 +121,7 @@ function createVoxelMesh(gl, voxels, voxelSideTextureIDs) {
 
 module.exports = createVoxelMesh
 
-},{"ao-mesher":7,"gl-buffer":41,"gl-vao":164,"ndarray":181,"ndarray-ops":176}],4:[function(require,module,exports){
+},{"ao-mesher":7,"gl-buffer":41,"gl-vao":106,"ndarray":123,"ndarray-ops":118}],4:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -202,7 +202,7 @@ module.exports = function(materials) {
 
 
 
-},{"ndarray":181,"ndarray-fill":167}],5:[function(require,module,exports){
+},{"ndarray":123,"ndarray-fill":109}],5:[function(require,module,exports){
 "use strict"
 var createShader = require("gl-shader")
 
@@ -225,7 +225,6 @@ void main() {\
 
 var createShell = require("gl-now")
 var createCamera = require("game-shell-fps-camera")
-var createTileMap = require("gl-tile-map")
 var ndarray = require("ndarray")
 var createWireShader = require("./lib/wireShader.js")
 var createAOShader = require("ao-shader")
@@ -296,13 +295,22 @@ shell.on("gl-init", function() {
   //Create texture atlas
   var stitcher = game.plugins.get('voxel-stitch') // TODO: load not as a plugin?
   var updateTexture = function() {
-    console.log('updateTexture() calling createTileMap()')
-    texture = createTileMap(gl, stitcher.atlas, 2)
-    texture.magFilter = gl.NEAREST
-    texture.minFilter = gl.LINEAR_MIPMAP_LINEAR
-    texture.mipSamples = 4
+    console.log('updateTexture() calling createGLTexture()')
+
+    stitcher.createGLTexture(gl, function(err, tex) {
+      if (err) throw new Error('stitcher createGLTexture error: ' + err)
+      texture = tex
+    })
+
+    // for highBlock, clone wool texture (if shows up as dirt, wrapped around)
+    for (var k = 0; k < 6; k++)
+      stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
+
+    mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
+    var c = mesh.center
+    camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
   }
-  stitcher.on('addedAll', updateTexture)
+  stitcher.on('updateTexture', updateTexture)
   stitcher.stitch()
 
   //Lookup voxel materials for terrain generation
@@ -317,16 +325,10 @@ shell.on("gl-init", function() {
     }
   }
 
-  // test manually assigned high block index - clone wool texture (if shows up as dirt, wrapped around)
+  // test manually assigned high block index
   // before https://github.com/mikolalysenko/ao-mesher/issues/2 max is 255, after max is 32767
   var highIndex = 32767
   terrainMaterials.highBlock = OPAQUE|highIndex
-  for (var k = 0; k < 6; k++)
-    stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
-
-  mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
-  var c = mesh.center
-  camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
 
   shell.bind('wireframe', 'F')
 })
@@ -362,10 +364,12 @@ shell.on("gl-render", function(t) {
   shader.uniforms.model = model
   shader.uniforms.tileSize = TILE_SIZE
   if (texture) shader.uniforms.tileMap = texture.bind() // texture might not have loaded yet
-  
-  mesh.triangleVAO.bind()
-  gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
-  mesh.triangleVAO.unbind()
+
+  if(mesh) {
+    mesh.triangleVAO.bind()
+    gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
+    mesh.triangleVAO.unbind()
+  }
 
   if(shell.wasDown('wireframe')) {
     //Bind the wire shader
@@ -374,10 +378,12 @@ shell.on("gl-render", function(t) {
     wireShader.uniforms.projection = projection
     wireShader.uniforms.model = model
     wireShader.uniforms.view = view
-    
-    mesh.wireVAO.bind()
-    gl.drawArrays(gl.LINES, 0, mesh.wireVertexCount)
-    mesh.wireVAO.unbind()
+
+    if(mesh) {
+      mesh.wireVAO.bind()
+      gl.drawArrays(gl.LINES, 0, mesh.wireVertexCount)
+      mesh.wireVAO.unbind()
+    }
   }
 })
 }
@@ -386,7 +392,7 @@ module.exports = main
 
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/createMesh.js":3,"./lib/terrain.js":4,"./lib/wireShader.js":5,"ao-shader":20,"game-shell-fps-camera":37,"gl-matrix":47,"gl-now":48,"gl-tile-map":158,"ndarray":181,"voxel-plugins":219}],7:[function(require,module,exports){
+},{"./lib/createMesh.js":3,"./lib/terrain.js":4,"./lib/wireShader.js":5,"ao-shader":20,"game-shell-fps-camera":37,"gl-matrix":47,"gl-now":48,"ndarray":123,"voxel-plugins":192}],7:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -1996,7 +2002,7 @@ function wrappedNDArrayCtor(data, shape, stride, offset) {
 
 module.exports = wrappedNDArrayCtor
 }).call(this,require("buffer").Buffer)
-},{"buffer":290,"iota-array":16}],16:[function(require,module,exports){
+},{"buffer":277,"iota-array":16}],16:[function(require,module,exports){
 module.exports=require(13)
 },{}],17:[function(require,module,exports){
 /**
@@ -2549,7 +2555,7 @@ module.exports  = function(gl) {
     "precision highp float;\n\nuniform float tileSize;\nuniform sampler2D tileMap;\n\nvarying vec3  normal;\nvarying vec2  tileCoord;\nvarying vec2  texCoord;\nvarying float ambientOcclusion;\n\nvoid main() {\n\n  vec2 uv      = texCoord;\n  vec4 color   = vec4(0,0,0,0);\n  float weight = 0.0;\n\n  vec2 tileOffset = 2.0 * tileSize * tileCoord;\n  float denom     = 2.0 * tileSize * 16.0;\n\n  for(int dx=0; dx<2; ++dx) {\n    for(int dy=0; dy<2; ++dy) {\n      vec2 offset = 2.0 * fract(0.5 * (uv + vec2(dx, dy)));\n      float w = pow(1.0 - max(abs(offset.x-1.0), abs(offset.y-1.0)), 16.0);\n      \n      vec2 tc = (tileOffset + tileSize * offset) / denom;\n      color  += w * texture2D(tileMap, tc);\n      weight += w;\n    }\n  }\n  color /= weight;\n  \n  if(color.w < 0.5) {\n    discard;\n  }\n  \n  float light = ambientOcclusion + max(0.15*dot(normal, vec3(1,1,1)), 0.0);\n  \n  gl_FragColor = vec4(color.xyz * light, color.w);\n}\n")
 }
 
-},{"fs":289,"gl-shader":21}],21:[function(require,module,exports){
+},{"fs":276,"gl-shader":21}],21:[function(require,module,exports){
 "use strict"
 
 var glslExports = require("glsl-exports")
@@ -4208,7 +4214,7 @@ function through (write, end) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],28:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"stream":285}],28:[function(require,module,exports){
 module.exports = tokenize
 
 var through = require('through')
@@ -4943,7 +4949,7 @@ function through (write, end, opts) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],33:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"stream":285}],33:[function(require,module,exports){
 module.exports=require(11)
 },{}],34:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
@@ -13916,7 +13922,7 @@ function createBuffer(gl, data, type, usage) {
 }
 
 module.exports = createBuffer
-},{"ndarray":181,"ndarray-ops":176,"typedarray-pool":44,"webglew":46}],42:[function(require,module,exports){
+},{"ndarray":123,"ndarray-ops":118,"typedarray-pool":44,"webglew":46}],42:[function(require,module,exports){
 module.exports=require(17)
 },{}],43:[function(require,module,exports){
 module.exports=require(18)
@@ -14267,7 +14273,7 @@ exports.clearCache = function clearCache() {
 }
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"bit-twiddle":42,"buffer":290,"dup":43}],45:[function(require,module,exports){
+},{"bit-twiddle":42,"buffer":277,"dup":43}],45:[function(require,module,exports){
 /* (The MIT License)
  *
  * Copyright (c) 2012 Brandon Benvie <http://bbenvie.com>
@@ -15784,7 +15790,7 @@ function createShell(options) {
 
 module.exports = createShell
 
-},{"./lib/hrtime-polyfill.js":49,"./lib/mousewheel-polyfill.js":50,"./lib/raf-polyfill.js":51,"binary-search-bounds":52,"domready":53,"events":293,"invert-hash":54,"iota-array":55,"uniq":56,"util":306,"vkey":57}],59:[function(require,module,exports){
+},{"./lib/hrtime-polyfill.js":49,"./lib/mousewheel-polyfill.js":50,"./lib/raf-polyfill.js":51,"binary-search-bounds":52,"domready":53,"events":280,"invert-hash":54,"iota-array":55,"uniq":56,"util":293,"vkey":57}],59:[function(require,module,exports){
 module.exports=require(45)
 },{}],60:[function(require,module,exports){
 module.exports=require(46)
@@ -15836,7 +15842,7 @@ function compileShader(gl, vertexSource, fragmentSource) {
   return createShader(gl, vertexSource, fragmentSource, uniforms, attributes)
 }
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"gl-shader-core":67,"glsl-extract":68,"through":99,"uniq":100}],62:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"buffer":277,"gl-shader-core":67,"glsl-extract":68,"through":99,"uniq":100}],62:[function(require,module,exports){
 "use strict"
 
 module.exports = coallesceUniforms
@@ -16393,7 +16399,7 @@ function tostring() {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"./lib/collect":69,"./lib/format":71,"./lib/preprocess":72,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"glsl-parser":80,"glsl-tokenizer":85,"through":99,"utf8-stream":89}],69:[function(require,module,exports){
+},{"./lib/collect":69,"./lib/format":71,"./lib/preprocess":72,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"buffer":277,"glsl-parser":80,"glsl-tokenizer":85,"through":99,"utf8-stream":89}],69:[function(require,module,exports){
 'use strict'
 
 module.exports = collect_storages
@@ -18241,7 +18247,7 @@ proto.tab = function() {
 
 },{}],79:[function(require,module,exports){
 module.exports=require(27)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],80:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"stream":285}],80:[function(require,module,exports){
 arguments[4][23][0].apply(exports,arguments)
 },{"./lib/index":82}],81:[function(require,module,exports){
 module.exports=require(24)
@@ -19209,7 +19215,7 @@ function is_precision(token) {
 module.exports=require(26)
 },{}],84:[function(require,module,exports){
 module.exports=require(27)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],85:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"stream":285}],85:[function(require,module,exports){
 module.exports=require(28)
 },{"./lib/builtins":86,"./lib/literals":87,"./lib/operators":88,"through":99}],86:[function(require,module,exports){
 module.exports=require(29)
@@ -19281,7 +19287,7 @@ function nbytes (b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":290,"readable-stream/transform":98}],90:[function(require,module,exports){
+},{"buffer":277,"readable-stream/transform":98}],90:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -19374,7 +19380,7 @@ function forEach (xs, f) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./_stream_readable":91,"./_stream_writable":93,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"core-util-is":94,"inherits":95}],91:[function(require,module,exports){
+},{"./_stream_readable":91,"./_stream_writable":93,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"core-util-is":94,"inherits":95}],91:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -20337,7 +20343,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"core-util-is":94,"events":293,"inherits":95,"isarray":96,"stream":298,"string_decoder/":97}],92:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"buffer":277,"core-util-is":94,"events":280,"inherits":95,"isarray":96,"stream":285,"string_decoder/":97}],92:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20940,7 +20946,7 @@ function endWritable(stream, state, cb) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./_stream_duplex":90,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"core-util-is":94,"inherits":95,"stream":298}],94:[function(require,module,exports){
+},{"./_stream_duplex":90,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"buffer":277,"core-util-is":94,"inherits":95,"stream":285}],94:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -21050,7 +21056,7 @@ function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
 }).call(this,require("buffer").Buffer)
-},{"buffer":290}],95:[function(require,module,exports){
+},{"buffer":277}],95:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -21282,479 +21288,391 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":290}],98:[function(require,module,exports){
+},{"buffer":277}],98:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
 },{"./lib/_stream_transform.js":92}],99:[function(require,module,exports){
 module.exports=require(32)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],100:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"stream":285}],100:[function(require,module,exports){
 module.exports=require(11)
 },{}],101:[function(require,module,exports){
-module.exports=require(17)
+"use strict"
+
+function doBind(gl, elements, attributes) {
+  if(elements) {
+    elements.bind()
+  } else {
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
+  }
+  var nattribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS)|0
+  if(attributes) {
+    if(attributes.length > nattribs) {
+      throw new Error("gl-vao: Too many vertex attributes")
+    }
+    for(var i=0; i<attributes.length; ++i) {
+      var attrib = attributes[i]
+      if(attrib.buffer) {
+        var buffer = attrib.buffer
+        var size = attrib.size || 4
+        var type = attrib.type || gl.FLOAT
+        var normalized = !!attrib.normalized
+        var stride = attrib.stride || 0
+        var offset = attrib.offset || 0
+        buffer.bind()
+        gl.enableVertexAttribArray(i)
+        gl.vertexAttribPointer(i, size, type, normalized, stride, offset)
+      } else {
+        if(typeof attrib === "number") {
+          gl.vertexAttrib1f(i, attrib)
+        } else if(attrib.length === 1) {
+          gl.vertexAttrib1f(i, attrib[0])
+        } else if(attrib.length === 2) {
+          gl.vertexAttrib2f(i, attrib[0], attrib[1])
+        } else if(attrib.length === 3) {
+          gl.vertexAttrib3f(i, attrib[0], attrib[1], attrib[2])
+        } else if(attrib.length === 4) {
+          gl.vertexAttrib4f(i, attrib[0], attrib[1], attrib[2], attrib[3])
+        } else {
+          throw new Error("gl-vao: Invalid vertex attribute")
+        }
+        gl.disableVertexAttribArray(i)
+      }
+    }
+    for(; i<nattribs; ++i) {
+      gl.disableVertexAttribArray(i)
+    }
+  } else {
+    gl.bindBuffer(gl.ARRAY_BUFFER, null)
+    for(var i=0; i<nattribs; ++i) {
+      gl.disableVertexAttribArray(i)
+    }
+  }
+}
+
+module.exports = doBind
 },{}],102:[function(require,module,exports){
 "use strict"
 
-var compile = require("cwise-compiler")
+var bindAttribs = require("./do-bind.js")
 
-var EmptyProc = {
-  body: "",
-  args: [],
-  thisVars: [],
-  localVars: []
+function VAOEmulated(gl) {
+  this.gl = gl
+  this._elements = null
+  this._attributes = null
 }
 
-function fixup(x) {
-  if(!x) {
-    return EmptyProc
+VAOEmulated.prototype.bind = function() {
+  bindAttribs(this.gl, this._elements, this._attributes)
+}
+
+VAOEmulated.prototype.update = function(attributes, elements) {
+  this._elements = elements
+  this._attributes = attributes
+}
+
+VAOEmulated.prototype.dispose = function() { }
+VAOEmulated.prototype.unbind = function() { }
+
+VAOEmulated.prototype.draw = function(mode, count, offset) {
+  offset = offset || 0
+  var gl = this.gl
+  if(this._elements) {
+    gl.drawElements(mode, count, gl.UNSIGNED_SHORT, offset)
+  } else {
+    gl.drawArrays(mode, offset, count)
   }
-  for(var i=0; i<x.args.length; ++i) {
-    var a = x.args[i]
-    if(i === 0) {
-      x.args[i] = {name: a, lvalue:true, rvalue: !!x.rvalue, count:x.count||1 }
-    } else {
-      x.args[i] = {name: a, lvalue:false, rvalue:true, count: 1}
+}
+
+function createVAOEmulated(gl) {
+  return new VAOEmulated(gl)
+}
+
+module.exports = createVAOEmulated
+},{"./do-bind.js":101}],103:[function(require,module,exports){
+"use strict"
+
+var bindAttribs = require("./do-bind.js")
+
+function VertexAttribute(location, dimension, a, b, c, d) {
+  this.location = location
+  this.dimension = dimension
+  this.a = a
+  this.b = b
+  this.c = c
+  this.d = d
+}
+
+VertexAttribute.prototype.bind = function(gl) {
+  switch(this.dimension) {
+    case 1:
+      gl.vertexAttrib1f(this.location, this.a)
+    break
+    case 2:
+      gl.vertexAttrib2f(this.location, this.a, this.b)
+    break
+    case 3:
+      gl.vertexAttrib3f(this.location, this.a, this.b, this.c)
+    break
+    case 4:
+      gl.vertexAttrib4f(this.location, this.a, this.b, this.c, this.d)
+    break
+  }
+}
+
+function VAONative(gl, ext, handle) {
+  this.gl = gl
+  this._ext = ext
+  this.handle = handle
+  this._attribs = []
+  this._useElements = false
+}
+
+VAONative.prototype.bind = function() {
+  this._ext.bindVertexArrayOES(this.handle)
+  for(var i=0; i<this._attribs.length; ++i) {
+    this._attribs[i].bind(this.gl)
+  }
+}
+
+VAONative.prototype.unbind = function() {
+  this._ext.bindVertexArrayOES(null)
+}
+
+VAONative.prototype.dispose = function() {
+  this._ext.deleteVertexArrayOES(this.handle)
+}
+
+VAONative.prototype.update = function(attributes, elements) {
+  this.bind()
+  bindAttribs(this.gl, elements, attributes)
+  this.unbind()
+  this._attribs.length = 0
+  if(attributes)
+  for(var i=0; i<attributes.length; ++i) {
+    var a = attributes[i]
+    if(typeof a === "number") {
+      this._attribs.push(new VertexAttribute(i, 1, a))
+    } else if(Array.isArray(a)) {
+      this._attribs.push(new VertexAttribute(i, a.length, a[0], a[1], a[2], a[3]))
     }
   }
-  if(!x.thisVars) {
-    x.thisVars = []
-  }
-  if(!x.localVars) {
-    x.localVars = []
-  }
-  return x
+  this._useElements = !!elements
 }
 
-function pcompile(user_args) {
+VAONative.prototype.draw = function(mode, count, offset) {
+  offset = offset || 0
+  var gl = this.gl
+  if(this._useElements) {
+    gl.drawElements(mode, count, gl.UNSIGNED_SHORT, offset)
+  } else {
+    gl.drawArrays(mode, offset, count)
+  }
+}
+
+function createVAONative(gl, ext) {
+  return new VAONative(gl, ext, ext.createVertexArrayOES())
+}
+
+module.exports = createVAONative
+},{"./do-bind.js":101}],104:[function(require,module,exports){
+module.exports=require(45)
+},{}],105:[function(require,module,exports){
+module.exports=require(46)
+},{"weakmap":104}],106:[function(require,module,exports){
+"use strict"
+
+var webglew = require("webglew")
+var createVAONative = require("./lib/vao-native.js")
+var createVAOEmulated = require("./lib/vao-emulated.js")
+
+function createVAO(gl, attributes, elements) {
+  var ext = webglew(gl).OES_vertex_array_object
+  var vao
+  if(ext) {
+    vao = createVAONative(gl, ext)
+  } else {
+    vao = createVAOEmulated(gl)
+  }
+  vao.update(attributes, elements)
+  return vao
+}
+
+module.exports = createVAO
+},{"./lib/vao-emulated.js":102,"./lib/vao-native.js":103,"webglew":105}],107:[function(require,module,exports){
+'use strict';
+
+var vkey = require('vkey');
+
+module.exports = function(game, opts) {
+  return new BindingsUI(game, opts);
+};
+
+module.exports.pluginInfo = {
+  loadAfter: ['voxel-debug', 'voxel-plugins-ui'], // optional to load after and reuse same gui
+  clientOnly: true
+};
+
+function BindingsUI(game, opts) {
+  this.game = game;
+
+  opts = opts || {};
+
+  this.kb = opts.kb || (game && game.buttons); // might be undefined
+
+  // try to latch on to an existing datgui, otherwise make our own
+  this.gui = opts.gui;
+  if (!this.gui) {
+    if (game && game.plugins) {
+      if (game.plugins.get('voxel-debug')) this.gui = game.plugins.get('voxel-debug').gui;
+      else if (game.plugins.get('voxel-plugins-ui')) this.gui = game.plugins.get('voxel-plugins-ui').gui;
+    }
+  }
+  if (!this.gui) this.gui = new require('dat-gui').GUI();
+
+  this.hideKeys = opts.hideKeys || ['ime-', 'launch-', 'browser-']; // too long
+  this.folder = this.gui.addFolder('keys');
+
+  // clean up the valid key listing TODO: refactor with game-shell? it does almost the same
+  this.vkey2code = {};
+  this.vkeyBracket2Bare = {};
+  this.vkeyBare2Bracket = {};
+  this.keyListing = [];
+  for (var code in vkey) {
+    var keyName = vkey[code];
+
+    this.vkey2code[keyName] = code;
+
+    var keyNameBare = keyName.replace('<', '').replace('>', '');
+    this.vkeyBracket2Bare[keyName] = keyNameBare;
+    this.vkeyBare2Bracket[keyNameBare] = keyName;
+
+    if (!this.shouldHideKey(keyNameBare))
+      this.keyListing.push(keyNameBare);
+  }
+
+  // get keybindings
+  this.binding2Key = {};
+  if (this.kb && this.kb.bindings) {
+    // voxel-engine with kb-bindings - stores key -> binding
+    for (var key in this.kb.bindings) {
+      var binding = this.kb.bindings[key];
+      this.binding2Key[binding] = this.vkeyBracket2Bare[key] || key;
+      this.addBinding(binding);
+    }
+  } else if (this.game.shell && this.game.shell.bindings) {
+    // game-shell - stores binding -> key(s)
+    for (var binding in this.game.shell.bindings) {
+      var key = this.game.shell.bindings[binding];
+
+      if (Array.isArray(key)) {
+        key = key[0]; // TODO: support multiple keys. for now, only taking first
+      }
+
+      this.binding2Key[binding] = this.vkeyBracket2Bare[key] || key;
+      this.addBinding(binding);
+    }
+  }
+}
+
+BindingsUI.prototype.shouldHideKey = function(name) {
+  for (var i = 0; i < this.hideKeys.length; ++i) {
+    if (name.indexOf(this.hideKeys[i]) === 0) return true;
+  }
+  return false;
+};
+
+BindingsUI.prototype.addBinding = function (binding) {
+  var item = this.folder.add(this.binding2Key, binding, this.keyListing);
+
+  item.onChange(updateBinding(this, binding));
+};
+
+function updateBinding(self, binding) {
+  return function(newKeyNameBare) {
+    //if (self.vkey2code[newKeyName] === undefined) // invalid vkey
+
+    var newKeyName = self.vkeyBare2Bracket[newKeyNameBare];
+
+    self.removeBindings(binding);
+
+    if (self.kb && self.kb.bindings) {
+      self.kb.bindings[newKeyName] = binding;
+    } else {
+      self.game.shell.bind(binding, newKeyName);
+    }
+  };
+}
+
+// remove all keys bound to given binding
+BindingsUI.prototype.removeBindings = function(binding) {
+  if (this.kb && this.kb.bindings) {
+    for (var key in this.kb.bindings) {
+      var thisBinding = this.kb.bindings[key];
+      if (thisBinding === binding) {
+        delete this.kb.bindings[key];
+      }
+    }
+  } else {
+    this.game.shell.unbind(binding);
+  }
+};
+
+
+},{"vkey":108}],108:[function(require,module,exports){
+module.exports=require(57)
+},{}],109:[function(require,module,exports){
+"use strict"
+
+var fill = require("cwise")({
+  args: ["index", "array", "scalar"],
+  body: function(idx, out, f) {
+    out = f.apply(undefined, idx)
+  }
+})
+
+module.exports = function(array, f) {
+  fill(array, f)
+  return array
+}
+
+},{"cwise":110}],110:[function(require,module,exports){
+"use strict"
+
+var parse   = require("cwise-parser")
+var compile = require("cwise-compiler")
+
+var REQUIRED_FIELDS = [ "args", "body" ]
+var OPTIONAL_FIELDS = [ "pre", "post", "printCode", "funcName", "blockSize" ]
+
+function createCWise(user_args) {
+  //Check parameters
+  for(var id in user_args) {
+    if(REQUIRED_FIELDS.indexOf(id) < 0 &&
+       OPTIONAL_FIELDS.indexOf(id) < 0) {
+      console.warn("cwise: Unknown argument '"+id+"' passed to expression compiler")
+    }
+  }
+  for(var i=0; i<REQUIRED_FIELDS.length; ++i) {
+    if(!user_args[REQUIRED_FIELDS[i]]) {
+      throw new Error("cwise: Missing argument: " + REQUIRED_FIELDS[i])
+    }
+  }
+  
+  //Parse blocks
   return compile({
-    args:     user_args.args,
-    pre:      fixup(user_args.pre),
-    body:     fixup(user_args.body),
-    post:     fixup(user_args.proc),
-    funcName: user_args.funcName
+    args:       user_args.args,
+    pre:        parse(user_args.pre || function(){}),
+    body:       parse(user_args.body),
+    post:       parse(user_args.post || function(){}),
+    debug:      !!user_args.printCode,
+    funcName:   user_args.funcName || user_args.body.name || "cwise",
+    blockSize:  user_args.blockSize || 64
   })
 }
 
-function makeOp(user_args) {
-  var args = []
-  for(var i=0; i<user_args.args.length; ++i) {
-    args.push("a"+i)
-  }
-  var wrapper = new Function("P", [
-    "return function ", user_args.funcName, "_ndarrayops(", args.join(","), ") {P(", args.join(","), ");return a0}"
-  ].join(""))
-  return wrapper(pcompile(user_args))
-}
+module.exports = createCWise
 
-var assign_ops = {
-  add:  "+",
-  sub:  "-",
-  mul:  "*",
-  div:  "/",
-  mod:  "%",
-  band: "&",
-  bor:  "|",
-  bxor: "^",
-  lshift: "<<",
-  rshift: ">>",
-  rrshift: ">>>"
-}
-;(function(){
-  for(var id in assign_ops) {
-    var op = assign_ops[id]
-    exports[id] = makeOp({
-      args: ["array","array","array"],
-      body: {args:["a","b","c"],
-             body: "a=b"+op+"c"},
-      funcName: id
-    })
-    exports[id+"eq"] = makeOp({
-      args: ["array","array"],
-      body: {args:["a","b"],
-             body:"a"+op+"=b"},
-      rvalue: true,
-      funcName: id+"eq"
-    })
-    exports[id+"s"] = makeOp({
-      args: ["array", "array", "scalar"],
-      body: {args:["a","b","s"],
-             body:"a=b"+op+"s"},
-      funcName: id+"s"
-    })
-    exports[id+"seq"] = makeOp({
-      args: ["array","scalar"],
-      body: {args:["a","s"],
-             body:"a"+op+"=s"},
-      rvalue: true,
-      funcName: id+"seq"
-    })
-  }
-})();
-
-var unary_ops = {
-  not: "!",
-  bnot: "~",
-  neg: "-",
-  recip: "1.0/"
-}
-;(function(){
-  for(var id in unary_ops) {
-    var op = unary_ops[id]
-    exports[id] = makeOp({
-      args: ["array", "array"],
-      body: {args:["a","b"],
-             body:"a="+op+"b"},
-      funcName: id
-    })
-    exports[id+"eq"] = makeOp({
-      args: ["array"],
-      body: {args:["a"],
-             body:"a="+op+"a"},
-      rvalue: true,
-      count: 2,
-      funcName: id+"eq"
-    })
-  }
-})();
-
-var binary_ops = {
-  and: "&&",
-  or: "||",
-  eq: "===",
-  neq: "!==",
-  lt: "<",
-  gt: ">",
-  leq: "<=",
-  geq: ">="
-}
-;(function() {
-  for(var id in binary_ops) {
-    var op = binary_ops[id]
-    exports[id] = makeOp({
-      args: ["array","array","array"],
-      body: {args:["a", "b", "c"],
-             body:"a=b"+op+"c"},
-      funcName: id
-    })
-    exports[id+"s"] = makeOp({
-      args: ["array","array","scalar"],
-      body: {args:["a", "b", "s"],
-             body:"a=b"+op+"s"},
-      funcName: id+"s"
-    })
-    exports[id+"eq"] = makeOp({
-      args: ["array", "array"],
-      body: {args:["a", "b"],
-             body:"a=a"+op+"b"},
-      rvalue:true,
-      count:2,
-      funcName: id+"eq"
-    })
-    exports[id+"seq"] = makeOp({
-      args: ["array", "scalar"],
-      body: {args:["a","s"],
-             body:"a=a"+op+"s"},
-      rvalue:true,
-      count:2,
-      funcName: id+"seq"
-    })
-  }
-})();
-
-var math_unary = [
-  "abs",
-  "acos",
-  "asin",
-  "atan",
-  "ceil",
-  "cos",
-  "exp",
-  "floor",
-  "log",
-  "round",
-  "sin",
-  "sqrt",
-  "tan"
-]
-;(function() {
-  for(var i=0; i<math_unary.length; ++i) {
-    var f = math_unary[i]
-    exports[f] = makeOp({
-                    args: ["array", "array"],
-                    pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                    body: {args:["a","b"], body:"a=this_f(b)", thisVars:["this_f"]},
-                    funcName: f
-                  })
-    exports[f+"eq"] = makeOp({
-                      args: ["array"],
-                      pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                      body: {args: ["a"], body:"a=this_f(a)", thisVars:["this_f"]},
-                      rvalue: true,
-                      count: 2,
-                      funcName: f+"eq"
-                    })
-  }
-})();
-
-var math_comm = [
-  "max",
-  "min",
-  "atan2",
-  "pow"
-]
-;(function(){
-  for(var i=0; i<math_comm.length; ++i) {
-    var f= math_comm[i]
-    exports[f] = makeOp({
-                  args:["array", "array", "array"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b","c"], body:"a=this_f(b,c)", thisVars:["this_f"]},
-                  funcName: f
-                })
-    exports[f+"s"] = makeOp({
-                  args:["array", "array", "scalar"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b","c"], body:"a=this_f(b,c)", thisVars:["this_f"]},
-                  funcName: f+"s"
-                  })
-    exports[f+"eq"] = makeOp({ args:["array", "array"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b"], body:"a=this_f(a,b)", thisVars:["this_f"]},
-                  rvalue: true,
-                  count: 2,
-                  funcName: f+"eq"
-                  })
-    exports[f+"seq"] = makeOp({ args:["array", "scalar"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b"], body:"a=this_f(a,b)", thisVars:["this_f"]},
-                  rvalue:true,
-                  count:2,
-                  funcName: f+"seq"
-                  })
-  }
-})();
-
-var math_noncomm = [
-  "atan2",
-  "pow"
-]
-;(function(){
-  for(var i=0; i<math_noncomm.length; ++i) {
-    var f= math_noncomm[i]
-    exports[f+"op"] = makeOp({
-                  args:["array", "array", "array"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b","c"], body:"a=this_f(c,b)", thisVars:["this_f"]},
-                  funcName: f+"op"
-                })
-    exports[f+"ops"] = makeOp({
-                  args:["array", "array", "scalar"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b","c"], body:"a=this_f(c,b)", thisVars:["this_f"]},
-                  funcName: f+"ops"
-                  })
-    exports[f+"opeq"] = makeOp({ args:["array", "array"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b"], body:"a=this_f(b,a)", thisVars:["this_f"]},
-                  rvalue: true,
-                  count: 2,
-                  funcName: f+"opeq"
-                  })
-    exports[f+"opseq"] = makeOp({ args:["array", "scalar"],
-                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
-                  body: {args:["a","b"], body:"a=this_f(b,a)", thisVars:["this_f"]},
-                  rvalue:true,
-                  count:2,
-                  funcName: f+"opseq"
-                  })
-  }
-})();
-
-exports.any = compile({
-  args:["array"],
-  pre: EmptyProc,
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "if(a){return true}", localVars: [], thisVars: []},
-  post: {args:[], localVars:[], thisVars:[], body:"return false"},
-  funcName: "any"
-})
-
-exports.all = compile({
-  args:["array"],
-  pre: EmptyProc,
-  body: {args:[{name:"x", lvalue:false, rvalue:true, count:1}], body: "if(!x){return false}", localVars: [], thisVars: []},
-  post: {args:[], localVars:[], thisVars:[], body:"return true"},
-  funcName: "all"
-})
-
-exports.sum = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "this_s+=a", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
-  funcName: "sum"
-})
-
-exports.prod = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=1"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "this_s*=a", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
-  funcName: "prod"
-})
-
-exports.norm2squared = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:2}], body: "this_s+=a*a", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
-  funcName: "norm2squared"
-})
-  
-exports.norm2 = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:2}], body: "this_s+=a*a", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return Math.sqrt(this_s)"},
-  funcName: "norm2"
-})
-  
-
-exports.norminf = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:4}], body:"if(-a>this_s){this_s=-a}else if(a>this_s){this_s=a}", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
-  funcName: "norminf"
-})
-
-exports.norm1 = compile({
-  args:["array"],
-  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
-  body: {args:[{name:"a", lvalue:false, rvalue:true, count:3}], body: "this_s+=a<0?-a:a", localVars: [], thisVars: ["this_s"]},
-  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
-  funcName: "norm1"
-})
-
-exports.sup = compile({
-  args: [ "array" ],
-  pre:
-   { body: "this_h=-Infinity",
-     args: [],
-     thisVars: [ "this_h" ],
-     localVars: [] },
-  body:
-   { body: "if(_inline_1_arg0_>this_h)this_h=_inline_1_arg0_",
-     args: [{"name":"_inline_1_arg0_","lvalue":false,"rvalue":true,"count":2} ],
-     thisVars: [ "this_h" ],
-     localVars: [] },
-  post:
-   { body: "return this_h",
-     args: [],
-     thisVars: [ "this_h" ],
-     localVars: [] }
- })
-
-exports.inf = compile({
-  args: [ "array" ],
-  pre:
-   { body: "this_h=Infinity",
-     args: [],
-     thisVars: [ "this_h" ],
-     localVars: [] },
-  body:
-   { body: "if(_inline_1_arg0_<this_h)this_h=_inline_1_arg0_",
-     args: [{"name":"_inline_1_arg0_","lvalue":false,"rvalue":true,"count":2} ],
-     thisVars: [ "this_h" ],
-     localVars: [] },
-  post:
-   { body: "return this_h",
-     args: [],
-     thisVars: [ "this_h" ],
-     localVars: [] }
- })
-
-exports.argmin = compile({
-  args:["index","array","shape"],
-  pre:{
-    body:"{this_v=Infinity;this_i=_inline_0_arg2_.slice(0)}",
-    args:[
-      {name:"_inline_0_arg0_",lvalue:false,rvalue:false,count:0},
-      {name:"_inline_0_arg1_",lvalue:false,rvalue:false,count:0},
-      {name:"_inline_0_arg2_",lvalue:false,rvalue:true,count:1}
-      ],
-    thisVars:["this_i","this_v"],
-    localVars:[]},
-  body:{
-    body:"{if(_inline_1_arg1_<this_v){this_v=_inline_1_arg1_;for(var _inline_1_k=0;_inline_1_k<_inline_1_arg0_.length;++_inline_1_k){this_i[_inline_1_k]=_inline_1_arg0_[_inline_1_k]}}}",
-    args:[
-      {name:"_inline_1_arg0_",lvalue:false,rvalue:true,count:2},
-      {name:"_inline_1_arg1_",lvalue:false,rvalue:true,count:2}],
-    thisVars:["this_i","this_v"],
-    localVars:["_inline_1_k"]},
-  post:{
-    body:"{return this_i}",
-    args:[],
-    thisVars:["this_i"],
-    localVars:[]}
-})
-
-exports.argmax = compile({
-  args:["index","array","shape"],
-  pre:{
-    body:"{this_v=-Infinity;this_i=_inline_0_arg2_.slice(0)}",
-    args:[
-      {name:"_inline_0_arg0_",lvalue:false,rvalue:false,count:0},
-      {name:"_inline_0_arg1_",lvalue:false,rvalue:false,count:0},
-      {name:"_inline_0_arg2_",lvalue:false,rvalue:true,count:1}
-      ],
-    thisVars:["this_i","this_v"],
-    localVars:[]},
-  body:{
-    body:"{if(_inline_1_arg1_>this_v){this_v=_inline_1_arg1_;for(var _inline_1_k=0;_inline_1_k<_inline_1_arg0_.length;++_inline_1_k){this_i[_inline_1_k]=_inline_1_arg0_[_inline_1_k]}}}",
-    args:[
-      {name:"_inline_1_arg0_",lvalue:false,rvalue:true,count:2},
-      {name:"_inline_1_arg1_",lvalue:false,rvalue:true,count:2}],
-    thisVars:["this_i","this_v"],
-    localVars:["_inline_1_k"]},
-  post:{
-    body:"{return this_i}",
-    args:[],
-    thisVars:["this_i"],
-    localVars:[]}
-})  
-
-exports.random = makeOp({
-  args: ["array"],
-  pre: {args:[], body:"this_f=Math.random", thisVars:["this_f"]},
-  body: {args: ["a"], body:"a=this_f()", thisVars:["this_f"]},
-  funcName: "random"
-})
-
-exports.assign = makeOp({
-  args:["array", "array"],
-  body: {args:["a", "b"], body:"a=b"},
-  funcName: "assign" })
-
-exports.assigns = makeOp({
-  args:["array", "scalar"],
-  body: {args:["a", "b"], body:"a=b"},
-  funcName: "assigns" })
-
-
-exports.equals = compile({
-  args:["array", "array"],
-  pre: EmptyProc,
-  body: {args:[{name:"x", lvalue:false, rvalue:true, count:1},
-               {name:"y", lvalue:false, rvalue:true, count:1}], 
-        body: "if(x!==y){return false}", 
-        localVars: [], 
-        thisVars: []},
-  post: {args:[], localVars:[], thisVars:[], body:"return true"},
-  funcName: "equals"
-})
-
-
-
-},{"cwise-compiler":103}],103:[function(require,module,exports){
+},{"cwise-compiler":111,"cwise-parser":115}],111:[function(require,module,exports){
 "use strict"
 
 var createThunk = require("./lib/thunk.js")
@@ -21860,7 +21778,7 @@ function compileCwise(user_args) {
 
 module.exports = compileCwise
 
-},{"./lib/thunk.js":105}],104:[function(require,module,exports){
+},{"./lib/thunk.js":113}],112:[function(require,module,exports){
 "use strict"
 
 var uniq = require("uniq")
@@ -22117,640 +22035,11 @@ function generateCWiseOp(proc, typesig) {
   return f()
 }
 module.exports = generateCWiseOp
-},{"uniq":106}],105:[function(require,module,exports){
+},{"uniq":114}],113:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":104}],106:[function(require,module,exports){
+},{"./compile.js":112}],114:[function(require,module,exports){
 module.exports=require(11)
-},{}],107:[function(require,module,exports){
-module.exports=require(18)
-},{}],108:[function(require,module,exports){
-module.exports=require(44)
-},{"bit-twiddle":101,"buffer":290,"dup":107}],109:[function(require,module,exports){
-module.exports=require(45)
-},{}],110:[function(require,module,exports){
-module.exports=require(46)
-},{"weakmap":109}],111:[function(require,module,exports){
-"use strict"
-
-var ndarray = require("ndarray")
-var ops = require("ndarray-ops")
-var pool = require("typedarray-pool")
-var webglew = require("webglew")
-
-var linearTypes = null
-var filterTypes = null
-var wrapTypes = null
-
-function lazyInitLinearTypes(gl) {
-  linearTypes = [
-    gl.LINEAR,
-    gl.NEAREST_MIPMAP_LINEAR,
-    gl.LINEAR_MIPMAP_NEAREST,
-    gl.LINEAR_MIPMAP_NEAREST
-  ]
-  filterTypes = [
-    gl.NEAREST,
-    gl.LINEAR,
-    gl.NEAREST_MIPMAP_NEAREST,
-    gl.NEAREST_MIPMAP_LINEAR,
-    gl.LINEAR_MIPMAP_NEAREST,
-    gl.LINEAR_MIPMAP_LINEAR
-  ]
-  wrapTypes = [
-    gl.REPEAT,
-    gl.CLAMP_TO_EDGE,
-    gl.MIRRORED_REPEAT
-  ]
-}
-
-var convertFloatToUint8 = function(out, inp) {
-  ops.muls(out, inp, 255.0)
-}
-
-function Texture2D(gl, handle, width, height, format, type) {
-  this.gl = gl
-  this.handle = handle
-  this.shape = [ height, width ]
-  this.format = format
-  this.type = type
-  this._mipLevels = [0]
-  this._magFilter = gl.NEAREST
-  this._minFilter = gl.NEAREST
-  this._wrapS = gl.CLAMP_TO_EDGE
-  this._wrapT = gl.CLAMP_TO_EDGE
-  this._anisoSamples = 1
-}
-
-Object.defineProperty(Texture2D.prototype, "minFilter", {
-  get: function() {
-    return this._minFilter
-  },
-  set: function(v) {
-    this.bind()
-    var gl = this.gl
-    if(this.type === gl.FLOAT && linearTypes.indexOf(v) >= 0) {
-      if(!webglew(gl).OES_texture_float_linear) {
-        v = gl.NEAREST
-      }
-    }
-    if(filterTypes.indexOf(v) < 0) {
-      throw new Error("gl-texture2d: Unknown filter mode " + v)
-    }
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, v)
-    return this._minFilter = v
-  }
-})
-
-var proto = Texture2D.prototype
-
-Object.defineProperty(proto, "magFilter", {
-  get: function() {
-    return this._magFilter
-  },
-  set: function(v) {
-    this.bind()
-    var gl = this.gl
-    if(this.type === gl.FLOAT && linearTypes.indexOf(v) >= 0) {
-      if(!webglew(gl).OES_texture_float_linear) {
-        v = gl.NEAREST
-      }
-    }
-    if(filterTypes.indexOf(v) < 0) {
-      throw new Error("gl-texture2d: Unknown filter mode " + v)
-    }
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, v)
-    return this._magFilter = v
-  }
-})
-
-Object.defineProperty(proto, "wrapS", {
-  get: function() {
-    return this._wrapS
-  },
-  set: function(v) {
-    this.bind()
-    if(wrapTypes.indexOf(v) < 0) {
-      throw new Error("gl-texture2d: Unknown wrap mode " + v)
-    }
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, v)
-    return this._wrapS = v
-  }
-})
-
-Object.defineProperty(proto, "wrapT", {
-  get: function() {
-    return this._wrapT
-  },
-  set: function(v) {
-    this.bind()
-    if(wrapTypes.indexOf(v) < 0) {
-      throw new Error("gl-texture2d: Unknown wrap mode " + v)
-    }
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, v)
-    return this._wrapT = v
-  }
-})
-
-Object.defineProperty(proto, "mipSamples", {
-  get: function() {
-    return this._anisoSamples
-  },
-  set: function(i) {
-    var psamples = this._anisoSamples
-    this._anisoSamples = Math.max(i, 1)|0
-    if(psamples !== this._anisoSamples) {
-      var ext = webglew(this.gl).EXT_texture_filter_anisotropic
-      if(ext) {
-        this.gl.texParameterf(this.gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, this._anisoSamples)
-      }
-    }
-    return this._anisoSamples
-  }
-})
-
-proto.bind = function bindTexture2D(unit) {
-  var gl = this.gl
-  if(unit !== undefined) {
-    gl.activeTexture(gl.TEXTURE0 + (unit|0))
-  }
-  gl.bindTexture(gl.TEXTURE_2D, this.handle)
-  if(unit !== undefined) {
-    return unit
-  }
-  return gl.getParameter(gl.ACTIVE_TEXTURE) - gl.TEXTURE0
-}
-
-proto.dispose = function disposeTexture2D() {
-  this.gl.deleteTexture(this.handle)
-}
-
-proto.generateMipmap = function() {
-  this.bind()
-  this.gl.generateMipmap(this.gl.TEXTURE_2D)
-  
-  //Update mip levels
-  var l = Math.min(this.shape[0], this.shape[1])
-  for(var i=0; l>0; ++i, l>>>=1) {
-    if(this._mipLevels.indexOf(i) < 0) {
-      this._mipLevels.push(i)
-    }
-  }
-}
-
-proto.setPixels = function(data, x_off, y_off, mip_level) {
-  var gl = this.gl
-  this.bind()
-  x_off = x_off || 0
-  y_off = y_off || 0
-  mip_level = mip_level || 0
-  if(data instanceof HTMLCanvasElement ||
-     data instanceof ImageData ||
-     data instanceof HTMLImageElement ||
-     data instanceof HTMLVideoElement) {
-    var needsMip = this._mipLevels.indexOf(mip_level) < 0
-    if(needsMip) {
-      gl.texImage2D(gl.TEXTURE_2D, 0, this.format, this.format, this.type, data)
-      this._mipLevels.push(mip_level)
-    } else {
-      gl.texSubImage2D(gl.TEXTURE_2D, mip_level, x_off, y_off, this.format, this.type, data)
-    }
-  } else if(data.shape && data.stride && data.data) {
-    if(data.shape.length < 2 ||
-       x_off + data.shape[1] > this.shape[1]>>>mip_level ||
-       y_off + data.shape[0] > this.shape[0]>>>mip_level ||
-       x_off < 0 ||
-       y_off < 0) {
-      throw new Error("Texture dimensions are out of bounds")
-    }    
-    texSubImageArray(gl, x_off, y_off, mip_level, this.format, this.type, this._mipLevels, data)
-  } else {
-    throw new Error("Unsupported data type")
-  }
-}
-
-function texSubImageArray(gl, x_off, y_off, mip_level, cformat, ctype, mipLevels, array) {
-  var dtype = array.dtype || ndarray.dtype(array)
-  var shape = array.shape
-  var packed = isPacked(array)
-  var type = 0, format = 0
-  if(dtype === "float32") {
-    type = gl.FLOAT
-  } else if(dtype === "float64") {
-    type = gl.FLOAT
-    packed = false
-    dtype = "float32"
-  } else if(dtype === "uint8") {
-    type = gl.UNSIGNED_BYTE
-  } else {
-    type = gl.UNSIGNED_BYTE
-    packed = false
-  }
-  if(shape.length === 2) {
-    format = gl.LUMINANCE
-  } else if(shape.length === 3) {
-    if(shape[2] === 1) {
-      format = gl.ALPHA
-    } else if(shape[2] === 2) {
-      format = gl.LUMINANCE_ALPHA
-    } else if(shape[2] === 3) {
-      format = gl.RGB
-    } else if(shape[2] === 4) {
-      format = gl.RGBA
-    } else {
-      throw new Error("Invalid shape for pixel coords")
-    }
-  } else {
-    throw new Error("Invalid shape for texture")
-  }
-  //For 1-channel textures allow conversion between formats
-  if((format  === gl.LUMINANCE || format  === gl.ALPHA) &&
-     (cformat === gl.LUMINANCE || cformat === gl.ALPHA)) {
-    format = cformat
-  }
-  if(format !== cformat) {
-    throw new Error("Incompatible texture format for setPixels")
-  }
-  var size = array.size
-  if(typeof size !== "number") {
-    size = ndarray.size(array)
-  }
-  var needsMip = mipLevels.indexOf(mip_level) < 0
-  if(needsMip) {
-    mipLevels.push(mip_level)
-  }
-  if(type === ctype && packed) {
-    //Array data types are compatible, can directly copy into texture
-    if(array.offset === 0 && array.data.length === size) {
-      if(needsMip) {
-        gl.texImage2D(gl.TEXTURE_2D, mip_level, cformat, shape[1], shape[0], 0, cformat, ctype, array.data)
-      } else {
-        gl.texSubImage2D(gl.TEXTURE_2D, mip_level, x_off, y_off, shape[1], shape[0], cformat, ctype, array.data)
-      }
-    } else {
-      if(needsMip) {
-        gl.texImage2D(gl.TEXTURE_2D, mip_level, cformat, shape[1], shape[0], 0, cformat, ctype, array.data.subarray(array.offset, array.offset+size))
-      } else {
-        gl.texSubImage2D(gl.TEXTURE_2D, mip_level, x_off, y_off, shape[1], shape[0], cformat, ctype, array.data.subarray(array.offset, array.offset+size))
-      }
-    }
-  } else {
-    //Need to do type conversion to pack data into buffer
-    var pack_buffer
-    if(ctype === gl.FLOAT) {
-      pack_buffer = pool.mallocFloat32(size)
-    } else {
-      pack_buffer = pool.mallocUint8(size)
-    }
-    var pack_view = ndarray(pack_buffer, shape)
-    if(type === gl.FLOAT && ctype === gl.UNSIGNED_BYTE) {
-      convertFloatToUint8(pack_view, array)
-    } else {
-      ops.assign(pack_view, array)
-    }
-    if(needsMip) {
-      gl.texImage2D(gl.TEXTURE_2D, mip_level, cformat, shape[1], shape[0], 0, cformat, ctype, pack_buffer.subarray(0, size))
-    } else {
-      gl.texSubImage2D(gl.TEXTURE_2D, mip_level, x_off, y_off, shape[1], shape[0], cformat, ctype, pack_buffer.subarray(0, size))
-    }
-    if(ctype === gl.FLOAT) {
-      pool.freeFloat32(pack_buffer)
-    } else {
-      pool.freeUint8(pack_buffer)
-    }
-  }
-}
-
-function initTexture(gl) {
-  var tex = gl.createTexture()
-  gl.bindTexture(gl.TEXTURE_2D, tex)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-  return tex
-}
-
-function createTextureShape(gl, width, height, format, type) {
-  var tex = initTexture(gl)
-  gl.texImage2D(gl.TEXTURE_2D, 0, format, width, height, 0, format, type, null)
-  return new Texture2D(gl, tex, width, height, format, type)
-}
-
-function createTextureDOM(gl, element, format, type) {
-  var tex = initTexture(gl)
-  gl.texImage2D(gl.TEXTURE_2D, 0, format, format, type, element)
-  return new Texture2D(gl, tex, element.width|0, element.height|0, format, type)
-}
-
-function isPacked(array) {
-  var shape = array.shape
-  var stride = array.stride
-  var s = 1
-  for(var i=shape.length-1; i>=0; --i) {
-    if(stride[i] !== s) {
-      return false
-    }
-    s *= shape[i]
-  }
-  return true
-}
-
-//Creates a texture from an ndarray
-function createTextureArray(gl, array) {
-  var dtype = array.dtype || ndarray.dtype(array)
-  var shape = array.shape
-  var packed = isPacked(array)
-  var type = 0
-  if(dtype === "float32") {
-    type = gl.FLOAT
-  } else if(dtype === "float64") {
-    type = gl.FLOAT
-    packed = false
-    dtype = "float32"
-  } else if(dtype === "uint8") {
-    type = gl.UNSIGNED_BYTE
-  } else {
-    type = gl.UNSIGNED_BYTE
-    packed = false
-  }
-  var format = 0
-  if(shape.length === 2) {
-    format = gl.LUMINANCE
-  } else if(shape.length === 3) {
-    if(shape[2] === 1) {
-      format = gl.ALPHA
-    } else if(shape[2] === 2) {
-      format = gl.LUMINANCE_ALPHA
-    } else if(shape[2] === 3) {
-      format = gl.RGB
-    } else if(shape[2] === 4) {
-      format = gl.RGBA
-    } else {
-      throw new Error("Invalid shape for pixel coords")
-    }
-  } else {
-    throw new Error("Invalid shape for texture")
-  }
-  if(type === gl.FLOAT && !!webglew(gl).texture_float) {
-    type = gl.UNSIGNED_BYTE
-    packed = false
-  }
-  var buffer, buf_store
-  if(!packed) {
-    var sz = 1
-    var stride = new Array(shape.length)
-    for(var i=shape.length-1; i>=0; --i) {
-      stride[i] = sz
-      sz *= shape[i]
-    }
-    buf_store = pool.malloc(sz, dtype)
-    var buf_array = ndarray(buf_store, array.shape, stride, 0)
-    if((dtype === "float32" || dtype === "float64") && type === gl.UNSIGNED_BYTE) {
-      convertFloatToUint8(buf_array, array)
-    } else {
-      ops.assign(buf_array, array)
-    }
-    buffer = buf_store.subarray(0, sz)
-  } else {
-    var array_size = array.size
-    if(typeof array_size !== "number") {
-      array_size = ndarray.size(array)
-    }
-    buffer = array.data.subarray(array.offset, array.offset + array_size)
-  }
-  var tex = initTexture(gl)
-  gl.texImage2D(gl.TEXTURE_2D, 0, format, shape[1], shape[0], 0, format, type, buffer)
-  if(!packed) {
-    pool.free(buf_store)
-  }
-  return new Texture2D(gl, tex, shape[1], shape[0], format, type)
-}
-
-function createTexture2D(gl) {
-  if(arguments.length <= 1) {
-    throw new Error("Missing arguments for texture2d constructor")
-  }
-  if(!linearTypes) {
-    lazyInitLinearTypes(gl)
-  }
-  if(typeof arguments[1] === "number") {
-    return createTextureShape(gl, arguments[1], arguments[2], arguments[3]||gl.RGBA, arguments[4]||gl.UNSIGNED_BYTE)
-  }
-  if(typeof arguments[1] === "object") {
-    var obj = arguments[1]
-    if(obj instanceof HTMLCanvasElement ||
-       obj instanceof HTMLImageElement ||
-       obj instanceof HTMLVideoElement ||
-       obj instanceof ImageData) {
-      return createTextureDOM(gl, obj, arguments[2]||gl.RGBA, arguments[3]||gl.UNSIGNED_BYTE)
-    } else if(obj.shape && obj.data && obj.stride) {
-      return createTextureArray(gl, obj)
-    }
-  }
-  throw new Error("Invalid arguments for texture2d constructor")
-}
-module.exports = createTexture2D
-
-},{"ndarray":112,"ndarray-ops":102,"typedarray-pool":108,"webglew":110}],112:[function(require,module,exports){
-module.exports=require(15)
-},{"buffer":290,"iota-array":113}],113:[function(require,module,exports){
-module.exports=require(13)
-},{}],114:[function(require,module,exports){
-"use strict"
-
-var ndarray = require("ndarray")
-var ops = require("ndarray-ops")
-var downsample = require("ndarray-downsample2x")
-
-function makeTileMipMap(tilearray, pad) {
-  pad = pad || 1
-
-  var levels = []
-  
-  var s = tilearray.shape
-  var nx = s[0]
-  var ny = s[1]
-  var hx = s[2]
-  var hy = s[3]
-  var channels = s[4]
-  var ctor = tilearray.data.constructor
-  
-  var tx = hx * pad
-  var ty = hy * pad
-  
-  while(tx > 0 && ty > 0) {
-    var sz     = nx * ny * tx * ty * channels
-    var shape  = [nx, ny, tx, ty, channels]
-    var stride = [channels*ny*tx*ty, channels*ty, channels*ny*ty, channels, 1]
-    var level  = ndarray(new ctor(sz), shape, stride, 0)
-    
-    if(levels.length === 0) {
-      for(var i=0; i<nx; ++i) {
-        for(var j=0; j<ny; ++j) {
-          for(var k=0; k<channels; ++k) {
-            var t0 = level.pick(i,j,undefined,undefined,k)
-            var t1 = tilearray.pick(i,j,undefined,undefined,k)
-            for(var x=0; x<pad; ++x) {
-              for(var y=0; y<pad; ++y) {
-                ops.assign(t0.lo(hx*x, hy*y).hi(hx,hy), t1)
-              }
-            }
-          }
-        }
-      }
-    } else {
-      var plevel = levels[levels.length-1]
-      for(var i=0; i<nx; ++i) {
-        for(var j=0; j<ny; ++j) {
-          for(var k=0; k<channels; ++k) {
-            var t0 = level.pick(i,j,undefined,undefined,k)
-            var t1 = plevel.pick(i,j,undefined,undefined,k)
-            downsample(t0, t1, 0, 255)
-          }
-        }
-      }
-    }
-    
-    levels.push(level)
-    
-    tx>>>=1
-    ty>>>=1
-  }
-
-  return levels
-}
-module.exports = makeTileMipMap
-},{"ndarray":112,"ndarray-downsample2x":115,"ndarray-ops":153}],115:[function(require,module,exports){
-"use strict"
-
-var fft = require("ndarray-fft")
-var pool = require("ndarray-scratch")
-var ops = require("ndarray-ops")
-var cwise = require("cwise")
-
-var clampScale = cwise({
-  args:["array", "array", "scalar", "scalar", "scalar"],
-  body: function clampScale(out, inp, s, l, h) {
-    var x = inp * s
-    if(x < l) { x = l }
-    if(x > h) { x = h }
-    out = x
-  }
-})
-
-
-function downsample2x(out, inp, clamp_lo, clamp_hi) {
-  if(typeof clamp_lo === "undefined") {
-    clamp_lo = -Infinity
-  }
-  if(typeof clamp_hi === "undefined") {
-    clamp_hi = Infinity
-  }
-  
-  var ishp = inp.shape
-  var oshp = out.shape
-  
-  if(out.size === 1) {
-    var v = ops.sum(inp)/inp.size
-    if(v < clamp_lo) { v = clamp_lo }
-    if(v > clamp_hi) { v = clamp_hi }
-    out.set(0,0,v)
-    return
-  }
-  
-  var d = ishp.length
-  var x = pool.malloc(ishp)
-    , y = pool.malloc(ishp)
-  
-  ops.assign(x, inp)
-  ops.assigns(y, 0.0)
-
-  fft(1, x, y)
-  
-  var lo = x.lo
-    , hi = x.hi
-  
-  var s = pool.malloc(oshp)
-    , t = pool.malloc(oshp)
-  
-  var nr = new Array(d)
-    , a = new Array(d)
-    , b = new Array(d)
-  for(var i=0; i<1<<d; ++i) {
-    for(var j=0; j<d; ++j) {
-      if(i&(1<<j)) {
-        nr[j] = oshp[j] - (oshp[j]>>1)
-        if(nr[j] === 0) {
-          continue
-        }
-        a[j] = oshp[j] - nr[j]
-        b[j] = ishp[j] - nr[j]
-      } else {
-        nr[j] = oshp[j]>>>1
-        a[j] = 0
-        b[j] = 0
-      }
-    }
-    ops.assign(hi.apply(lo.apply(s, a), nr), hi.apply(lo.apply(x, b), nr))
-    ops.assign(hi.apply(lo.apply(t, a), nr), hi.apply(lo.apply(y, b), nr))
-  }
-  
-  fft(-1, s, t)
-  clampScale(out, s, 1.0/(1<<d), clamp_lo, clamp_hi)
-  
-  pool.free(x)
-  pool.free(y)
-  pool.free(s)
-  pool.free(t)
-}
-
-module.exports = downsample2x
-},{"cwise":116,"ndarray-fft":124,"ndarray-ops":142,"ndarray-scratch":152}],116:[function(require,module,exports){
-"use strict"
-
-var parse   = require("cwise-parser")
-var compile = require("cwise-compiler")
-
-var REQUIRED_FIELDS = [ "args", "body" ]
-var OPTIONAL_FIELDS = [ "pre", "post", "printCode", "funcName", "blockSize" ]
-
-function createCWise(user_args) {
-  //Check parameters
-  for(var id in user_args) {
-    if(REQUIRED_FIELDS.indexOf(id) < 0 &&
-       OPTIONAL_FIELDS.indexOf(id) < 0) {
-      console.warn("cwise: Unknown argument '"+id+"' passed to expression compiler")
-    }
-  }
-  for(var i=0; i<REQUIRED_FIELDS.length; ++i) {
-    if(!user_args[REQUIRED_FIELDS[i]]) {
-      throw new Error("cwise: Missing argument: " + REQUIRED_FIELDS[i])
-    }
-  }
-  
-  //Parse blocks
-  return compile({
-    args:       user_args.args,
-    pre:        parse(user_args.pre || function(){}),
-    body:       parse(user_args.body),
-    post:       parse(user_args.post || function(){}),
-    debug:      !!user_args.printCode,
-    funcName:   user_args.funcName || user_args.body.name || "cwise",
-    blockSize:  user_args.blockSize || 64
-  })
-}
-
-module.exports = createCWise
-
-},{"cwise-compiler":117,"cwise-parser":121}],117:[function(require,module,exports){
-arguments[4][103][0].apply(exports,arguments)
-},{"./lib/thunk.js":119}],118:[function(require,module,exports){
-module.exports=require(104)
-},{"uniq":120}],119:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":118}],120:[function(require,module,exports){
-module.exports=require(11)
-},{}],121:[function(require,module,exports){
+},{}],115:[function(require,module,exports){
 "use strict"
 
 var esprima = require("esprima")
@@ -22946,7 +22235,7 @@ function preprocess(func) {
 }
 
 module.exports = preprocess
-},{"esprima":122,"uniq":123}],122:[function(require,module,exports){
+},{"esprima":116,"uniq":117}],116:[function(require,module,exports){
 /*
   Copyright (C) 2012 Ariya Hidayat <ariya.hidayat@gmail.com>
   Copyright (C) 2012 Mathias Bynens <mathias@qiwi.be>
@@ -26856,331 +26145,9 @@ parseStatement: true, parseSourceElement: true */
 }));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],123:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 module.exports=require(11)
-},{}],124:[function(require,module,exports){
-"use strict"
-
-var ops = require("ndarray-ops")
-var cwise = require("cwise")
-var ndarray = require("ndarray")
-var fftm = require("./lib/fft-matrix.js")
-var pool = require("typedarray-pool")
-
-function ndfft(dir, x, y) {
-  var shape = x.shape
-    , d = shape.length
-    , size = 1
-    , stride = new Array(d)
-    , pad = 0
-    , i, j
-  for(i=d-1; i>=0; --i) {
-    stride[i] = size
-    size *= shape[i]
-    pad = Math.max(pad, fftm.scratchMemory(shape[i]))
-    if(x.shape[i] !== y.shape[i]) {
-      throw new Error("Shape mismatch, real and imaginary arrays must have same size")
-    }
-  }
-  var buf_size = 4 * size + pad
-  var buffer
-  if( x.dtype === "array" ||
-      x.dtype === "float64" ||
-      x.dtype === "custom" ) {
-    buffer = pool.mallocDouble(buf_size)
-  } else {
-    buffer = pool.mallocFloat(buf_size)
-  }
-  var x1 = ndarray(buffer, shape.slice(0), stride, 0)
-    , y1 = ndarray(buffer, shape.slice(0), stride.slice(0), size)
-    , x2 = ndarray(buffer, shape.slice(0), stride.slice(0), 2*size)
-    , y2 = ndarray(buffer, shape.slice(0), stride.slice(0), 3*size)
-    , tmp, n, s1, s2
-    , scratch_ptr = 4 * size
-  
-  //Copy into x1/y1
-  ops.assign(x1, x)
-  ops.assign(y1, y)
-  
-  for(i=d-1; i>=0; --i) {
-    fftm(dir, size/shape[i], shape[i], buffer, x1.offset, y1.offset, scratch_ptr)
-    if(i === 0) {
-      break
-    }
-    
-    //Compute new stride for x2/y2
-    n = 1
-    s1 = x2.stride
-    s2 = y2.stride
-    for(j=i-1; j<d; ++j) {
-      s2[j] = s1[j] = n
-      n *= shape[j]
-    }
-    for(j=i-2; j>=0; --j) {
-      s2[j] = s1[j] = n
-      n *= shape[j]
-    }
-    
-    //Transpose
-    ops.assign(x2, x1)
-    ops.assign(y2, y1)
-    
-    //Swap buffers
-    tmp = x1
-    x1 = x2
-    x2 = tmp
-    tmp = y1
-    y1 = y2
-    y2 = tmp
-  }
-  
-  //Copy result back into x
-  ops.assign(x, x1)
-  ops.assign(y, y1)
-  
-  pool.free(buffer)
-}
-
-module.exports = ndfft
-
-},{"./lib/fft-matrix.js":125,"cwise":127,"ndarray":112,"ndarray-ops":135,"typedarray-pool":141}],125:[function(require,module,exports){
-var bits = require("bit-twiddle")
-
-function fft(dir, nrows, ncols, buffer, x_ptr, y_ptr, scratch_ptr) {
-  dir |= 0
-  nrows |= 0
-  ncols |= 0
-  x_ptr |= 0
-  y_ptr |= 0
-  if(bits.isPow2(ncols)) {
-    fftRadix2(dir, nrows, ncols, buffer, x_ptr, y_ptr)
-  } else {
-    fftBluestein(dir, nrows, ncols, buffer, x_ptr, y_ptr, scratch_ptr)
-  }
-}
-module.exports = fft
-
-function scratchMemory(n) {
-  if(bits.isPow2(n)) {
-    return 0
-  }
-  return 2 * n + 4 * bits.nextPow2(2*n + 1)
-}
-module.exports.scratchMemory = scratchMemory
-
-
-//Radix 2 FFT Adapted from Paul Bourke's C Implementation
-function fftRadix2(dir, nrows, ncols, buffer, x_ptr, y_ptr) {
-  dir |= 0
-  nrows |= 0
-  ncols |= 0
-  x_ptr |= 0
-  y_ptr |= 0
-  var nn,i,i1,j,k,i2,l,l1,l2
-  var c1,c2,t,t1,t2,u1,u2,z,row,a,b,c,d,k1,k2,k3
-  
-  // Calculate the number of points
-  nn = ncols
-  m = bits.log2(nn)
-  
-  for(row=0; row<nrows; ++row) {  
-    // Do the bit reversal
-    i2 = nn >> 1;
-    j = 0;
-    for(i=0;i<nn-1;i++) {
-      if(i < j) {
-        t = buffer[x_ptr+i]
-        buffer[x_ptr+i] = buffer[x_ptr+j]
-        buffer[x_ptr+j] = t
-        t = buffer[y_ptr+i]
-        buffer[y_ptr+i] = buffer[y_ptr+j]
-        buffer[y_ptr+j] = t
-      }
-      k = i2
-      while(k <= j) {
-        j -= k
-        k >>= 1
-      }
-      j += k
-    }
-    
-    // Compute the FFT
-    c1 = -1.0
-    c2 = 0.0
-    l2 = 1
-    for(l=0;l<m;l++) {
-      l1 = l2
-      l2 <<= 1
-      u1 = 1.0
-      u2 = 0.0
-      for(j=0;j<l1;j++) {
-        for(i=j;i<nn;i+=l2) {
-          i1 = i + l1
-          a = buffer[x_ptr+i1]
-          b = buffer[y_ptr+i1]
-          c = buffer[x_ptr+i]
-          d = buffer[y_ptr+i]
-          k1 = u1 * (a + b)
-          k2 = a * (u2 - u1)
-          k3 = b * (u1 + u2)
-          t1 = k1 - k3
-          t2 = k1 + k2
-          buffer[x_ptr+i1] = c - t1
-          buffer[y_ptr+i1] = d - t2
-          buffer[x_ptr+i] += t1
-          buffer[y_ptr+i] += t2
-        }
-        k1 = c1 * (u1 + u2)
-        k2 = u1 * (c2 - c1)
-        k3 = u2 * (c1 + c2)
-        u1 = k1 - k3
-        u2 = k1 + k2
-      }
-      c2 = Math.sqrt((1.0 - c1) / 2.0)
-      if(dir < 0) {
-        c2 = -c2
-      }
-      c1 = Math.sqrt((1.0 + c1) / 2.0)
-    }
-    
-    // Scaling for inverse transform
-    if(dir < 0) {
-      var scale_f = 1.0 / nn
-      for(i=0;i<nn;i++) {
-        buffer[x_ptr+i] *= scale_f
-        buffer[y_ptr+i] *= scale_f
-      }
-    }
-    
-    // Advance pointers
-    x_ptr += ncols
-    y_ptr += ncols
-  }
-}
-
-// Use Bluestein algorithm for npot FFTs
-// Scratch memory required:  2 * ncols + 4 * bits.nextPow2(2*ncols + 1)
-function fftBluestein(dir, nrows, ncols, buffer, x_ptr, y_ptr, scratch_ptr) {
-  dir |= 0
-  nrows |= 0
-  ncols |= 0
-  x_ptr |= 0
-  y_ptr |= 0
-  scratch_ptr |= 0
-
-  // Initialize tables
-  var m = bits.nextPow2(2 * ncols + 1)
-    , cos_ptr = scratch_ptr
-    , sin_ptr = cos_ptr + ncols
-    , xs_ptr  = sin_ptr + ncols
-    , ys_ptr  = xs_ptr  + m
-    , cft_ptr = ys_ptr  + m
-    , sft_ptr = cft_ptr + m
-    , w = -dir * Math.PI / ncols
-    , row, a, b, c, d, k1, k2, k3
-    , i
-  for(i=0; i<ncols; ++i) {
-    a = w * ((i * i) % (ncols * 2))
-    c = Math.cos(a)
-    d = Math.sin(a)
-    buffer[cft_ptr+(m-i)] = buffer[cft_ptr+i] = buffer[cos_ptr+i] = c
-    buffer[sft_ptr+(m-i)] = buffer[sft_ptr+i] = buffer[sin_ptr+i] = d
-  }
-  for(i=ncols; i<=m-ncols; ++i) {
-    buffer[cft_ptr+i] = 0.0
-  }
-  for(i=ncols; i<=m-ncols; ++i) {
-    buffer[sft_ptr+i] = 0.0
-  }
-
-  fftRadix2(1, 1, m, buffer, cft_ptr, sft_ptr)
-  
-  //Compute scale factor
-  if(dir < 0) {
-    w = 1.0 / ncols
-  } else {
-    w = 1.0
-  }
-  
-  //Handle direction
-  for(row=0; row<nrows; ++row) {
-  
-    // Copy row into scratch memory, multiply weights
-    for(i=0; i<ncols; ++i) {
-      a = buffer[x_ptr+i]
-      b = buffer[y_ptr+i]
-      c = buffer[cos_ptr+i]
-      d = -buffer[sin_ptr+i]
-      k1 = c * (a + b)
-      k2 = a * (d - c)
-      k3 = b * (c + d)
-      buffer[xs_ptr+i] = k1 - k3
-      buffer[ys_ptr+i] = k1 + k2
-    }
-    //Zero out the rest
-    for(i=ncols; i<m; ++i) {
-      buffer[xs_ptr+i] = 0.0
-    }
-    for(i=ncols; i<m; ++i) {
-      buffer[ys_ptr+i] = 0.0
-    }
-    
-    // FFT buffer
-    fftRadix2(1, 1, m, buffer, xs_ptr, ys_ptr)
-    
-    // Apply multiplier
-    for(i=0; i<m; ++i) {
-      a = buffer[xs_ptr+i]
-      b = buffer[ys_ptr+i]
-      c = buffer[cft_ptr+i]
-      d = buffer[sft_ptr+i]
-      k1 = c * (a + b)
-      k2 = a * (d - c)
-      k3 = b * (c + d)
-      buffer[xs_ptr+i] = k1 - k3
-      buffer[ys_ptr+i] = k1 + k2
-    }
-    
-    // Inverse FFT buffer
-    fftRadix2(-1, 1, m, buffer, xs_ptr, ys_ptr)
-    
-    // Copy result back into x/y
-    for(i=0; i<ncols; ++i) {
-      a = buffer[xs_ptr+i]
-      b = buffer[ys_ptr+i]
-      c = buffer[cos_ptr+i]
-      d = -buffer[sin_ptr+i]
-      k1 = c * (a + b)
-      k2 = a * (d - c)
-      k3 = b * (c + d)
-      buffer[x_ptr+i] = w * (k1 - k3)
-      buffer[y_ptr+i] = w * (k1 + k2)
-    }
-    
-    x_ptr += ncols
-    y_ptr += ncols
-  }
-}
-
-},{"bit-twiddle":126}],126:[function(require,module,exports){
-module.exports=require(17)
-},{}],127:[function(require,module,exports){
-arguments[4][116][0].apply(exports,arguments)
-},{"cwise-compiler":128,"cwise-parser":132}],128:[function(require,module,exports){
-arguments[4][103][0].apply(exports,arguments)
-},{"./lib/thunk.js":130}],129:[function(require,module,exports){
-module.exports=require(104)
-},{"uniq":131}],130:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":129}],131:[function(require,module,exports){
-module.exports=require(11)
-},{}],132:[function(require,module,exports){
-module.exports=require(121)
-},{"esprima":133,"uniq":134}],133:[function(require,module,exports){
-module.exports=require(122)
-},{}],134:[function(require,module,exports){
-module.exports=require(11)
-},{}],135:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 "use strict"
 
 var compile = require("cwise-compiler")
@@ -27629,39 +26596,1023 @@ exports.assigns = makeOp({
   funcName: "assigns" })
 
 
-},{"cwise-compiler":136}],136:[function(require,module,exports){
-arguments[4][103][0].apply(exports,arguments)
-},{"./lib/thunk.js":138}],137:[function(require,module,exports){
-module.exports=require(104)
-},{"uniq":139}],138:[function(require,module,exports){
+exports.equals = compile({
+  args:["array", "array"],
+  pre: EmptyProc,
+  body: {args:[{name:"x", lvalue:false, rvalue:true, count:1},
+               {name:"y", lvalue:false, rvalue:true, count:1}], 
+        body: "if(x!==y){return false}", 
+        localVars: [], 
+        thisVars: []},
+  post: {args:[], localVars:[], thisVars:[], body:"return true"},
+  funcName: "equals"
+})
+
+
+
+},{"cwise-compiler":119}],119:[function(require,module,exports){
+arguments[4][111][0].apply(exports,arguments)
+},{"./lib/thunk.js":121}],120:[function(require,module,exports){
+module.exports=require(112)
+},{"uniq":122}],121:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":137}],139:[function(require,module,exports){
+},{"./compile.js":120}],122:[function(require,module,exports){
 module.exports=require(11)
-},{}],140:[function(require,module,exports){
-module.exports=require(18)
-},{}],141:[function(require,module,exports){
-module.exports=require(19)
-},{"bit-twiddle":126,"dup":140}],142:[function(require,module,exports){
-arguments[4][135][0].apply(exports,arguments)
-},{"cwise-compiler":143}],143:[function(require,module,exports){
-arguments[4][103][0].apply(exports,arguments)
-},{"./lib/thunk.js":145}],144:[function(require,module,exports){
-module.exports=require(104)
-},{"uniq":146}],145:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":144}],146:[function(require,module,exports){
-module.exports=require(11)
-},{}],147:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 module.exports=require(15)
-},{"buffer":290,"iota-array":148}],148:[function(require,module,exports){
+},{"buffer":277,"iota-array":124}],124:[function(require,module,exports){
 module.exports=require(13)
-},{}],149:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
+'use strict';
+
+var ndarray = require('ndarray');
+var ops = require('ndarray-ops');
+var downsample = require('ndarray-downsample2x');
+
+var makeMipMaps = function(array, rects, maxLevels) {
+  var levels = [];
+
+  var rectsX = [], rectsY = [], rectsW = [], rectsH = [];
+
+  var s = array.shape;
+  var mx = s[0], my = s[1], channels = s[2];
+  var ctor = array.data.constructor;
+  var uvs = rects.uv();
+  var biggestRectIndex = undefined;
+  var biggestRectDim = 0;
+  for (var name in uvs) {
+    // UV coordinates 0.0 - 1.0
+    var uvTopLeft = uvs[name][0];      // *\  01
+    var uvBottomRight = uvs[name][2];  // \*  23
+
+    // scale UVs by image size to get pixel coordinates
+    var sx = uvTopLeft[0] * mx, sy = uvTopLeft[1] * my;
+    var ex = uvBottomRight[0] * mx, ey = uvBottomRight[1] * my;
+    var w = ex - sx;
+    var h = ey - sy;
+
+    if (w > biggestRectDim) {
+      biggestRectDim = w;
+      biggestRectIndex = rectsX.length;
+    } else if (h > biggestRectDim) {
+      biggestRectDim = h;
+      biggestRectIndex = rectsX.length;
+    }
+
+    rectsX.push(sx);
+    rectsY.push(sy);
+    rectsW.push(w);
+    rectsH.push(h);
+  }
+
+  maxLevels = maxLevels || Infinity;
+  var tx = mx, ty = my;
+  do {
+    var sz = tx * ty * channels;
+    var level = ndarray(new ctor(sz), [tx,ty,channels]);
+
+    if (levels.length === 0) {
+      // first level, same size
+     
+      // copy rects (note: could just copy entire array all at once; but also have to downsize dimensions regardless)
+      for (var i = 0; i < rectsX.length; i += 1) {
+        var rx = rectsX[i], ry = rectsY[i], rw = rectsW[i], rh = rectsH[i];
+
+        ops.assign(level.lo(ry,rx).hi(rh,rw), array.lo(ry,rx).hi(rh,rw));
+
+        // shrink for next level
+        rectsX[i] >>>= 1;
+        rectsY[i] >>>= 1;
+        rectsW[i] >>>= 1;
+        rectsH[i] >>>= 1;
+      }
+    } else {
+      // downsample previous level
+      var plevel = levels[levels.length - 1];
+
+      for (var i = 0; i < rectsX.length; i += 1) {
+        var rx = rectsX[i], ry = rectsY[i], rw = rectsW[i], rh = rectsH[i];
+
+        for (var k = 0; k < channels; k += 1) {
+          var levelChannel = level.pick(undefined, undefined, k);
+          var plevelChannel = plevel.pick(undefined, undefined, k);
+
+          downsample(levelChannel.lo(ry,rx).hi(rh,rw), plevelChannel.lo(ry<<1,rx<<1).hi(rh<<1,rw<<1), 0, 255)
+        }
+
+        // shrink for next level
+        rectsX[i] >>>= 1;
+        rectsY[i] >>>= 1;
+        rectsW[i] >>>= 1;
+        rectsH[i] >>>= 1;
+      }
+      //ops.assign(level, plevel);
+      /* the all-together native downsampling that causes blending artifacts
+      for (var k = 0; k < channels; k += 1) {
+        var levelChannel = level.pick(undefined, undefined, k);
+        var plevelChannel = plevel.pick(undefined, undefined, k);
+        downsample(levelChannel, plevelChannel, 0, 255);
+      }
+      */
+    }
+
+    levels.push(level);
+
+    // halve the total dimensions for the next level
+    tx >>>= 1;
+    ty >>>= 1;
+
+    if (tx === 0 || ty === 0) {
+      // atlas itself got too small before any rects, shouldn't really happen..
+      break;
+    }
+    if (rectsW[biggestRectIndex] === 0 || rectsH[biggestRectIndex] === 0) {
+      // the biggest rect shrank down to nothing, no point in scaling down further
+      // (parity with tile-mip-map)
+      break;
+    }
+  } while(levels.length < maxLevels);
+
+  return levels;
+};
+
+module.exports = makeMipMaps;
+
+},{"ndarray":154,"ndarray-downsample2x":126,"ndarray-ops":149}],126:[function(require,module,exports){
+"use strict"
+
+var fft = require("ndarray-fft")
+var pool = require("ndarray-scratch")
+var ops = require("ndarray-ops")
+var cwise = require("cwise")
+
+var clampScale = cwise({
+  args:["array", "array", "scalar", "scalar", "scalar"],
+  body: function clampScale(out, inp, s, l, h) {
+    var x = inp * s
+    if(x < l) { x = l }
+    if(x > h) { x = h }
+    out = x
+  }
+})
+
+
+function downsample2x(out, inp, clamp_lo, clamp_hi) {
+  if(typeof clamp_lo === "undefined") {
+    clamp_lo = -Infinity
+  }
+  if(typeof clamp_hi === "undefined") {
+    clamp_hi = Infinity
+  }
+  
+  var ishp = inp.shape
+  var oshp = out.shape
+  
+  if(out.size === 1) {
+    var v = ops.sum(inp)/inp.size
+    if(v < clamp_lo) { v = clamp_lo }
+    if(v > clamp_hi) { v = clamp_hi }
+    out.set(0,0,v)
+    return
+  }
+  
+  var d = ishp.length
+  var x = pool.malloc(ishp)
+    , y = pool.malloc(ishp)
+  
+  ops.assign(x, inp)
+  ops.assigns(y, 0.0)
+
+  fft(1, x, y)
+  
+  var lo = x.lo
+    , hi = x.hi
+  
+  var s = pool.malloc(oshp)
+    , t = pool.malloc(oshp)
+  
+  var nr = new Array(d)
+    , a = new Array(d)
+    , b = new Array(d)
+  for(var i=0; i<1<<d; ++i) {
+    for(var j=0; j<d; ++j) {
+      if(i&(1<<j)) {
+        nr[j] = oshp[j] - (oshp[j]>>1)
+        if(nr[j] === 0) {
+          continue
+        }
+        a[j] = oshp[j] - nr[j]
+        b[j] = ishp[j] - nr[j]
+      } else {
+        nr[j] = oshp[j]>>>1
+        a[j] = 0
+        b[j] = 0
+      }
+    }
+    ops.assign(hi.apply(lo.apply(s, a), nr), hi.apply(lo.apply(x, b), nr))
+    ops.assign(hi.apply(lo.apply(t, a), nr), hi.apply(lo.apply(y, b), nr))
+  }
+  
+  fft(-1, s, t)
+  clampScale(out, s, 1.0/(1<<d), clamp_lo, clamp_hi)
+  
+  pool.free(x)
+  pool.free(y)
+  pool.free(s)
+  pool.free(t)
+}
+
+module.exports = downsample2x
+},{"cwise":127,"ndarray-fft":135,"ndarray-ops":140,"ndarray-scratch":148}],127:[function(require,module,exports){
+arguments[4][110][0].apply(exports,arguments)
+},{"cwise-compiler":128,"cwise-parser":132}],128:[function(require,module,exports){
+arguments[4][111][0].apply(exports,arguments)
+},{"./lib/thunk.js":130}],129:[function(require,module,exports){
+module.exports=require(112)
+},{"uniq":131}],130:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"./compile.js":129}],131:[function(require,module,exports){
+module.exports=require(11)
+},{}],132:[function(require,module,exports){
+module.exports=require(115)
+},{"esprima":133,"uniq":134}],133:[function(require,module,exports){
+module.exports=require(116)
+},{}],134:[function(require,module,exports){
+module.exports=require(11)
+},{}],135:[function(require,module,exports){
+"use strict"
+
+var ops = require("ndarray-ops")
+var cwise = require("cwise")
+var ndarray = require("ndarray")
+var fftm = require("./lib/fft-matrix.js")
+var pool = require("typedarray-pool")
+
+function ndfft(dir, x, y) {
+  var shape = x.shape
+    , d = shape.length
+    , size = 1
+    , stride = new Array(d)
+    , pad = 0
+    , i, j
+  for(i=d-1; i>=0; --i) {
+    stride[i] = size
+    size *= shape[i]
+    pad = Math.max(pad, fftm.scratchMemory(shape[i]))
+    if(x.shape[i] !== y.shape[i]) {
+      throw new Error("Shape mismatch, real and imaginary arrays must have same size")
+    }
+  }
+  var buf_size = 4 * size + pad
+  var buffer
+  if( x.dtype === "array" ||
+      x.dtype === "float64" ||
+      x.dtype === "custom" ) {
+    buffer = pool.mallocDouble(buf_size)
+  } else {
+    buffer = pool.mallocFloat(buf_size)
+  }
+  var x1 = ndarray(buffer, shape.slice(0), stride, 0)
+    , y1 = ndarray(buffer, shape.slice(0), stride.slice(0), size)
+    , x2 = ndarray(buffer, shape.slice(0), stride.slice(0), 2*size)
+    , y2 = ndarray(buffer, shape.slice(0), stride.slice(0), 3*size)
+    , tmp, n, s1, s2
+    , scratch_ptr = 4 * size
+  
+  //Copy into x1/y1
+  ops.assign(x1, x)
+  ops.assign(y1, y)
+  
+  for(i=d-1; i>=0; --i) {
+    fftm(dir, size/shape[i], shape[i], buffer, x1.offset, y1.offset, scratch_ptr)
+    if(i === 0) {
+      break
+    }
+    
+    //Compute new stride for x2/y2
+    n = 1
+    s1 = x2.stride
+    s2 = y2.stride
+    for(j=i-1; j<d; ++j) {
+      s2[j] = s1[j] = n
+      n *= shape[j]
+    }
+    for(j=i-2; j>=0; --j) {
+      s2[j] = s1[j] = n
+      n *= shape[j]
+    }
+    
+    //Transpose
+    ops.assign(x2, x1)
+    ops.assign(y2, y1)
+    
+    //Swap buffers
+    tmp = x1
+    x1 = x2
+    x2 = tmp
+    tmp = y1
+    y1 = y2
+    y2 = tmp
+  }
+  
+  //Copy result back into x
+  ops.assign(x, x1)
+  ops.assign(y, y1)
+  
+  pool.free(buffer)
+}
+
+module.exports = ndfft
+
+},{"./lib/fft-matrix.js":136,"cwise":127,"ndarray":154,"ndarray-ops":140,"typedarray-pool":139}],136:[function(require,module,exports){
+var bits = require("bit-twiddle")
+
+function fft(dir, nrows, ncols, buffer, x_ptr, y_ptr, scratch_ptr) {
+  dir |= 0
+  nrows |= 0
+  ncols |= 0
+  x_ptr |= 0
+  y_ptr |= 0
+  if(bits.isPow2(ncols)) {
+    fftRadix2(dir, nrows, ncols, buffer, x_ptr, y_ptr)
+  } else {
+    fftBluestein(dir, nrows, ncols, buffer, x_ptr, y_ptr, scratch_ptr)
+  }
+}
+module.exports = fft
+
+function scratchMemory(n) {
+  if(bits.isPow2(n)) {
+    return 0
+  }
+  return 2 * n + 4 * bits.nextPow2(2*n + 1)
+}
+module.exports.scratchMemory = scratchMemory
+
+
+//Radix 2 FFT Adapted from Paul Bourke's C Implementation
+function fftRadix2(dir, nrows, ncols, buffer, x_ptr, y_ptr) {
+  dir |= 0
+  nrows |= 0
+  ncols |= 0
+  x_ptr |= 0
+  y_ptr |= 0
+  var nn,i,i1,j,k,i2,l,l1,l2
+  var c1,c2,t,t1,t2,u1,u2,z,row,a,b,c,d,k1,k2,k3
+  
+  // Calculate the number of points
+  nn = ncols
+  m = bits.log2(nn)
+  
+  for(row=0; row<nrows; ++row) {  
+    // Do the bit reversal
+    i2 = nn >> 1;
+    j = 0;
+    for(i=0;i<nn-1;i++) {
+      if(i < j) {
+        t = buffer[x_ptr+i]
+        buffer[x_ptr+i] = buffer[x_ptr+j]
+        buffer[x_ptr+j] = t
+        t = buffer[y_ptr+i]
+        buffer[y_ptr+i] = buffer[y_ptr+j]
+        buffer[y_ptr+j] = t
+      }
+      k = i2
+      while(k <= j) {
+        j -= k
+        k >>= 1
+      }
+      j += k
+    }
+    
+    // Compute the FFT
+    c1 = -1.0
+    c2 = 0.0
+    l2 = 1
+    for(l=0;l<m;l++) {
+      l1 = l2
+      l2 <<= 1
+      u1 = 1.0
+      u2 = 0.0
+      for(j=0;j<l1;j++) {
+        for(i=j;i<nn;i+=l2) {
+          i1 = i + l1
+          a = buffer[x_ptr+i1]
+          b = buffer[y_ptr+i1]
+          c = buffer[x_ptr+i]
+          d = buffer[y_ptr+i]
+          k1 = u1 * (a + b)
+          k2 = a * (u2 - u1)
+          k3 = b * (u1 + u2)
+          t1 = k1 - k3
+          t2 = k1 + k2
+          buffer[x_ptr+i1] = c - t1
+          buffer[y_ptr+i1] = d - t2
+          buffer[x_ptr+i] += t1
+          buffer[y_ptr+i] += t2
+        }
+        k1 = c1 * (u1 + u2)
+        k2 = u1 * (c2 - c1)
+        k3 = u2 * (c1 + c2)
+        u1 = k1 - k3
+        u2 = k1 + k2
+      }
+      c2 = Math.sqrt((1.0 - c1) / 2.0)
+      if(dir < 0) {
+        c2 = -c2
+      }
+      c1 = Math.sqrt((1.0 + c1) / 2.0)
+    }
+    
+    // Scaling for inverse transform
+    if(dir < 0) {
+      var scale_f = 1.0 / nn
+      for(i=0;i<nn;i++) {
+        buffer[x_ptr+i] *= scale_f
+        buffer[y_ptr+i] *= scale_f
+      }
+    }
+    
+    // Advance pointers
+    x_ptr += ncols
+    y_ptr += ncols
+  }
+}
+
+// Use Bluestein algorithm for npot FFTs
+// Scratch memory required:  2 * ncols + 4 * bits.nextPow2(2*ncols + 1)
+function fftBluestein(dir, nrows, ncols, buffer, x_ptr, y_ptr, scratch_ptr) {
+  dir |= 0
+  nrows |= 0
+  ncols |= 0
+  x_ptr |= 0
+  y_ptr |= 0
+  scratch_ptr |= 0
+
+  // Initialize tables
+  var m = bits.nextPow2(2 * ncols + 1)
+    , cos_ptr = scratch_ptr
+    , sin_ptr = cos_ptr + ncols
+    , xs_ptr  = sin_ptr + ncols
+    , ys_ptr  = xs_ptr  + m
+    , cft_ptr = ys_ptr  + m
+    , sft_ptr = cft_ptr + m
+    , w = -dir * Math.PI / ncols
+    , row, a, b, c, d, k1, k2, k3
+    , i
+  for(i=0; i<ncols; ++i) {
+    a = w * ((i * i) % (ncols * 2))
+    c = Math.cos(a)
+    d = Math.sin(a)
+    buffer[cft_ptr+(m-i)] = buffer[cft_ptr+i] = buffer[cos_ptr+i] = c
+    buffer[sft_ptr+(m-i)] = buffer[sft_ptr+i] = buffer[sin_ptr+i] = d
+  }
+  for(i=ncols; i<=m-ncols; ++i) {
+    buffer[cft_ptr+i] = 0.0
+  }
+  for(i=ncols; i<=m-ncols; ++i) {
+    buffer[sft_ptr+i] = 0.0
+  }
+
+  fftRadix2(1, 1, m, buffer, cft_ptr, sft_ptr)
+  
+  //Compute scale factor
+  if(dir < 0) {
+    w = 1.0 / ncols
+  } else {
+    w = 1.0
+  }
+  
+  //Handle direction
+  for(row=0; row<nrows; ++row) {
+  
+    // Copy row into scratch memory, multiply weights
+    for(i=0; i<ncols; ++i) {
+      a = buffer[x_ptr+i]
+      b = buffer[y_ptr+i]
+      c = buffer[cos_ptr+i]
+      d = -buffer[sin_ptr+i]
+      k1 = c * (a + b)
+      k2 = a * (d - c)
+      k3 = b * (c + d)
+      buffer[xs_ptr+i] = k1 - k3
+      buffer[ys_ptr+i] = k1 + k2
+    }
+    //Zero out the rest
+    for(i=ncols; i<m; ++i) {
+      buffer[xs_ptr+i] = 0.0
+    }
+    for(i=ncols; i<m; ++i) {
+      buffer[ys_ptr+i] = 0.0
+    }
+    
+    // FFT buffer
+    fftRadix2(1, 1, m, buffer, xs_ptr, ys_ptr)
+    
+    // Apply multiplier
+    for(i=0; i<m; ++i) {
+      a = buffer[xs_ptr+i]
+      b = buffer[ys_ptr+i]
+      c = buffer[cft_ptr+i]
+      d = buffer[sft_ptr+i]
+      k1 = c * (a + b)
+      k2 = a * (d - c)
+      k3 = b * (c + d)
+      buffer[xs_ptr+i] = k1 - k3
+      buffer[ys_ptr+i] = k1 + k2
+    }
+    
+    // Inverse FFT buffer
+    fftRadix2(-1, 1, m, buffer, xs_ptr, ys_ptr)
+    
+    // Copy result back into x/y
+    for(i=0; i<ncols; ++i) {
+      a = buffer[xs_ptr+i]
+      b = buffer[ys_ptr+i]
+      c = buffer[cos_ptr+i]
+      d = -buffer[sin_ptr+i]
+      k1 = c * (a + b)
+      k2 = a * (d - c)
+      k3 = b * (c + d)
+      buffer[x_ptr+i] = w * (k1 - k3)
+      buffer[y_ptr+i] = w * (k1 + k2)
+    }
+    
+    x_ptr += ncols
+    y_ptr += ncols
+  }
+}
+
+},{"bit-twiddle":137}],137:[function(require,module,exports){
 module.exports=require(17)
-},{}],150:[function(require,module,exports){
+},{}],138:[function(require,module,exports){
 module.exports=require(18)
-},{}],151:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 module.exports=require(19)
-},{"bit-twiddle":149,"dup":150}],152:[function(require,module,exports){
+},{"bit-twiddle":137,"dup":138}],140:[function(require,module,exports){
+"use strict"
+
+var compile = require("cwise-compiler")
+
+var EmptyProc = {
+  body: "",
+  args: [],
+  thisVars: [],
+  localVars: []
+}
+
+function fixup(x) {
+  if(!x) {
+    return EmptyProc
+  }
+  for(var i=0; i<x.args.length; ++i) {
+    var a = x.args[i]
+    if(i === 0) {
+      x.args[i] = {name: a, lvalue:true, rvalue: !!x.rvalue, count:x.count||1 }
+    } else {
+      x.args[i] = {name: a, lvalue:false, rvalue:true, count: 1}
+    }
+  }
+  if(!x.thisVars) {
+    x.thisVars = []
+  }
+  if(!x.localVars) {
+    x.localVars = []
+  }
+  return x
+}
+
+function pcompile(user_args) {
+  return compile({
+    args:     user_args.args,
+    pre:      fixup(user_args.pre),
+    body:     fixup(user_args.body),
+    post:     fixup(user_args.proc),
+    funcName: user_args.funcName
+  })
+}
+
+function makeOp(user_args) {
+  var args = []
+  for(var i=0; i<user_args.args.length; ++i) {
+    args.push("a"+i)
+  }
+  var wrapper = new Function("P", [
+    "return function ", user_args.funcName, "_ndarrayops(", args.join(","), ") {P(", args.join(","), ");return a0}"
+  ].join(""))
+  return wrapper(pcompile(user_args))
+}
+
+var assign_ops = {
+  add:  "+",
+  sub:  "-",
+  mul:  "*",
+  div:  "/",
+  mod:  "%",
+  band: "&",
+  bor:  "|",
+  bxor: "^",
+  lshift: "<<",
+  rshift: ">>",
+  rrshift: ">>>"
+}
+;(function(){
+  for(var id in assign_ops) {
+    var op = assign_ops[id]
+    exports[id] = makeOp({
+      args: ["array","array","array"],
+      body: {args:["a","b","c"],
+             body: "a=b"+op+"c"},
+      funcName: id
+    })
+    exports[id+"eq"] = makeOp({
+      args: ["array","array"],
+      body: {args:["a","b"],
+             body:"a"+op+"=b"},
+      rvalue: true,
+      funcName: id+"eq"
+    })
+    exports[id+"s"] = makeOp({
+      args: ["array", "array", "scalar"],
+      body: {args:["a","b","s"],
+             body:"a=b"+op+"s"},
+      funcName: id+"s"
+    })
+    exports[id+"seq"] = makeOp({
+      args: ["array","scalar"],
+      body: {args:["a","s"],
+             body:"a"+op+"=s"},
+      rvalue: true,
+      funcName: id+"seq"
+    })
+  }
+})();
+
+var unary_ops = {
+  not: "!",
+  bnot: "~",
+  neg: "-",
+  recip: "1.0/"
+}
+;(function(){
+  for(var id in unary_ops) {
+    var op = unary_ops[id]
+    exports[id] = makeOp({
+      args: ["array", "array"],
+      body: {args:["a","b"],
+             body:"a="+op+"b"},
+      funcName: id
+    })
+    exports[id+"eq"] = makeOp({
+      args: ["array"],
+      body: {args:["a"],
+             body:"a="+op+"a"},
+      rvalue: true,
+      count: 2,
+      funcName: id+"eq"
+    })
+  }
+})();
+
+var binary_ops = {
+  and: "&&",
+  or: "||",
+  eq: "===",
+  neq: "!==",
+  lt: "<",
+  gt: ">",
+  leq: "<=",
+  geq: ">="
+}
+;(function() {
+  for(var id in binary_ops) {
+    var op = binary_ops[id]
+    exports[id] = makeOp({
+      args: ["array","array","array"],
+      body: {args:["a", "b", "c"],
+             body:"a=b"+op+"c"},
+      funcName: id
+    })
+    exports[id+"s"] = makeOp({
+      args: ["array","array","scalar"],
+      body: {args:["a", "b", "s"],
+             body:"a=b"+op+"s"},
+      funcName: id+"s"
+    })
+    exports[id+"eq"] = makeOp({
+      args: ["array", "array"],
+      body: {args:["a", "b"],
+             body:"a=a"+op+"b"},
+      rvalue:true,
+      count:2,
+      funcName: id+"eq"
+    })
+    exports[id+"seq"] = makeOp({
+      args: ["array", "scalar"],
+      body: {args:["a","s"],
+             body:"a=a"+op+"s"},
+      rvalue:true,
+      count:2,
+      funcName: id+"seq"
+    })
+  }
+})();
+
+var math_unary = [
+  "abs",
+  "acos",
+  "asin",
+  "atan",
+  "ceil",
+  "cos",
+  "exp",
+  "floor",
+  "log",
+  "round",
+  "sin",
+  "sqrt",
+  "tan"
+]
+;(function() {
+  for(var i=0; i<math_unary.length; ++i) {
+    var f = math_unary[i]
+    exports[f] = makeOp({
+                    args: ["array", "array"],
+                    pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                    body: {args:["a","b"], body:"a=this_f(b)", thisVars:["this_f"]},
+                    funcName: f
+                  })
+    exports[f+"eq"] = makeOp({
+                      args: ["array"],
+                      pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                      body: {args: ["a"], body:"a=this_f(a)", thisVars:["this_f"]},
+                      rvalue: true,
+                      count: 2,
+                      funcName: f+"eq"
+                    })
+  }
+})();
+
+var math_comm = [
+  "max",
+  "min",
+  "atan2",
+  "pow"
+]
+;(function(){
+  for(var i=0; i<math_comm.length; ++i) {
+    var f= math_comm[i]
+    exports[f] = makeOp({
+                  args:["array", "array", "array"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b","c"], body:"a=this_f(b,c)", thisVars:["this_f"]},
+                  funcName: f
+                })
+    exports[f+"s"] = makeOp({
+                  args:["array", "array", "scalar"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b","c"], body:"a=this_f(b,c)", thisVars:["this_f"]},
+                  funcName: f+"s"
+                  })
+    exports[f+"eq"] = makeOp({ args:["array", "array"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b"], body:"a=this_f(a,b)", thisVars:["this_f"]},
+                  rvalue: true,
+                  count: 2,
+                  funcName: f+"eq"
+                  })
+    exports[f+"seq"] = makeOp({ args:["array", "scalar"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b"], body:"a=this_f(a,b)", thisVars:["this_f"]},
+                  rvalue:true,
+                  count:2,
+                  funcName: f+"seq"
+                  })
+  }
+})();
+
+var math_noncomm = [
+  "atan2",
+  "pow"
+]
+;(function(){
+  for(var i=0; i<math_noncomm.length; ++i) {
+    var f= math_noncomm[i]
+    exports[f+"op"] = makeOp({
+                  args:["array", "array", "array"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b","c"], body:"a=this_f(c,b)", thisVars:["this_f"]},
+                  funcName: f+"op"
+                })
+    exports[f+"ops"] = makeOp({
+                  args:["array", "array", "scalar"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b","c"], body:"a=this_f(c,b)", thisVars:["this_f"]},
+                  funcName: f+"ops"
+                  })
+    exports[f+"opeq"] = makeOp({ args:["array", "array"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b"], body:"a=this_f(b,a)", thisVars:["this_f"]},
+                  rvalue: true,
+                  count: 2,
+                  funcName: f+"opeq"
+                  })
+    exports[f+"opseq"] = makeOp({ args:["array", "scalar"],
+                  pre: {args:[], body:"this_f=Math."+f, thisVars:["this_f"]},
+                  body: {args:["a","b"], body:"a=this_f(b,a)", thisVars:["this_f"]},
+                  rvalue:true,
+                  count:2,
+                  funcName: f+"opseq"
+                  })
+  }
+})();
+
+exports.any = compile({
+  args:["array"],
+  pre: EmptyProc,
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "if(a){return true}", localVars: [], thisVars: []},
+  post: {args:[], localVars:[], thisVars:[], body:"return false"},
+  funcName: "any"
+})
+
+exports.all = compile({
+  args:["array"],
+  pre: EmptyProc,
+  body: {args:[{name:"x", lvalue:false, rvalue:true, count:1}], body: "if(!x){return false}", localVars: [], thisVars: []},
+  post: {args:[], localVars:[], thisVars:[], body:"return true"},
+  funcName: "all"
+})
+
+exports.sum = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "this_s+=a", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
+  funcName: "sum"
+})
+
+exports.prod = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=1"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:1}], body: "this_s*=a", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
+  funcName: "prod"
+})
+
+exports.norm2squared = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:2}], body: "this_s+=a*a", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
+  funcName: "norm2squared"
+})
+  
+exports.norm2 = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:2}], body: "this_s+=a*a", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return Math.sqrt(this_s)"},
+  funcName: "norm2"
+})
+  
+
+exports.norminf = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:4}], body:"if(-a>this_s){this_s=-a}else if(a>this_s){this_s=a}", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
+  funcName: "norminf"
+})
+
+exports.norm1 = compile({
+  args:["array"],
+  pre: {args:[], localVars:[], thisVars:["this_s"], body:"this_s=0"},
+  body: {args:[{name:"a", lvalue:false, rvalue:true, count:3}], body: "this_s+=a<0?-a:a", localVars: [], thisVars: ["this_s"]},
+  post: {args:[], localVars:[], thisVars:["this_s"], body:"return this_s"},
+  funcName: "norm1"
+})
+
+exports.sup = compile({
+  args: [ "array" ],
+  pre:
+   { body: "this_h=-Infinity",
+     args: [],
+     thisVars: [ "this_h" ],
+     localVars: [] },
+  body:
+   { body: "if(_inline_1_arg0_>this_h)this_h=_inline_1_arg0_",
+     args: [{"name":"_inline_1_arg0_","lvalue":false,"rvalue":true,"count":2} ],
+     thisVars: [ "this_h" ],
+     localVars: [] },
+  post:
+   { body: "return this_h",
+     args: [],
+     thisVars: [ "this_h" ],
+     localVars: [] }
+ })
+
+exports.inf = compile({
+  args: [ "array" ],
+  pre:
+   { body: "this_h=Infinity",
+     args: [],
+     thisVars: [ "this_h" ],
+     localVars: [] },
+  body:
+   { body: "if(_inline_1_arg0_<this_h)this_h=_inline_1_arg0_",
+     args: [{"name":"_inline_1_arg0_","lvalue":false,"rvalue":true,"count":2} ],
+     thisVars: [ "this_h" ],
+     localVars: [] },
+  post:
+   { body: "return this_h",
+     args: [],
+     thisVars: [ "this_h" ],
+     localVars: [] }
+ })
+
+exports.argmin = compile({
+  args:["index","array","shape"],
+  pre:{
+    body:"{this_v=Infinity;this_i=_inline_0_arg2_.slice(0)}",
+    args:[
+      {name:"_inline_0_arg0_",lvalue:false,rvalue:false,count:0},
+      {name:"_inline_0_arg1_",lvalue:false,rvalue:false,count:0},
+      {name:"_inline_0_arg2_",lvalue:false,rvalue:true,count:1}
+      ],
+    thisVars:["this_i","this_v"],
+    localVars:[]},
+  body:{
+    body:"{if(_inline_1_arg1_<this_v){this_v=_inline_1_arg1_;for(var _inline_1_k=0;_inline_1_k<_inline_1_arg0_.length;++_inline_1_k){this_i[_inline_1_k]=_inline_1_arg0_[_inline_1_k]}}}",
+    args:[
+      {name:"_inline_1_arg0_",lvalue:false,rvalue:true,count:2},
+      {name:"_inline_1_arg1_",lvalue:false,rvalue:true,count:2}],
+    thisVars:["this_i","this_v"],
+    localVars:["_inline_1_k"]},
+  post:{
+    body:"{return this_i}",
+    args:[],
+    thisVars:["this_i"],
+    localVars:[]}
+})
+
+exports.argmax = compile({
+  args:["index","array","shape"],
+  pre:{
+    body:"{this_v=-Infinity;this_i=_inline_0_arg2_.slice(0)}",
+    args:[
+      {name:"_inline_0_arg0_",lvalue:false,rvalue:false,count:0},
+      {name:"_inline_0_arg1_",lvalue:false,rvalue:false,count:0},
+      {name:"_inline_0_arg2_",lvalue:false,rvalue:true,count:1}
+      ],
+    thisVars:["this_i","this_v"],
+    localVars:[]},
+  body:{
+    body:"{if(_inline_1_arg1_>this_v){this_v=_inline_1_arg1_;for(var _inline_1_k=0;_inline_1_k<_inline_1_arg0_.length;++_inline_1_k){this_i[_inline_1_k]=_inline_1_arg0_[_inline_1_k]}}}",
+    args:[
+      {name:"_inline_1_arg0_",lvalue:false,rvalue:true,count:2},
+      {name:"_inline_1_arg1_",lvalue:false,rvalue:true,count:2}],
+    thisVars:["this_i","this_v"],
+    localVars:["_inline_1_k"]},
+  post:{
+    body:"{return this_i}",
+    args:[],
+    thisVars:["this_i"],
+    localVars:[]}
+})  
+
+exports.random = makeOp({
+  args: ["array"],
+  pre: {args:[], body:"this_f=Math.random", thisVars:["this_f"]},
+  body: {args: ["a"], body:"a=this_f()", thisVars:["this_f"]},
+  funcName: "random"
+})
+
+exports.assign = makeOp({
+  args:["array", "array"],
+  body: {args:["a", "b"], body:"a=b"},
+  funcName: "assign" })
+
+exports.assigns = makeOp({
+  args:["array", "scalar"],
+  body: {args:["a", "b"], body:"a=b"},
+  funcName: "assigns" })
+
+
+},{"cwise-compiler":141}],141:[function(require,module,exports){
+arguments[4][111][0].apply(exports,arguments)
+},{"./lib/thunk.js":143}],142:[function(require,module,exports){
+module.exports=require(112)
+},{"uniq":144}],143:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"./compile.js":142}],144:[function(require,module,exports){
+module.exports=require(11)
+},{}],145:[function(require,module,exports){
+module.exports=require(17)
+},{}],146:[function(require,module,exports){
+module.exports=require(18)
+},{}],147:[function(require,module,exports){
+module.exports=require(19)
+},{"bit-twiddle":145,"dup":146}],148:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -27685,422 +27636,21 @@ function free(array) {
   pool.free(array.data)
 }
 exports.free = free
-},{"ndarray":147,"typedarray-pool":151}],153:[function(require,module,exports){
-arguments[4][135][0].apply(exports,arguments)
-},{"cwise-compiler":154}],154:[function(require,module,exports){
-arguments[4][103][0].apply(exports,arguments)
-},{"./lib/thunk.js":156}],155:[function(require,module,exports){
-module.exports=require(104)
-},{"uniq":157}],156:[function(require,module,exports){
+},{"ndarray":154,"typedarray-pool":147}],149:[function(require,module,exports){
+arguments[4][118][0].apply(exports,arguments)
+},{"cwise-compiler":150}],150:[function(require,module,exports){
+arguments[4][111][0].apply(exports,arguments)
+},{"./lib/thunk.js":152}],151:[function(require,module,exports){
+module.exports=require(112)
+},{"uniq":153}],152:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":155}],157:[function(require,module,exports){
+},{"./compile.js":151}],153:[function(require,module,exports){
 module.exports=require(11)
-},{}],158:[function(require,module,exports){
-"use strict"
-
-var ndarray = require("ndarray")
-var tileMipMap = require("tile-mip-map")
-var createTexture = require("gl-texture2d")
-
-function reshapeTileMap(tiles) {
-  var s = tiles.shape
-  return ndarray(tiles.data, [s[0]*s[2], s[1]*s[3], s[4]])
-}
-
-function createTileMap(gl, tiles, pad) {
-  var pyramid = tileMipMap(tiles, pad)
-  
-  //Fill in mip levels
-  var tex = createTexture(gl, reshapeTileMap(pyramid[0]))
-
-  //Allocate memory (stupid way to do this)
-  tex.generateMipmap()
-  
-  //Set up mipmaps
-  for(var i=1; i<pyramid.length; ++i) {
-    tex.setPixels(reshapeTileMap(pyramid[i]), 0, 0, i)
-  }
-  
-  //Set sample parameters
-  tex.magFilter = gl.LINEAR
-  tex.minFilter = gl.LINEAR_MIPMAP_LINEAR
-  tex.mipSamples = 4
-  
-  return tex
-}
-
-module.exports = createTileMap
-},{"gl-texture2d":111,"ndarray":112,"tile-mip-map":114}],159:[function(require,module,exports){
-"use strict"
-
-function doBind(gl, elements, attributes) {
-  if(elements) {
-    elements.bind()
-  } else {
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
-  }
-  var nattribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS)|0
-  if(attributes) {
-    if(attributes.length > nattribs) {
-      throw new Error("gl-vao: Too many vertex attributes")
-    }
-    for(var i=0; i<attributes.length; ++i) {
-      var attrib = attributes[i]
-      if(attrib.buffer) {
-        var buffer = attrib.buffer
-        var size = attrib.size || 4
-        var type = attrib.type || gl.FLOAT
-        var normalized = !!attrib.normalized
-        var stride = attrib.stride || 0
-        var offset = attrib.offset || 0
-        buffer.bind()
-        gl.enableVertexAttribArray(i)
-        gl.vertexAttribPointer(i, size, type, normalized, stride, offset)
-      } else {
-        if(typeof attrib === "number") {
-          gl.vertexAttrib1f(i, attrib)
-        } else if(attrib.length === 1) {
-          gl.vertexAttrib1f(i, attrib[0])
-        } else if(attrib.length === 2) {
-          gl.vertexAttrib2f(i, attrib[0], attrib[1])
-        } else if(attrib.length === 3) {
-          gl.vertexAttrib3f(i, attrib[0], attrib[1], attrib[2])
-        } else if(attrib.length === 4) {
-          gl.vertexAttrib4f(i, attrib[0], attrib[1], attrib[2], attrib[3])
-        } else {
-          throw new Error("gl-vao: Invalid vertex attribute")
-        }
-        gl.disableVertexAttribArray(i)
-      }
-    }
-    for(; i<nattribs; ++i) {
-      gl.disableVertexAttribArray(i)
-    }
-  } else {
-    gl.bindBuffer(gl.ARRAY_BUFFER, null)
-    for(var i=0; i<nattribs; ++i) {
-      gl.disableVertexAttribArray(i)
-    }
-  }
-}
-
-module.exports = doBind
-},{}],160:[function(require,module,exports){
-"use strict"
-
-var bindAttribs = require("./do-bind.js")
-
-function VAOEmulated(gl) {
-  this.gl = gl
-  this._elements = null
-  this._attributes = null
-}
-
-VAOEmulated.prototype.bind = function() {
-  bindAttribs(this.gl, this._elements, this._attributes)
-}
-
-VAOEmulated.prototype.update = function(attributes, elements) {
-  this._elements = elements
-  this._attributes = attributes
-}
-
-VAOEmulated.prototype.dispose = function() { }
-VAOEmulated.prototype.unbind = function() { }
-
-VAOEmulated.prototype.draw = function(mode, count, offset) {
-  offset = offset || 0
-  var gl = this.gl
-  if(this._elements) {
-    gl.drawElements(mode, count, gl.UNSIGNED_SHORT, offset)
-  } else {
-    gl.drawArrays(mode, offset, count)
-  }
-}
-
-function createVAOEmulated(gl) {
-  return new VAOEmulated(gl)
-}
-
-module.exports = createVAOEmulated
-},{"./do-bind.js":159}],161:[function(require,module,exports){
-"use strict"
-
-var bindAttribs = require("./do-bind.js")
-
-function VertexAttribute(location, dimension, a, b, c, d) {
-  this.location = location
-  this.dimension = dimension
-  this.a = a
-  this.b = b
-  this.c = c
-  this.d = d
-}
-
-VertexAttribute.prototype.bind = function(gl) {
-  switch(this.dimension) {
-    case 1:
-      gl.vertexAttrib1f(this.location, this.a)
-    break
-    case 2:
-      gl.vertexAttrib2f(this.location, this.a, this.b)
-    break
-    case 3:
-      gl.vertexAttrib3f(this.location, this.a, this.b, this.c)
-    break
-    case 4:
-      gl.vertexAttrib4f(this.location, this.a, this.b, this.c, this.d)
-    break
-  }
-}
-
-function VAONative(gl, ext, handle) {
-  this.gl = gl
-  this._ext = ext
-  this.handle = handle
-  this._attribs = []
-  this._useElements = false
-}
-
-VAONative.prototype.bind = function() {
-  this._ext.bindVertexArrayOES(this.handle)
-  for(var i=0; i<this._attribs.length; ++i) {
-    this._attribs[i].bind(this.gl)
-  }
-}
-
-VAONative.prototype.unbind = function() {
-  this._ext.bindVertexArrayOES(null)
-}
-
-VAONative.prototype.dispose = function() {
-  this._ext.deleteVertexArrayOES(this.handle)
-}
-
-VAONative.prototype.update = function(attributes, elements) {
-  this.bind()
-  bindAttribs(this.gl, elements, attributes)
-  this.unbind()
-  this._attribs.length = 0
-  if(attributes)
-  for(var i=0; i<attributes.length; ++i) {
-    var a = attributes[i]
-    if(typeof a === "number") {
-      this._attribs.push(new VertexAttribute(i, 1, a))
-    } else if(Array.isArray(a)) {
-      this._attribs.push(new VertexAttribute(i, a.length, a[0], a[1], a[2], a[3]))
-    }
-  }
-  this._useElements = !!elements
-}
-
-VAONative.prototype.draw = function(mode, count, offset) {
-  offset = offset || 0
-  var gl = this.gl
-  if(this._useElements) {
-    gl.drawElements(mode, count, gl.UNSIGNED_SHORT, offset)
-  } else {
-    gl.drawArrays(mode, offset, count)
-  }
-}
-
-function createVAONative(gl, ext) {
-  return new VAONative(gl, ext, ext.createVertexArrayOES())
-}
-
-module.exports = createVAONative
-},{"./do-bind.js":159}],162:[function(require,module,exports){
-module.exports=require(45)
-},{}],163:[function(require,module,exports){
-module.exports=require(46)
-},{"weakmap":162}],164:[function(require,module,exports){
-"use strict"
-
-var webglew = require("webglew")
-var createVAONative = require("./lib/vao-native.js")
-var createVAOEmulated = require("./lib/vao-emulated.js")
-
-function createVAO(gl, attributes, elements) {
-  var ext = webglew(gl).OES_vertex_array_object
-  var vao
-  if(ext) {
-    vao = createVAONative(gl, ext)
-  } else {
-    vao = createVAOEmulated(gl)
-  }
-  vao.update(attributes, elements)
-  return vao
-}
-
-module.exports = createVAO
-},{"./lib/vao-emulated.js":160,"./lib/vao-native.js":161,"webglew":163}],165:[function(require,module,exports){
-'use strict';
-
-var vkey = require('vkey');
-
-module.exports = function(game, opts) {
-  return new BindingsUI(game, opts);
-};
-
-module.exports.pluginInfo = {
-  loadAfter: ['voxel-debug', 'voxel-plugins-ui'], // optional to load after and reuse same gui
-  clientOnly: true
-};
-
-function BindingsUI(game, opts) {
-  this.game = game;
-
-  opts = opts || {};
-
-  this.kb = opts.kb || (game && game.buttons); // might be undefined
-
-  // try to latch on to an existing datgui, otherwise make our own
-  this.gui = opts.gui;
-  if (!this.gui) {
-    if (game && game.plugins) {
-      if (game.plugins.get('voxel-debug')) this.gui = game.plugins.get('voxel-debug').gui;
-      else if (game.plugins.get('voxel-plugins-ui')) this.gui = game.plugins.get('voxel-plugins-ui').gui;
-    }
-  }
-  if (!this.gui) this.gui = new require('dat-gui').GUI();
-
-  this.hideKeys = opts.hideKeys || ['ime-', 'launch-', 'browser-']; // too long
-  this.folder = this.gui.addFolder('keys');
-
-  // clean up the valid key listing TODO: refactor with game-shell? it does almost the same
-  this.vkey2code = {};
-  this.vkeyBracket2Bare = {};
-  this.vkeyBare2Bracket = {};
-  this.keyListing = [];
-  for (var code in vkey) {
-    var keyName = vkey[code];
-
-    this.vkey2code[keyName] = code;
-
-    var keyNameBare = keyName.replace('<', '').replace('>', '');
-    this.vkeyBracket2Bare[keyName] = keyNameBare;
-    this.vkeyBare2Bracket[keyNameBare] = keyName;
-
-    if (!this.shouldHideKey(keyNameBare))
-      this.keyListing.push(keyNameBare);
-  }
-
-  // get keybindings
-  this.binding2Key = {};
-  if (this.kb && this.kb.bindings) {
-    // voxel-engine with kb-bindings - stores key -> binding
-    for (var key in this.kb.bindings) {
-      var binding = this.kb.bindings[key];
-      this.binding2Key[binding] = this.vkeyBracket2Bare[key] || key;
-      this.addBinding(binding);
-    }
-  } else if (this.game.shell && this.game.shell.bindings) {
-    // game-shell - stores binding -> key(s)
-    for (var binding in this.game.shell.bindings) {
-      var key = this.game.shell.bindings[binding];
-
-      if (Array.isArray(key)) {
-        key = key[0]; // TODO: support multiple keys. for now, only taking first
-      }
-
-      this.binding2Key[binding] = this.vkeyBracket2Bare[key] || key;
-      this.addBinding(binding);
-    }
-  }
-}
-
-BindingsUI.prototype.shouldHideKey = function(name) {
-  for (var i = 0; i < this.hideKeys.length; ++i) {
-    if (name.indexOf(this.hideKeys[i]) === 0) return true;
-  }
-  return false;
-};
-
-BindingsUI.prototype.addBinding = function (binding) {
-  var item = this.folder.add(this.binding2Key, binding, this.keyListing);
-
-  item.onChange(updateBinding(this, binding));
-};
-
-function updateBinding(self, binding) {
-  return function(newKeyNameBare) {
-    //if (self.vkey2code[newKeyName] === undefined) // invalid vkey
-
-    var newKeyName = self.vkeyBare2Bracket[newKeyNameBare];
-
-    self.removeBindings(binding);
-
-    if (self.kb && self.kb.bindings) {
-      self.kb.bindings[newKeyName] = binding;
-    } else {
-      self.game.shell.bind(binding, newKeyName);
-    }
-  };
-}
-
-// remove all keys bound to given binding
-BindingsUI.prototype.removeBindings = function(binding) {
-  if (this.kb && this.kb.bindings) {
-    for (var key in this.kb.bindings) {
-      var thisBinding = this.kb.bindings[key];
-      if (thisBinding === binding) {
-        delete this.kb.bindings[key];
-      }
-    }
-  } else {
-    this.game.shell.unbind(binding);
-  }
-};
-
-
-},{"vkey":166}],166:[function(require,module,exports){
-module.exports=require(57)
-},{}],167:[function(require,module,exports){
-"use strict"
-
-var fill = require("cwise")({
-  args: ["index", "array", "scalar"],
-  body: function(idx, out, f) {
-    out = f.apply(undefined, idx)
-  }
-})
-
-module.exports = function(array, f) {
-  fill(array, f)
-  return array
-}
-
-},{"cwise":168}],168:[function(require,module,exports){
-arguments[4][116][0].apply(exports,arguments)
-},{"cwise-compiler":169,"cwise-parser":173}],169:[function(require,module,exports){
-arguments[4][103][0].apply(exports,arguments)
-},{"./lib/thunk.js":171}],170:[function(require,module,exports){
-module.exports=require(104)
-},{"uniq":172}],171:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":170}],172:[function(require,module,exports){
-module.exports=require(11)
-},{}],173:[function(require,module,exports){
-module.exports=require(121)
-},{"esprima":174,"uniq":175}],174:[function(require,module,exports){
-module.exports=require(122)
-},{}],175:[function(require,module,exports){
-module.exports=require(11)
-},{}],176:[function(require,module,exports){
-arguments[4][102][0].apply(exports,arguments)
-},{"cwise-compiler":177}],177:[function(require,module,exports){
-arguments[4][103][0].apply(exports,arguments)
-},{"./lib/thunk.js":179}],178:[function(require,module,exports){
-module.exports=require(104)
-},{"uniq":180}],179:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"./compile.js":178}],180:[function(require,module,exports){
-module.exports=require(11)
-},{}],181:[function(require,module,exports){
+},{}],154:[function(require,module,exports){
 module.exports=require(15)
-},{"buffer":290,"iota-array":182}],182:[function(require,module,exports){
+},{"buffer":277,"iota-array":155}],155:[function(require,module,exports){
 module.exports=require(13)
-},{}],183:[function(require,module,exports){
+},{}],156:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var APDialog, APPlugin, ModalDialog, createSelector,
@@ -28211,7 +27761,7 @@ module.exports=require(13)
 
 }).call(this);
 
-},{"artpacks-ui":184,"voxel-modal-dialog":185}],184:[function(require,module,exports){
+},{"artpacks-ui":157,"voxel-modal-dialog":158}],157:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var APSelector;
@@ -28359,7 +27909,7 @@ module.exports=require(13)
 
 }).call(this);
 
-},{}],185:[function(require,module,exports){
+},{}],158:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var Modal, ModalDialog,
@@ -28411,7 +27961,7 @@ module.exports=require(13)
 
 }).call(this);
 
-},{"voxel-modal":186}],186:[function(require,module,exports){
+},{"voxel-modal":159}],159:[function(require,module,exports){
 /*jshint globalstrict: true*/
 'use strict';
 
@@ -28504,7 +28054,7 @@ Modal.prototype.toggle = function() {
     this.open();
 };
 
-},{"ever":187}],187:[function(require,module,exports){
+},{"ever":160}],160:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 
 module.exports = function (elem) {
@@ -28616,7 +28166,7 @@ Ever.typeOf = (function () {
     };
 })();;
 
-},{"./init.json":188,"./types.json":189,"events":293}],188:[function(require,module,exports){
+},{"./init.json":161,"./types.json":162,"events":280}],161:[function(require,module,exports){
 module.exports={
   "initEvent" : [
     "type",
@@ -28659,7 +28209,7 @@ module.exports={
   ]
 }
 
-},{}],189:[function(require,module,exports){
+},{}],162:[function(require,module,exports){
 module.exports={
   "MouseEvent" : [
     "click",
@@ -28704,7 +28254,7 @@ module.exports={
   ]
 }
 
-},{}],190:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var DropPlugin, coffee_script, ever, playerdat;
@@ -28887,7 +28437,7 @@ module.exports={
 
 }).call(this);
 
-},{"coffee-script":191,"ever":200,"playerdat":203,"string.prototype.endswith":214}],191:[function(require,module,exports){
+},{"coffee-script":164,"ever":173,"playerdat":176,"string.prototype.endswith":187}],164:[function(require,module,exports){
 (function (process,global){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -29226,7 +28776,7 @@ module.exports={
 }).call(this);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./helpers":192,"./lexer":193,"./nodes":194,"./parser":195,"./register":196,"./sourcemap":199,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"fs":289,"module":289,"path":296,"vm":307}],192:[function(require,module,exports){
+},{"./helpers":165,"./lexer":166,"./nodes":167,"./parser":168,"./register":169,"./sourcemap":172,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"fs":276,"module":276,"path":283,"vm":294}],165:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -29482,7 +29032,7 @@ module.exports={
 }).call(this);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295}],193:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282}],166:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var BOM, BOOL, CALLABLE, CODE, COFFEE_ALIASES, COFFEE_ALIAS_MAP, COFFEE_KEYWORDS, COMMENT, COMPARE, COMPOUND_ASSIGN, HEREDOC, HEREDOC_ILLEGAL, HEREDOC_INDENT, HEREGEX, HEREGEX_OMIT, IDENTIFIER, INDENTABLE_CLOSERS, INDEXABLE, INVERSES, JSTOKEN, JS_FORBIDDEN, JS_KEYWORDS, LINE_BREAK, LINE_CONTINUER, LOGIC, Lexer, MATH, MULTILINER, MULTI_DENT, NOT_REGEX, NOT_SPACED_REGEX, NUMBER, OPERATOR, REGEX, RELATION, RESERVED, Rewriter, SHIFT, SIMPLESTR, STRICT_PROSCRIBED, TRAILING_SPACES, UNARY, UNARY_MATH, WHITESPACE, compact, count, invertLiterate, key, last, locationDataToString, repeat, starts, throwSyntaxError, _ref, _ref1,
@@ -30410,7 +29960,7 @@ module.exports={
 
 }).call(this);
 
-},{"./helpers":192,"./rewriter":197}],194:[function(require,module,exports){
+},{"./helpers":165,"./rewriter":170}],167:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var Access, Arr, Assign, Base, Block, Call, Class, Code, CodeFragment, Comment, Existence, Expansion, Extends, For, HEXNUM, IDENTIFIER, IDENTIFIER_STR, IS_REGEX, IS_STRING, If, In, Index, LEVEL_ACCESS, LEVEL_COND, LEVEL_LIST, LEVEL_OP, LEVEL_PAREN, LEVEL_TOP, Literal, METHOD_DEF, NEGATE, NO, NUMBER, Obj, Op, Param, Parens, RESERVED, Range, Return, SIMPLENUM, STRICT_PROSCRIBED, Scope, Slice, Splat, Switch, TAB, THIS, Throw, Try, UTILITIES, Value, While, YES, addLocationDataFn, compact, del, ends, extend, flatten, fragmentsToText, isLiteralArguments, isLiteralThis, last, locationDataToString, merge, multident, parseNum, some, starts, throwSyntaxError, unfoldSoak, utility, _ref, _ref1,
@@ -33570,7 +33120,7 @@ module.exports={
 
 }).call(this);
 
-},{"./helpers":192,"./lexer":193,"./scope":198}],195:[function(require,module,exports){
+},{"./helpers":165,"./lexer":166,"./scope":171}],168:[function(require,module,exports){
 (function (process){
 /* parser generated by jison 0.4.13 */
 /*
@@ -34297,7 +33847,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"fs":289,"path":296}],196:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"fs":276,"path":283}],169:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var CoffeeScript, Module, binary, child_process, ext, findExtension, fork, helpers, loadFile, path, _i, _len, _ref;
@@ -34365,7 +33915,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{"./coffee-script":191,"./helpers":192,"child_process":289,"module":289,"path":296}],197:[function(require,module,exports){
+},{"./coffee-script":164,"./helpers":165,"child_process":276,"module":276,"path":283}],170:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var BALANCED_PAIRS, CALL_CLOSERS, EXPRESSION_CLOSE, EXPRESSION_END, EXPRESSION_START, IMPLICIT_CALL, IMPLICIT_END, IMPLICIT_FUNC, IMPLICIT_UNSPACED_CALL, INVERSES, LINEBREAKS, SINGLE_CLOSERS, SINGLE_LINERS, generate, left, rite, _i, _len, _ref,
@@ -34842,7 +34392,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{}],198:[function(require,module,exports){
+},{}],171:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var Scope, extend, last, _ref;
@@ -34990,7 +34540,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{"./helpers":192}],199:[function(require,module,exports){
+},{"./helpers":165}],172:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var LineMap, SourceMap;
@@ -35153,13 +34703,13 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{}],200:[function(require,module,exports){
-module.exports=require(187)
-},{"./init.json":201,"./types.json":202,"events":293}],201:[function(require,module,exports){
-module.exports=require(188)
-},{}],202:[function(require,module,exports){
-module.exports=require(189)
-},{}],203:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
+module.exports=require(160)
+},{"./init.json":174,"./types.json":175,"events":280}],174:[function(require,module,exports){
+module.exports=require(161)
+},{}],175:[function(require,module,exports){
+module.exports=require(162)
+},{}],176:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
@@ -35273,7 +34823,7 @@ module.exports = {
 
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":290,"inventory":204,"itempile":209,"nbt":212}],204:[function(require,module,exports){
+},{"buffer":277,"inventory":177,"itempile":182,"nbt":185}],177:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var EventEmitter, Inventory, ItemPile, deepEqual,
@@ -35436,7 +34986,7 @@ module.exports = {
 
 }).call(this);
 
-},{"deep-equal":205,"events":293,"itempile":206}],205:[function(require,module,exports){
+},{"deep-equal":178,"events":280,"itempile":179}],178:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var Object_keys = typeof Object.keys === 'function'
     ? Object.keys
@@ -35524,7 +35074,7 @@ function objEquiv(a, b, opts) {
   return true;
 }
 
-},{}],206:[function(require,module,exports){
+},{}],179:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var ItemPile, clone, deepEqual;
@@ -35706,7 +35256,7 @@ function objEquiv(a, b, opts) {
 
 }).call(this);
 
-},{"clone":207,"deep-equal":208}],207:[function(require,module,exports){
+},{"clone":180,"deep-equal":181}],180:[function(require,module,exports){
 (function (Buffer){
 "use strict";
 
@@ -35869,15 +35419,15 @@ clone.clonePrototype = function(parent) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":290}],208:[function(require,module,exports){
-module.exports=require(205)
-},{}],209:[function(require,module,exports){
-module.exports=require(206)
-},{"clone":210,"deep-equal":211}],210:[function(require,module,exports){
-module.exports=require(207)
-},{"buffer":290}],211:[function(require,module,exports){
-module.exports=require(205)
-},{}],212:[function(require,module,exports){
+},{"buffer":277}],181:[function(require,module,exports){
+module.exports=require(178)
+},{}],182:[function(require,module,exports){
+module.exports=require(179)
+},{"clone":183,"deep-equal":184}],183:[function(require,module,exports){
+module.exports=require(180)
+},{"buffer":277}],184:[function(require,module,exports){
+module.exports=require(178)
+},{}],185:[function(require,module,exports){
 (function (Buffer){
 /*
 	NBT.js - a JavaScript parser for NBT archives
@@ -36047,7 +35597,7 @@ module.exports=require(205)
 }).apply(exports || (nbt = {}));
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":290,"node-int64":213,"zlib":309}],213:[function(require,module,exports){
+},{"buffer":277,"node-int64":186,"zlib":296}],186:[function(require,module,exports){
 (function (Buffer){
 //     Int64.js
 //
@@ -36253,7 +35803,7 @@ Int64.prototype = {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":290}],214:[function(require,module,exports){
+},{"buffer":277}],187:[function(require,module,exports){
 /*! http://mths.be/endswith v0.1.0 by @mathias */
 if (!String.prototype.endsWith) {
 	(function() {
@@ -36306,7 +35856,7 @@ if (!String.prototype.endsWith) {
 	}());
 }
 
-},{}],215:[function(require,module,exports){
+},{}],188:[function(require,module,exports){
 'use strict';
 
 var vkey = require('vkey');
@@ -36434,11 +35984,11 @@ KeysPlugin.prototype.keyUp = function(ev) {
 };
 
 
-},{"events":293,"inherits":216,"vkey":217}],216:[function(require,module,exports){
+},{"events":280,"inherits":189,"vkey":190}],189:[function(require,module,exports){
 module.exports=require(95)
-},{}],217:[function(require,module,exports){
+},{}],190:[function(require,module,exports){
 module.exports=require(57)
-},{}],218:[function(require,module,exports){
+},{}],191:[function(require,module,exports){
 'use strict';
 
 module.exports = function(game, opts) {
@@ -36503,7 +36053,7 @@ function setStateForPlugin(self, name) {
   };
 }
 
-},{}],219:[function(require,module,exports){
+},{}],192:[function(require,module,exports){
 (function (process){
 'use strict';
 var EventEmitter = require('events').EventEmitter;
@@ -36820,7 +36370,7 @@ Plugins.prototype.destroy = function(name) {
 inherits(Plugins, EventEmitter);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"events":293,"inherits":220,"tsort":221}],220:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"events":280,"inherits":193,"tsort":194}],193:[function(require,module,exports){
 module.exports = inherits
 
 function inherits (c, p, proto) {
@@ -36851,7 +36401,7 @@ function inherits (c, p, proto) {
 //inherits(Child, Parent)
 //new Child
 
-},{}],221:[function(require,module,exports){
+},{}],194:[function(require,module,exports){
 var util = require('util');
 
 module.exports = function tsort(initial) {
@@ -36925,7 +36475,7 @@ Graph.prototype.sort = function() {
   }
 };
 
-},{"util":306}],222:[function(require,module,exports){
+},{"util":293}],195:[function(require,module,exports){
 
 var toArray = require('toarray');
 
@@ -37164,12 +36714,12 @@ Registry.prototype.getTextureURL = function(name) {
 
 
 
-},{"toarray":223}],223:[function(require,module,exports){
+},{"toarray":196}],196:[function(require,module,exports){
 module.exports = function(item) {
   if(item === undefined)  return [];
   return Object.prototype.toString.call(item) === "[object Array]" ? item : [item];
 }
-},{}],224:[function(require,module,exports){
+},{}],197:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var ArtPackArchive, ArtPacks, Buffer, EventEmitter, ZIP, arrayBufferToString, binaryXHR, fs, getFrames, getPixels, graycolorize, path, savePixels, splitNamespace,
@@ -37654,7 +37204,7 @@ module.exports = function(item) {
 
 }).call(this);
 
-},{"binary-xhr":225,"events":293,"fs":289,"get-pixels":227,"graycolorize":230,"mcmeta":234,"native-buffer-browserify":247,"path":296,"save-pixels":258,"zip":274}],225:[function(require,module,exports){
+},{"binary-xhr":198,"events":280,"fs":276,"get-pixels":200,"graycolorize":203,"mcmeta":207,"native-buffer-browserify":220,"path":283,"save-pixels":231,"zip":247}],198:[function(require,module,exports){
 var inherits = require('inherits')
 
 module.exports = function(url, cb) {
@@ -37682,9 +37232,9 @@ function BinaryXHR(url, cb) {
   xhr.send(null)
 }
 
-},{"inherits":226}],226:[function(require,module,exports){
-module.exports=require(220)
-},{}],227:[function(require,module,exports){
+},{"inherits":199}],199:[function(require,module,exports){
+module.exports=require(193)
+},{}],200:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -37706,7 +37256,7 @@ module.exports = function getPixels(url, cb) {
   img.src = url
 }
 
-},{"ndarray":228}],228:[function(require,module,exports){
+},{"ndarray":201}],201:[function(require,module,exports){
 (function (Buffer){
 "use strict"
 
@@ -38067,9 +37617,9 @@ function wrappedNDArrayCtor(data, shape, stride, offset) {
 
 module.exports = wrappedNDArrayCtor
 }).call(this,require("buffer").Buffer)
-},{"buffer":290,"iota-array":229}],229:[function(require,module,exports){
+},{"buffer":277,"iota-array":202}],202:[function(require,module,exports){
 module.exports=require(13)
-},{}],230:[function(require,module,exports){
+},{}],203:[function(require,module,exports){
 'use strict';
 
 var color = require('onecolor');
@@ -38153,11 +37703,11 @@ var graycolorize = function(pixels, colors) {
 module.exports = graycolorize;
 module.exports.generateMap = generateMap;
 
-},{"ndarray":231,"onecolor":233}],231:[function(require,module,exports){
-module.exports=require(228)
-},{"buffer":290,"iota-array":232}],232:[function(require,module,exports){
+},{"ndarray":204,"onecolor":206}],204:[function(require,module,exports){
+module.exports=require(201)
+},{"buffer":277,"iota-array":205}],205:[function(require,module,exports){
 module.exports=require(13)
-},{}],233:[function(require,module,exports){
+},{}],206:[function(require,module,exports){
 /*jshint evil:true, onevar:false*/
 /*global define*/
 var installedColorSpaces = [],
@@ -38913,7 +38463,7 @@ ONECOLOR.installMethod('toAlpha', function (color) {
 // Convenience functions
 
 
-},{}],234:[function(require,module,exports){
+},{}],207:[function(require,module,exports){
 'use strict';
 
 var getPixels = require('get-pixels');
@@ -39055,13 +38605,13 @@ module.exports.getFrames = getFrames;
 module.exports.parseFramesInfo = parseFramesInfo;
 module.exports.splitTiles = splitTiles;
 
-},{"get-pixels":235,"save-pixels":246}],235:[function(require,module,exports){
-arguments[4][227][0].apply(exports,arguments)
-},{"ndarray":236}],236:[function(require,module,exports){
-module.exports=require(228)
-},{"buffer":290,"iota-array":237}],237:[function(require,module,exports){
+},{"get-pixels":208,"save-pixels":219}],208:[function(require,module,exports){
+arguments[4][200][0].apply(exports,arguments)
+},{"ndarray":209}],209:[function(require,module,exports){
+module.exports=require(201)
+},{"buffer":277,"iota-array":210}],210:[function(require,module,exports){
 module.exports=require(13)
-},{}],238:[function(require,module,exports){
+},{}],211:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -39263,7 +38813,7 @@ ChunkStream.prototype._process = function() {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":290,"stream":298,"util":306}],239:[function(require,module,exports){
+},{"buffer":277,"stream":285,"util":293}],212:[function(require,module,exports){
 // Copyright (c) 2012 Kuba Niegowski
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -39303,7 +38853,7 @@ module.exports = {
     COLOR_ALPHA: 4
 };
 
-},{}],240:[function(require,module,exports){
+},{}],213:[function(require,module,exports){
 // Copyright (c) 2012 Kuba Niegowski
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -39384,7 +38934,7 @@ for (var i = 0; i < 256; i++) {
     crcTable[i] = c;
 }
 
-},{"stream":298,"util":306}],241:[function(require,module,exports){
+},{"stream":285,"util":293}],214:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -39702,7 +39252,7 @@ var PaethPredictor = function(left, above, upLeft) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./chunkstream":238,"buffer":290,"util":306,"zlib":309}],242:[function(require,module,exports){
+},{"./chunkstream":211,"buffer":277,"util":293,"zlib":296}],215:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -39816,7 +39366,7 @@ Packer.prototype._packIEND = function() {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./constants":239,"./crc":240,"./filter":241,"buffer":290,"stream":298,"util":306,"zlib":309}],243:[function(require,module,exports){
+},{"./constants":212,"./crc":213,"./filter":214,"buffer":277,"stream":285,"util":293,"zlib":296}],216:[function(require,module,exports){
 (function (Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -40179,7 +39729,7 @@ Parser.prototype._reverseFiltered = function(data, width, height) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./chunkstream":238,"./constants":239,"./crc":240,"./filter":241,"buffer":290,"util":306,"zlib":309}],244:[function(require,module,exports){
+},{"./chunkstream":211,"./constants":212,"./crc":213,"./filter":214,"buffer":277,"util":293,"zlib":296}],217:[function(require,module,exports){
 (function (process,Buffer){
 // Copyright (c) 2012 Kuba Niegowski
 //
@@ -40330,9 +39880,9 @@ PNG.prototype.bitblt = function(dst, sx, sy, w, h, dx, dy) {
 };
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"./packer":242,"./parser":243,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"stream":298,"util":306}],245:[function(require,module,exports){
+},{"./packer":215,"./parser":216,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"buffer":277,"stream":285,"util":293}],218:[function(require,module,exports){
 module.exports=require(32)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],246:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"stream":285}],219:[function(require,module,exports){
 "use strict"
 
 var PNG = require("pngjs").PNG
@@ -40424,7 +39974,7 @@ module.exports = function savePixels(array, type) {
   }
 }
 
-},{"pngjs":244,"through":245}],247:[function(require,module,exports){
+},{"pngjs":217,"through":218}],220:[function(require,module,exports){
 var base64 = require('base64-js')
 var ieee754 = require('ieee754')
 
@@ -41425,7 +40975,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":248,"ieee754":249}],248:[function(require,module,exports){
+},{"base64-js":221,"ieee754":222}],221:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -41548,7 +41098,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	module.exports.fromByteArray = uint8ToBase64
 }())
 
-},{}],249:[function(require,module,exports){
+},{}],222:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -41634,25 +41184,25 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],250:[function(require,module,exports){
-module.exports=require(238)
-},{"buffer":290,"stream":298,"util":306}],251:[function(require,module,exports){
-module.exports=require(239)
-},{}],252:[function(require,module,exports){
-module.exports=require(240)
-},{"stream":298,"util":306}],253:[function(require,module,exports){
-module.exports=require(241)
-},{"./chunkstream":250,"buffer":290,"util":306,"zlib":309}],254:[function(require,module,exports){
-arguments[4][242][0].apply(exports,arguments)
-},{"./constants":251,"./crc":252,"./filter":253,"buffer":290,"stream":298,"util":306,"zlib":309}],255:[function(require,module,exports){
-arguments[4][243][0].apply(exports,arguments)
-},{"./chunkstream":250,"./constants":251,"./crc":252,"./filter":253,"buffer":290,"util":306,"zlib":309}],256:[function(require,module,exports){
-arguments[4][244][0].apply(exports,arguments)
-},{"./packer":254,"./parser":255,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"stream":298,"util":306}],257:[function(require,module,exports){
+},{}],223:[function(require,module,exports){
+module.exports=require(211)
+},{"buffer":277,"stream":285,"util":293}],224:[function(require,module,exports){
+module.exports=require(212)
+},{}],225:[function(require,module,exports){
+module.exports=require(213)
+},{"stream":285,"util":293}],226:[function(require,module,exports){
+module.exports=require(214)
+},{"./chunkstream":223,"buffer":277,"util":293,"zlib":296}],227:[function(require,module,exports){
+arguments[4][215][0].apply(exports,arguments)
+},{"./constants":224,"./crc":225,"./filter":226,"buffer":277,"stream":285,"util":293,"zlib":296}],228:[function(require,module,exports){
+arguments[4][216][0].apply(exports,arguments)
+},{"./chunkstream":223,"./constants":224,"./crc":225,"./filter":226,"buffer":277,"util":293,"zlib":296}],229:[function(require,module,exports){
+arguments[4][217][0].apply(exports,arguments)
+},{"./packer":227,"./parser":228,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"buffer":277,"stream":285,"util":293}],230:[function(require,module,exports){
 module.exports=require(32)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],258:[function(require,module,exports){
-arguments[4][246][0].apply(exports,arguments)
-},{"pngjs":256,"through":257}],259:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"stream":285}],231:[function(require,module,exports){
+arguments[4][219][0].apply(exports,arguments)
+},{"pngjs":229,"through":230}],232:[function(require,module,exports){
 
 var bops = require("bops");
 
@@ -41711,7 +41261,7 @@ function consolidate(buffers) {
 }
 
 
-},{"bops":261}],260:[function(require,module,exports){
+},{"bops":234}],233:[function(require,module,exports){
 /* Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>
  * Version: 1.0.0.1
  * LastModified: Dec 25 1999
@@ -42467,7 +42017,7 @@ exports.inflate = function (input) {
 };
 
 
-},{"./buffer-io":259,"bops":261}],261:[function(require,module,exports){
+},{"./buffer-io":232,"bops":234}],234:[function(require,module,exports){
 var proto = {}
 module.exports = proto
 
@@ -42488,7 +42038,7 @@ function mix(from, into) {
   }
 }
 
-},{"./copy.js":264,"./create.js":265,"./from.js":266,"./is.js":267,"./join.js":268,"./read.js":270,"./subarray.js":271,"./to.js":272,"./write.js":273}],262:[function(require,module,exports){
+},{"./copy.js":237,"./create.js":238,"./from.js":239,"./is.js":240,"./join.js":241,"./read.js":243,"./subarray.js":244,"./to.js":245,"./write.js":246}],235:[function(require,module,exports){
 (function (exports) {
 	'use strict';
 
@@ -42574,7 +42124,7 @@ function mix(from, into) {
 	module.exports.fromByteArray = uint8ToBase64;
 }());
 
-},{}],263:[function(require,module,exports){
+},{}],236:[function(require,module,exports){
 module.exports = to_utf8
 
 var out = []
@@ -42649,7 +42199,7 @@ function reduced(list) {
   return out
 }
 
-},{}],264:[function(require,module,exports){
+},{}],237:[function(require,module,exports){
 module.exports = copy
 
 var slice = [].slice
@@ -42703,12 +42253,12 @@ function slow_copy(from, to, j, i, jend) {
   }
 }
 
-},{}],265:[function(require,module,exports){
+},{}],238:[function(require,module,exports){
 module.exports = function(size) {
   return new Uint8Array(size)
 }
 
-},{}],266:[function(require,module,exports){
+},{}],239:[function(require,module,exports){
 module.exports = from
 
 var base64 = require('base64-js')
@@ -42844,13 +42394,13 @@ function from_base64(str) {
   return new Uint8Array(base64.toByteArray(str)) 
 }
 
-},{"base64-js":262}],267:[function(require,module,exports){
+},{"base64-js":235}],240:[function(require,module,exports){
 
 module.exports = function(buffer) {
   return buffer instanceof Uint8Array;
 }
 
-},{}],268:[function(require,module,exports){
+},{}],241:[function(require,module,exports){
 module.exports = join
 
 function join(targets, hint) {
@@ -42888,7 +42438,7 @@ function get_length(targets) {
   return size
 }
 
-},{}],269:[function(require,module,exports){
+},{}],242:[function(require,module,exports){
 var proto
   , map
 
@@ -42910,7 +42460,7 @@ function get(target) {
   return out
 }
 
-},{}],270:[function(require,module,exports){
+},{}],243:[function(require,module,exports){
 module.exports = {
     readUInt8:      read_uint8
   , readInt8:       read_int8
@@ -42999,14 +42549,14 @@ function read_double_be(target, at) {
   return dv.getFloat64(at + target.byteOffset, false)
 }
 
-},{"./mapped.js":269}],271:[function(require,module,exports){
+},{"./mapped.js":242}],244:[function(require,module,exports){
 module.exports = subarray
 
 function subarray(buf, from, to) {
   return buf.subarray(from || 0, to || buf.length)
 }
 
-},{}],272:[function(require,module,exports){
+},{}],245:[function(require,module,exports){
 module.exports = to
 
 var base64 = require('base64-js')
@@ -43044,7 +42594,7 @@ function to_base64(buf) {
 }
 
 
-},{"base64-js":262,"to-utf8":263}],273:[function(require,module,exports){
+},{"base64-js":235,"to-utf8":236}],246:[function(require,module,exports){
 module.exports = {
     writeUInt8:      write_uint8
   , writeInt8:       write_int8
@@ -43132,7 +42682,7 @@ function write_double_be(target, value, at) {
   return dv.setFloat64(at + target.byteOffset, value, false)
 }
 
-},{"./mapped.js":269}],274:[function(require,module,exports){
+},{"./mapped.js":242}],247:[function(require,module,exports){
 (function (process){
 // Tom Robinson
 // Kris Kowal
@@ -43597,33 +43147,825 @@ var decodeDateTime = function (date, time) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./inflate":260,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"bops":261,"fs":289}],275:[function(require,module,exports){
+},{"./inflate":233,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"bops":234,"fs":276}],248:[function(require,module,exports){
+/*
+ * atlaspack
+ * https://github.com/shama/atlaspack
+ *
+ * Copyright (c) 2013 Kyle Robinson Young
+ * Licensed under the MIT license.
+ *
+ * Based on Nick Welch's binpack: https://github.com/mackstann/binpack
+ */
+
+function Rect(x, y, w, h) {
+  this.x = x; this.y = y;
+  this.w = w; this.h = h;
+}
+
+Rect.prototype.fitsIn = function(outer) {
+  return outer.w >= this.w && outer.h >= this.h;
+};
+
+Rect.prototype.sameSizeAs = function(other) {
+  return this.w === other.w && this.h === other.h;
+};
+
+function Atlas(x, y, w, h) {
+  if (arguments.length === 1) {
+    this.canvas = x;
+    x = y = 0;
+    w = this.canvas.width;
+    h = this.canvas.height;
+  }
+  if (arguments.length === 2) {
+    w = x; h = y; x = y = 0;
+  }
+  this.left = this.right = null;
+  this.rect = new Rect(x, y, w, h);
+  this.filled = false;
+  this.tilepad = false;
+  this._cache = [];
+  this._uvcache = Object.create(null);
+}
+module.exports = function() {
+  if (arguments.length === 1) { return new Atlas(arguments[0]); }
+  if (arguments.length === 2) { return new Atlas(arguments[0], arguments[1]); }
+  return new Atlas(arguments[0], arguments[1], arguments[2], arguments[3]);
+};
+module.exports.Atlas = Atlas;
+module.exports.Rect = Rect;
+
+// pack image/rect to the atlas
+Atlas.prototype.pack = function(rect) {
+  this._cache = [];
+  this._uvcache = [];
+  rect = this._toRect(rect);
+
+  if (this.img && this.tilepad) {
+    rect = this._tilepad(rect);
+  }
+
+  if (this.left !== null) {
+    return this._ontoCanvas(this.left.pack(rect) || this.right.pack(rect));
+  }
+  // if atlas filled or wont fit
+  if (this.filled || !rect.fitsIn(this.rect)) {
+    return false;
+  }
+  // if this atlas has been filled
+  if (rect.sameSizeAs(this.rect)) {
+    this.filled = true;
+    return this._ontoCanvas(this);
+  }
+  if ((this.rect.w - rect.w) > (this.rect.h - rect.h)) {
+    this.left = new Atlas(this.rect.x, this.rect.y, rect.w, this.rect.h);
+    this.right = new Atlas(this.rect.x + rect.w, this.rect.y, this.rect.w - rect.w, this.rect.h);
+  } else {
+    this.left = new Atlas(this.rect.x, this.rect.y, this.rect.w, rect.h);
+    this.right = new Atlas(this.rect.x, this.rect.y + rect.h, this.rect.w, this.rect.h - rect.h);
+  }
+  return this._ontoCanvas(this.left.pack(rect));
+};
+
+Atlas.prototype.expand = function(rect) {
+  var self = this;
+  rect = this._toRect(rect);
+
+  if (this.img && this.tilepad) {
+    rect = this._tilepad(rect);
+  }
+
+  var atlas;
+  if (this.rect.w < this.rect.h) {
+    atlas = new Atlas(0, 0, this.rect.w + rect.w, this.rect.h);
+    atlas.right = new Atlas(this.rect.w, 0, rect.w, this.rect.h);
+    atlas.left = this;
+  } else {
+    atlas = new Atlas(0, 0, this.rect.w, this.rect.h + rect.h);
+    atlas.right = new Atlas(0, this.rect.h, this.rect.w, rect.h);
+    atlas.left = this;
+  }
+
+  ['canvas', 'context', 'img'].forEach(function(p) {
+    if (self[p]) {
+      atlas[p] = self[p];
+      self[p] = null;
+    }
+  });
+
+  // resize canvas
+  if (atlas.canvas) {
+    if (!atlas.context) {
+      atlas.context = atlas.canvas.getContext('2d');
+    }
+    var old = atlas.context.getImageData(0, 0, atlas.canvas.width, atlas.canvas.height);
+    atlas.canvas.width = atlas.rect.w;
+    atlas.canvas.height = atlas.rect.h;
+    atlas.context.putImageData(old, 0, 0);
+  }
+
+  return (atlas.pack(rect) === false) ? atlas.expand(rect) : atlas;
+};
+
+Atlas.prototype.index = function() {
+  var self = this;
+  if (self._cache.length > 0) {
+    return self._cache;
+  }
+  (function loop(atlas) {
+    if (atlas.left !== null) {
+      loop(atlas.left);
+      loop(atlas.right);
+    } else if (atlas.rect.name) {
+      self._cache.push(atlas.rect);
+    }
+  }(self));
+  return self._cache;
+};
+
+Atlas.prototype.uv = function(w, h) {
+  var self = this;
+  if (self._uvcache.length > 0) {
+    return self._uvcache;
+  }
+  w = w || self.rect.w;
+  h = h || self.rect.h;
+  var isPad = this.tilepad;
+  (function loop(atlas) {
+    if (atlas.left !== null) {
+      loop(atlas.left);
+      loop(atlas.right);
+    } else if (typeof atlas.rect.name !== 'undefined') {
+      var p = (isPad) ? atlas.rect.w / 4 : 0;
+      self._uvcache[atlas.rect.name] = [
+        [atlas.rect.x + p, atlas.rect.y + p],
+        [(atlas.rect.x + p) + (atlas.rect.w - (p * 2)), atlas.rect.y + p],
+        [(atlas.rect.x + p) + (atlas.rect.w - (p * 2)), (atlas.rect.y + p) + (atlas.rect.h - (p * 2))],
+        [(atlas.rect.x + p), (atlas.rect.y + p) + (atlas.rect.h - (p * 2))],
+      ].map(function(uv) {
+        if (uv[0] !== 0) {
+          uv[0] = uv[0] / w;
+        }
+        if (uv[1] !== 0) {
+          uv[1] = uv[1] / h;
+        }
+        return uv;
+      });
+    }
+  }(self));
+  return self._uvcache;
+};
+
+Atlas.prototype.json = function(input) {
+  var self = this;
+  if (input) {
+    if (typeof input === 'string') input = JSON.parse(input);
+    return (function loop(obj) {
+      if (!obj || !obj.rect) return;
+      var atlas = new Atlas(obj.rect.x, obj.rect.y, obj.rect.w, obj.rect.h);
+      if (obj.left) atlas.left = loop(obj.left);
+      if (obj.right) atlas.right = loop(obj.right);
+      return atlas;
+    }(input));
+  } else {
+    return JSON.stringify(function loop(atlas) {
+      var obj = {
+        left: null, right: null,
+        rect: atlas.rect, filled: atlas.filled
+      };
+      if (atlas.left !== null) {
+        obj.left = loop(atlas.left);
+        obj.right = loop(atlas.right);
+      }
+      return obj;
+    }(self), null, 2);
+  }
+};
+
+// Pads the image by tiling itself around itself
+Atlas.prototype._tilepad = function(rect) {
+  var img = this.img;
+  if (!img) return rect;
+
+  var p = img.width / 2;
+
+  var canvas = document.createElement('canvas');
+  canvas.name = img.name || img.src;
+  canvas.id = img.id || '';
+  canvas.width = img.width + img.width;
+  canvas.height = img.height + img.height;
+  var ctx = canvas.getContext('2d');
+
+  var pattern = ctx.createPattern(img, 'repeat');
+  ctx.fillStyle = pattern;
+  ctx.translate(p, p);
+  ctx.fillRect(-p, -p, canvas.width + p, canvas.height + p);
+  ctx.translate(-p, -p);
+
+  this.img = canvas;
+
+  return new Rect(rect.x, rect.y, this.img.width, this.img.height);
+};
+
+// if has an image and canvas, draw to the canvas as we go
+Atlas.prototype._ontoCanvas = function(node) {
+  if (node && this.img && this.canvas) {
+    if (!this.context) {
+      this.context = this.canvas.getContext('2d');
+    }
+    this.context.clearRect(node.rect.x, node.rect.y, node.rect.w, node.rect.h);
+    this.context.drawImage(this.img, node.rect.x, node.rect.y, node.rect.w, node.rect.h);
+    node.rect.name = this.img.id || this.img.name || this.img.src || null;
+  }
+  return node;
+};
+
+// make sure we're always working with rects
+Atlas.prototype._toRect = function(rect) {
+  // if rect is an image
+  if (rect.nodeName && rect.nodeName === 'IMG') {
+    this.img = rect;
+    rect = new Rect(rect.x, rect.y, rect.width, rect.height);
+  }
+  // if rect is an object
+  if (!(rect instanceof Rect)) {
+    rect = new Rect(rect.x || 0, rect.y || 0, rect.w || rect.width, rect.h || rect.height);
+  }
+  return rect;
+};
+
+Atlas.prototype._debug = function() {
+  if (!this.canvas) { return; }
+  var context = this.canvas.getContext('2d');
+  this.index().forEach(function(rect) {
+    context.lineWidth = 1;
+    context.strokeStyle = 'red';
+    context.strokeRect(rect.x, rect.y, rect.w, rect.h);
+  });
+};
+
+},{}],249:[function(require,module,exports){
+arguments[4][200][0].apply(exports,arguments)
+},{"ndarray":262}],250:[function(require,module,exports){
+module.exports=require(17)
+},{}],251:[function(require,module,exports){
+arguments[4][118][0].apply(exports,arguments)
+},{"cwise-compiler":252}],252:[function(require,module,exports){
+arguments[4][111][0].apply(exports,arguments)
+},{"./lib/thunk.js":254}],253:[function(require,module,exports){
+module.exports=require(112)
+},{"uniq":255}],254:[function(require,module,exports){
+arguments[4][10][0].apply(exports,arguments)
+},{"./compile.js":253}],255:[function(require,module,exports){
+module.exports=require(11)
+},{}],256:[function(require,module,exports){
+module.exports=require(18)
+},{}],257:[function(require,module,exports){
+module.exports=require(44)
+},{"bit-twiddle":250,"buffer":277,"dup":256}],258:[function(require,module,exports){
+module.exports=require(45)
+},{}],259:[function(require,module,exports){
+module.exports=require(46)
+},{"weakmap":258}],260:[function(require,module,exports){
+"use strict"
+
+var ndarray = require("ndarray")
+var ops = require("ndarray-ops")
+var pool = require("typedarray-pool")
+var webglew = require("webglew")
+
+var linearTypes = null
+var filterTypes = null
+var wrapTypes = null
+
+function lazyInitLinearTypes(gl) {
+  linearTypes = [
+    gl.LINEAR,
+    gl.NEAREST_MIPMAP_LINEAR,
+    gl.LINEAR_MIPMAP_NEAREST,
+    gl.LINEAR_MIPMAP_NEAREST
+  ]
+  filterTypes = [
+    gl.NEAREST,
+    gl.LINEAR,
+    gl.NEAREST_MIPMAP_NEAREST,
+    gl.NEAREST_MIPMAP_LINEAR,
+    gl.LINEAR_MIPMAP_NEAREST,
+    gl.LINEAR_MIPMAP_LINEAR
+  ]
+  wrapTypes = [
+    gl.REPEAT,
+    gl.CLAMP_TO_EDGE,
+    gl.MIRRORED_REPEAT
+  ]
+}
+
+var convertFloatToUint8 = function(out, inp) {
+  ops.muls(out, inp, 255.0)
+}
+
+function Texture2D(gl, handle, width, height, format, type) {
+  this.gl = gl
+  this.handle = handle
+  this.shape = [ height, width ]
+  this.format = format
+  this.type = type
+  this._mipLevels = [0]
+  this._magFilter = gl.NEAREST
+  this._minFilter = gl.NEAREST
+  this._wrapS = gl.CLAMP_TO_EDGE
+  this._wrapT = gl.CLAMP_TO_EDGE
+  this._anisoSamples = 1
+}
+
+Object.defineProperty(Texture2D.prototype, "minFilter", {
+  get: function() {
+    return this._minFilter
+  },
+  set: function(v) {
+    this.bind()
+    var gl = this.gl
+    if(this.type === gl.FLOAT && linearTypes.indexOf(v) >= 0) {
+      if(!webglew(gl).OES_texture_float_linear) {
+        v = gl.NEAREST
+      }
+    }
+    if(filterTypes.indexOf(v) < 0) {
+      throw new Error("gl-texture2d: Unknown filter mode " + v)
+    }
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, v)
+    return this._minFilter = v
+  }
+})
+
+var proto = Texture2D.prototype
+
+Object.defineProperty(proto, "magFilter", {
+  get: function() {
+    return this._magFilter
+  },
+  set: function(v) {
+    this.bind()
+    var gl = this.gl
+    if(this.type === gl.FLOAT && linearTypes.indexOf(v) >= 0) {
+      if(!webglew(gl).OES_texture_float_linear) {
+        v = gl.NEAREST
+      }
+    }
+    if(filterTypes.indexOf(v) < 0) {
+      throw new Error("gl-texture2d: Unknown filter mode " + v)
+    }
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, v)
+    return this._magFilter = v
+  }
+})
+
+Object.defineProperty(proto, "wrapS", {
+  get: function() {
+    return this._wrapS
+  },
+  set: function(v) {
+    this.bind()
+    if(wrapTypes.indexOf(v) < 0) {
+      throw new Error("gl-texture2d: Unknown wrap mode " + v)
+    }
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, v)
+    return this._wrapS = v
+  }
+})
+
+Object.defineProperty(proto, "wrapT", {
+  get: function() {
+    return this._wrapT
+  },
+  set: function(v) {
+    this.bind()
+    if(wrapTypes.indexOf(v) < 0) {
+      throw new Error("gl-texture2d: Unknown wrap mode " + v)
+    }
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, v)
+    return this._wrapT = v
+  }
+})
+
+Object.defineProperty(proto, "mipSamples", {
+  get: function() {
+    return this._anisoSamples
+  },
+  set: function(i) {
+    var psamples = this._anisoSamples
+    this._anisoSamples = Math.max(i, 1)|0
+    if(psamples !== this._anisoSamples) {
+      var ext = webglew(this.gl).EXT_texture_filter_anisotropic
+      if(ext) {
+        this.gl.texParameterf(this.gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, this._anisoSamples)
+      }
+    }
+    return this._anisoSamples
+  }
+})
+
+proto.bind = function bindTexture2D(unit) {
+  var gl = this.gl
+  if(unit !== undefined) {
+    gl.activeTexture(gl.TEXTURE0 + (unit|0))
+  }
+  gl.bindTexture(gl.TEXTURE_2D, this.handle)
+  if(unit !== undefined) {
+    return unit
+  }
+  return gl.getParameter(gl.ACTIVE_TEXTURE) - gl.TEXTURE0
+}
+
+proto.dispose = function disposeTexture2D() {
+  this.gl.deleteTexture(this.handle)
+}
+
+proto.generateMipmap = function() {
+  this.bind()
+  this.gl.generateMipmap(this.gl.TEXTURE_2D)
+  
+  //Update mip levels
+  var l = Math.min(this.shape[0], this.shape[1])
+  for(var i=0; l>0; ++i, l>>>=1) {
+    if(this._mipLevels.indexOf(i) < 0) {
+      this._mipLevels.push(i)
+    }
+  }
+}
+
+proto.setPixels = function(data, x_off, y_off, mip_level) {
+  var gl = this.gl
+  this.bind()
+  x_off = x_off || 0
+  y_off = y_off || 0
+  mip_level = mip_level || 0
+  if(data instanceof HTMLCanvasElement ||
+     data instanceof ImageData ||
+     data instanceof HTMLImageElement ||
+     data instanceof HTMLVideoElement) {
+    var needsMip = this._mipLevels.indexOf(mip_level) < 0
+    if(needsMip) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, this.format, this.format, this.type, data)
+      this._mipLevels.push(mip_level)
+    } else {
+      gl.texSubImage2D(gl.TEXTURE_2D, mip_level, x_off, y_off, this.format, this.type, data)
+    }
+  } else if(data.shape && data.stride && data.data) {
+    if(data.shape.length < 2 ||
+       x_off + data.shape[1] > this.shape[1]>>>mip_level ||
+       y_off + data.shape[0] > this.shape[0]>>>mip_level ||
+       x_off < 0 ||
+       y_off < 0) {
+      throw new Error("Texture dimensions are out of bounds")
+    }    
+    texSubImageArray(gl, x_off, y_off, mip_level, this.format, this.type, this._mipLevels, data)
+  } else {
+    throw new Error("Unsupported data type")
+  }
+}
+
+function texSubImageArray(gl, x_off, y_off, mip_level, cformat, ctype, mipLevels, array) {
+  var dtype = array.dtype || ndarray.dtype(array)
+  var shape = array.shape
+  var packed = isPacked(array)
+  var type = 0, format = 0
+  if(dtype === "float32") {
+    type = gl.FLOAT
+  } else if(dtype === "float64") {
+    type = gl.FLOAT
+    packed = false
+    dtype = "float32"
+  } else if(dtype === "uint8") {
+    type = gl.UNSIGNED_BYTE
+  } else {
+    type = gl.UNSIGNED_BYTE
+    packed = false
+  }
+  if(shape.length === 2) {
+    format = gl.LUMINANCE
+  } else if(shape.length === 3) {
+    if(shape[2] === 1) {
+      format = gl.ALPHA
+    } else if(shape[2] === 2) {
+      format = gl.LUMINANCE_ALPHA
+    } else if(shape[2] === 3) {
+      format = gl.RGB
+    } else if(shape[2] === 4) {
+      format = gl.RGBA
+    } else {
+      throw new Error("Invalid shape for pixel coords")
+    }
+  } else {
+    throw new Error("Invalid shape for texture")
+  }
+  //For 1-channel textures allow conversion between formats
+  if((format  === gl.LUMINANCE || format  === gl.ALPHA) &&
+     (cformat === gl.LUMINANCE || cformat === gl.ALPHA)) {
+    format = cformat
+  }
+  if(format !== cformat) {
+    throw new Error("Incompatible texture format for setPixels")
+  }
+  var size = array.size
+  if(typeof size !== "number") {
+    size = ndarray.size(array)
+  }
+  var needsMip = mipLevels.indexOf(mip_level) < 0
+  if(needsMip) {
+    mipLevels.push(mip_level)
+  }
+  if(type === ctype && packed) {
+    //Array data types are compatible, can directly copy into texture
+    if(array.offset === 0 && array.data.length === size) {
+      if(needsMip) {
+        gl.texImage2D(gl.TEXTURE_2D, mip_level, cformat, shape[1], shape[0], 0, cformat, ctype, array.data)
+      } else {
+        gl.texSubImage2D(gl.TEXTURE_2D, mip_level, x_off, y_off, shape[1], shape[0], cformat, ctype, array.data)
+      }
+    } else {
+      if(needsMip) {
+        gl.texImage2D(gl.TEXTURE_2D, mip_level, cformat, shape[1], shape[0], 0, cformat, ctype, array.data.subarray(array.offset, array.offset+size))
+      } else {
+        gl.texSubImage2D(gl.TEXTURE_2D, mip_level, x_off, y_off, shape[1], shape[0], cformat, ctype, array.data.subarray(array.offset, array.offset+size))
+      }
+    }
+  } else {
+    //Need to do type conversion to pack data into buffer
+    var pack_buffer
+    if(ctype === gl.FLOAT) {
+      pack_buffer = pool.mallocFloat32(size)
+    } else {
+      pack_buffer = pool.mallocUint8(size)
+    }
+    var pack_view = ndarray(pack_buffer, shape)
+    if(type === gl.FLOAT && ctype === gl.UNSIGNED_BYTE) {
+      convertFloatToUint8(pack_view, array)
+    } else {
+      ops.assign(pack_view, array)
+    }
+    if(needsMip) {
+      gl.texImage2D(gl.TEXTURE_2D, mip_level, cformat, shape[1], shape[0], 0, cformat, ctype, pack_buffer.subarray(0, size))
+    } else {
+      gl.texSubImage2D(gl.TEXTURE_2D, mip_level, x_off, y_off, shape[1], shape[0], cformat, ctype, pack_buffer.subarray(0, size))
+    }
+    if(ctype === gl.FLOAT) {
+      pool.freeFloat32(pack_buffer)
+    } else {
+      pool.freeUint8(pack_buffer)
+    }
+  }
+}
+
+function initTexture(gl) {
+  var tex = gl.createTexture()
+  gl.bindTexture(gl.TEXTURE_2D, tex)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  return tex
+}
+
+function createTextureShape(gl, width, height, format, type) {
+  var tex = initTexture(gl)
+  gl.texImage2D(gl.TEXTURE_2D, 0, format, width, height, 0, format, type, null)
+  return new Texture2D(gl, tex, width, height, format, type)
+}
+
+function createTextureDOM(gl, element, format, type) {
+  var tex = initTexture(gl)
+  gl.texImage2D(gl.TEXTURE_2D, 0, format, format, type, element)
+  return new Texture2D(gl, tex, element.width|0, element.height|0, format, type)
+}
+
+function isPacked(array) {
+  var shape = array.shape
+  var stride = array.stride
+  var s = 1
+  for(var i=shape.length-1; i>=0; --i) {
+    if(stride[i] !== s) {
+      return false
+    }
+    s *= shape[i]
+  }
+  return true
+}
+
+//Creates a texture from an ndarray
+function createTextureArray(gl, array) {
+  var dtype = array.dtype || ndarray.dtype(array)
+  var shape = array.shape
+  var packed = isPacked(array)
+  var type = 0
+  if(dtype === "float32") {
+    type = gl.FLOAT
+  } else if(dtype === "float64") {
+    type = gl.FLOAT
+    packed = false
+    dtype = "float32"
+  } else if(dtype === "uint8") {
+    type = gl.UNSIGNED_BYTE
+  } else {
+    type = gl.UNSIGNED_BYTE
+    packed = false
+  }
+  var format = 0
+  if(shape.length === 2) {
+    format = gl.LUMINANCE
+  } else if(shape.length === 3) {
+    if(shape[2] === 1) {
+      format = gl.ALPHA
+    } else if(shape[2] === 2) {
+      format = gl.LUMINANCE_ALPHA
+    } else if(shape[2] === 3) {
+      format = gl.RGB
+    } else if(shape[2] === 4) {
+      format = gl.RGBA
+    } else {
+      throw new Error("Invalid shape for pixel coords")
+    }
+  } else {
+    throw new Error("Invalid shape for texture")
+  }
+  if(type === gl.FLOAT && !!webglew(gl).texture_float) {
+    type = gl.UNSIGNED_BYTE
+    packed = false
+  }
+  var buffer, buf_store
+  if(!packed) {
+    var sz = 1
+    var stride = new Array(shape.length)
+    for(var i=shape.length-1; i>=0; --i) {
+      stride[i] = sz
+      sz *= shape[i]
+    }
+    buf_store = pool.malloc(sz, dtype)
+    var buf_array = ndarray(buf_store, array.shape, stride, 0)
+    if((dtype === "float32" || dtype === "float64") && type === gl.UNSIGNED_BYTE) {
+      convertFloatToUint8(buf_array, array)
+    } else {
+      ops.assign(buf_array, array)
+    }
+    buffer = buf_store.subarray(0, sz)
+  } else {
+    var array_size = array.size
+    if(typeof array_size !== "number") {
+      array_size = ndarray.size(array)
+    }
+    buffer = array.data.subarray(array.offset, array.offset + array_size)
+  }
+  var tex = initTexture(gl)
+  gl.texImage2D(gl.TEXTURE_2D, 0, format, shape[1], shape[0], 0, format, type, buffer)
+  if(!packed) {
+    pool.free(buf_store)
+  }
+  return new Texture2D(gl, tex, shape[1], shape[0], format, type)
+}
+
+function createTexture2D(gl) {
+  if(arguments.length <= 1) {
+    throw new Error("Missing arguments for texture2d constructor")
+  }
+  if(!linearTypes) {
+    lazyInitLinearTypes(gl)
+  }
+  if(typeof arguments[1] === "number") {
+    return createTextureShape(gl, arguments[1], arguments[2], arguments[3]||gl.RGBA, arguments[4]||gl.UNSIGNED_BYTE)
+  }
+  if(typeof arguments[1] === "object") {
+    var obj = arguments[1]
+    if(obj instanceof HTMLCanvasElement ||
+       obj instanceof HTMLImageElement ||
+       obj instanceof HTMLVideoElement ||
+       obj instanceof ImageData) {
+      return createTextureDOM(gl, obj, arguments[2]||gl.RGBA, arguments[3]||gl.UNSIGNED_BYTE)
+    } else if(obj.shape && obj.data && obj.stride) {
+      return createTextureArray(gl, obj)
+    }
+  }
+  throw new Error("Invalid arguments for texture2d constructor")
+}
+module.exports = createTexture2D
+
+},{"ndarray":262,"ndarray-ops":251,"typedarray-pool":257,"webglew":259}],261:[function(require,module,exports){
 module.exports=require(95)
-},{}],276:[function(require,module,exports){
+},{}],262:[function(require,module,exports){
 module.exports=require(15)
-},{"buffer":290,"iota-array":277}],277:[function(require,module,exports){
+},{"buffer":277,"iota-array":263}],263:[function(require,module,exports){
 module.exports=require(13)
-},{}],278:[function(require,module,exports){
-module.exports=require(238)
-},{"buffer":290,"stream":298,"util":306}],279:[function(require,module,exports){
-module.exports=require(239)
-},{}],280:[function(require,module,exports){
-module.exports=require(240)
-},{"stream":298,"util":306}],281:[function(require,module,exports){
-module.exports=require(241)
-},{"./chunkstream":278,"buffer":290,"util":306,"zlib":309}],282:[function(require,module,exports){
-arguments[4][242][0].apply(exports,arguments)
-},{"./constants":279,"./crc":280,"./filter":281,"buffer":290,"stream":298,"util":306,"zlib":309}],283:[function(require,module,exports){
-arguments[4][243][0].apply(exports,arguments)
-},{"./chunkstream":278,"./constants":279,"./crc":280,"./filter":281,"buffer":290,"util":306,"zlib":309}],284:[function(require,module,exports){
-arguments[4][244][0].apply(exports,arguments)
-},{"./packer":282,"./parser":283,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"stream":298,"util":306}],285:[function(require,module,exports){
+},{}],264:[function(require,module,exports){
+module.exports=require(211)
+},{"buffer":277,"stream":285,"util":293}],265:[function(require,module,exports){
+module.exports=require(212)
+},{}],266:[function(require,module,exports){
+module.exports=require(213)
+},{"stream":285,"util":293}],267:[function(require,module,exports){
+module.exports=require(214)
+},{"./chunkstream":264,"buffer":277,"util":293,"zlib":296}],268:[function(require,module,exports){
+arguments[4][215][0].apply(exports,arguments)
+},{"./constants":265,"./crc":266,"./filter":267,"buffer":277,"stream":285,"util":293,"zlib":296}],269:[function(require,module,exports){
+arguments[4][216][0].apply(exports,arguments)
+},{"./chunkstream":264,"./constants":265,"./crc":266,"./filter":267,"buffer":277,"util":293,"zlib":296}],270:[function(require,module,exports){
+arguments[4][217][0].apply(exports,arguments)
+},{"./packer":268,"./parser":269,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"buffer":277,"stream":285,"util":293}],271:[function(require,module,exports){
 module.exports=require(32)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"stream":298}],286:[function(require,module,exports){
-arguments[4][246][0].apply(exports,arguments)
-},{"pngjs":284,"through":285}],287:[function(require,module,exports){
-module.exports=require(223)
-},{}],288:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"stream":285}],272:[function(require,module,exports){
+arguments[4][219][0].apply(exports,arguments)
+},{"pngjs":270,"through":271}],273:[function(require,module,exports){
+module.exports=require(196)
+},{}],274:[function(require,module,exports){
+// Generated by CoffeeScript 1.7.0
+(function() {
+  var createCanvas, crop, overallSize, overlay, repeat, scale;
+
+  createCanvas = function(w, h) {
+    var canvas, context;
+    canvas = document.createElement('canvas');
+    canvas.setAttribute('width', w);
+    canvas.setAttribute('height', h);
+    context = canvas.getContext('2d');
+    return [canvas, context];
+  };
+
+  repeat = function(sourceImage, timesX, timesY) {
+    var canvas, context, destH, destW, pattern, _ref;
+    destW = sourceImage.width * timesX;
+    destH = sourceImage.height * timesY;
+    _ref = createCanvas(destW, destH), canvas = _ref[0], context = _ref[1];
+    pattern = context.createPattern(sourceImage, 'repeat');
+    context.fillStyle = pattern;
+    context.fillRect(0, 0, destW, destH);
+    return canvas.toDataURL();
+  };
+
+  scale = function(sourceImage, scaleX, scaleY, algorithm) {
+    var canvas, context, destH, destW, _ref;
+    destW = sourceImage.width * scaleX;
+    destH = sourceImage.width * scaleY;
+    _ref = createCanvas(destW, destH), canvas = _ref[0], context = _ref[1];
+    if (algorithm === 'nearest-neighbor') {
+      context.imageSmoothingEnabled = false;
+      context.webkitImageSmoothingEnabled = false;
+      context.mozImageSmoothingEnabled = false;
+    }
+    context.drawImage(sourceImage, 0, 0, destW, destH);
+    return canvas.toDataURL();
+  };
+
+  crop = function(sourceImage, ox, oy, ow, oh) {
+    var canvas, context, destH, destW, sh, sw, sx, sy, _ref;
+    sx = ox || 0;
+    sy = oy || 0;
+    destW = sourceImage.width - (ow || 0) - sx;
+    destH = sourceImage.height - (oh || 0) - sy;
+    sw = destW;
+    sh = destH;
+    _ref = createCanvas(destW, destH), canvas = _ref[0], context = _ref[1];
+    console.log(sx, sy, sw, sh, 0, 0, destW, destH);
+    context.drawImage(sourceImage, sx, sy, sw, sh, 0, 0, destW, destH);
+    return canvas.toDataURL();
+  };
+
+  overallSize = function(sourceImages) {
+    var destH, destW, sourceImage, _i, _len;
+    destW = destH = 0;
+    for (_i = 0, _len = sourceImages.length; _i < _len; _i++) {
+      sourceImage = sourceImages[_i];
+      if (sourceImage.width > destW) {
+        destW = sourceImage.width;
+      }
+      if (sourceImage.height > destH) {
+        destH = sourceImage.height;
+      }
+    }
+    return [destW, destH];
+  };
+
+  overlay = function(sourceImages, operation, alpha) {
+    var canvas, context, destH, destW, sourceImage, _i, _len, _ref, _ref1;
+    _ref = overallSize(sourceImages), destW = _ref[0], destH = _ref[1];
+    _ref1 = createCanvas(destW, destH), canvas = _ref1[0], context = _ref1[1];
+    context.globalAlpha = alpha != null ? alpha : 1.0;
+    context.globalCompositeOperation = operation != null ? operation : 'source-over';
+    for (_i = 0, _len = sourceImages.length; _i < _len; _i++) {
+      sourceImage = sourceImages[_i];
+      context.drawImage(sourceImage, 0, 0);
+    }
+    return canvas.toDataURL();
+  };
+
+  module.exports = {
+    repeat: repeat,
+    scale: scale,
+    crop: crop,
+    overlay: overlay
+  };
+
+}).call(this);
+
+},{}],275:[function(require,module,exports){
 'use strict';
 
 var createArtpacks = require('artpacks');
@@ -43632,6 +43974,12 @@ var inherits = require('inherits');
 var EventEmitter = require('events').EventEmitter;
 var toarray = require('toarray');
 var savePixels = require('save-pixels');
+var createAtlas = require('atlaspack');
+
+var createTexture = require('gl-texture2d');
+var getPixels = require('get-pixels');
+var rectMipMap = require('rect-mip-map');
+var touchup = require('touchup');
 
 module.exports = function(game, opts) {
   return new StitchPlugin(game, opts);
@@ -43646,24 +43994,22 @@ function StitchPlugin(game, opts) {
 
   opts = opts || {};
   opts.artpacks = opts.artpacks || ['https://dl.dropboxusercontent.com/u/258156216/artpacks/ProgrammerArt-v2.2.1-dev-ResourcePack-20140322.zip'];
+
+  this.debug = opts.debug !== undefined ? opts.debug : false;
+
+  // texture atlas width and height
+  this.atlasSize = opts.atlasSize !== undefined ? opts.atlasSize : 512; // TODO: fix wrong textures & indices with any other size (https://github.com/deathcap/voxel-stitch/issues/4)
+  this.tileSize = opts.tileSize !== undefined ? opts.tileSize : 16;
+  this.tileCount = this.atlasSize / this.tileSize; // each dimension
+  this.tilePad = 2;
+
+  var canvas = document.createElement('canvas');
+  canvas.width = canvas.height = this.atlasSize;
+  this.atlas = createAtlas(canvas);
+
   this.artpacks = createArtpacks(opts.artpacks);
   this.artpacks.on('refresh', this.refresh.bind(this));
 
-  // texture atlas width and height
-  this.atlasSize = opts.atlasSize !== undefined ? opts.atlasSize : 256;//2048; // requires downsampling each tile even if empty :( so make it smaller
-  this.tileSize = opts.tileSize !== undefined ? opts.tileSize : 16;
-  this.tileCount = this.atlasSize / this.tileSize; // each dimension
-
-  // 5-dimensional array of tiles compatible with:
-  //  https://github.com/mikolalysenko/tile-mip-map
-  //  https://github.com/mikolalysenko/gl-tile-map
-  // [rows, columns, tile height, tile width, channels]
-  this.atlas = ndarray(new Uint8Array(this.atlasSize * this.atlasSize * 4),
-      [this.tileCount, this.tileCount, this.tileSize, this.tileSize, 4]
-      // TODO: strides?
-      );
-
-  this.nextY = this.nextX = 0;
   this.countLoading = 0;
   this.countLoaded = 0;
 
@@ -43750,8 +44096,9 @@ var nameSideArray = new Array(6);
 StitchPlugin.prototype.stitch = function() {
   var textures = this.registry.getBlockPropsAll('texture');
   var textureNames = [];
+  this.sidesFor = {};
 
-  // assign per-side texture indices for each voxel type
+  // iterate each block and each side for all textures, accumulate textureNames and sidesFor
   for (var blockIndex = 0; blockIndex < textures.length; blockIndex += 1) {
     expandName(textures[blockIndex], nameSideArray);
 
@@ -43759,100 +44106,144 @@ StitchPlugin.prototype.stitch = function() {
       var name = nameSideArray[side];
       if (!name) continue;
 
-      var textureIndex = textureNames.indexOf(name);
-      if (textureIndex === -1) {
+      if (textureNames.indexOf(name) === -1) {
         // add new textures
         textureNames.push(name);
-        textureIndex = textureNames.length - 1;
       }
 
-      this.voxelSideTextureIDs.set(blockIndex, side, textureIndex);
+      // this texture is for this block ID and side
+      this.sidesFor[name] = this.sidesFor[name] || [];
+      this.sidesFor[name].push([blockIndex, side]);
     }
   }
 
-  // now asynchronously load each texture
-  this.countLoading = textureNames.length;
-  this.countLoaded = 0;
-
-  // first assign all textures to slots, in order
+  // add each texture to the atlas
   this.textureNamesSlots = [];
+  this.countLoading = textureNames.length;
   for (var j = 0; j < textureNames.length; j += 1) {
-    this.textureNamesSlots.push([textureNames[j], this.nextY, this.nextX]);
-    this.incrementSlot();
+    this.addTextureName(textureNames[j]);
   }
 
-  // then add to atlas
-  this.refresh();
+  // when all textures are loaded, set texture indices from UV maps
+  this.on('addedAll', this.updateTextureSideIDs.bind(this));
+
+  // TODO this.refresh();
+};
+
+// calculate self.voxelSideTextureIDs.set [blockIndex,side] -> textureIndex for ao-mesher
+StitchPlugin.prototype.updateTextureSideIDs = function() {
+  var uvs = this.atlas.uv();
+  for (var name in uvs) {
+    // TODO: refactor with rect-mip-map, similar conversion code
+    // UV coordinates 0.0 - 1.0
+    var uvTopLeft = uvs[name][0];      // *\  01
+    var uvBottomRight = uvs[name][2];  // \*  23
+
+    // scale UVs by image size to get pixel coordinates
+    var mx = this.atlasSize, my = this.atlasSize;
+    var sx = uvTopLeft[0] * mx, sy = uvTopLeft[1] * my;
+    var ex = uvBottomRight[0] * mx, ey = uvBottomRight[1] * my;
+    var w = ex - sx;
+    var h = ey - sy;
+
+
+    // atlaspack gives UV coords, but ao-mesher wants texture index
+    //var textureIndex = sy / (this.tileSize * this.tilePad) + (sx / (this.tileSize * this.tilePad) * (this.tileCount / this.tilePad));
+    var textureIndex = sy / (this.tileSize * this.tilePad) + (sx / (this.tileSize * this.tilePad) * (this.tileCount / this.tilePad));
+
+    for (var i = 0; i < this.sidesFor[name].length; ++i) {
+      var elem = this.sidesFor[name][i];
+      var blockIndex = elem[0], side = elem[1];
+
+      this.voxelSideTextureIDs.set(blockIndex, side, textureIndex);
+      console.log('texture',name,': block',blockIndex,this.registry.getBlockName(blockIndex+1),'side',side,'=',textureIndex,' UV=('+sx+','+sy+')-('+ex+','+ey+') ('+w+'x'+h+')');
+    }
+    // TODO: texture sizes, w and h
+  }
+
+  this.emit('updateTexture');
 };
 
 // add textures
 // (may be called repeatedly to update textures if pack changes)
 StitchPlugin.prototype.refresh = function() {
+/* TODO: problem - atlaspack pack() adds a new entry to the but we want to overwrite!
   var self = this;
   this.textureNamesSlots.forEach(function(elem) {
     var textureName = elem[0], tileY = elem[1], tileX = elem[2];
     self.addTextureName(textureName, tileY, tileX);
   });
+*/
 }
 
-StitchPlugin.prototype.incrementSlot = function() {
-  // point to next slot
-  this.nextY += 1;
-  if (this.nextY >= this.tileCount) {
-    this.nextY = 0;
-    this.nextX += 1; // TODO: instead, add to 4-dimensional strip then recast as 5-d?
-    if (this.nextX >= this.tileCount) {
-      throw new Error('texture sheet full! '+this.tileCount+'x'+this.tileCount+' exceeded');
-      // TODO: 'flip' the texture sheet, see https://github.com/deathcap/voxel-texture-shader/issues/2
+// create gl-texture2d for atlas with each mip level
+// like https://github.com/mikolalysenko/gl-tile-map/blob/master/tilemap.js but uses rect-tile-map
+StitchPlugin.prototype.createGLTexture = function(gl, cb) {
+  var atlas = this.atlas;
+  var showLevels = this.debug;
+
+  getPixels(this.atlas.canvas.toDataURL(), function(err, array) {
+    if (err) return cb(err);
+
+    var pyramid = rectMipMap(array, atlas);
+    console.log('pyramid=',pyramid);
+
+    if (showLevels) {
+      // add each mip level to the page for debugging TODO: refactor with rect-mip-map demo
+      pyramid.forEach(function(level, i) {
+        var img = new Image();
+        img.src = savePixels(level, 'canvas').toDataURL();
+        img.style.border = '1px dotted black';
+        document.body.appendChild(document.createElement('br'));
+        document.body.appendChild(img);
+        document.body.appendChild(document.createTextNode(' level #'+i+' ('+img.width+'x'+img.height+')'));
+      });
     }
-  }
-};
 
+    var tex = createTexture(gl, pyramid[0]);
+    tex.generateMipmap(); // TODO: ?
 
-StitchPlugin.prototype.addTextureName = function(textureName, tileY, tileX) {
-  var self = this;
+    for (var i = 1; i < pyramid.length; ++i) {
+      tex.setPixels(pyramid[i], 0, 0, i);
+    }
 
-  this.artpacks.getTextureNdarray(textureName, function(pixels) {
-    self.addTexturePixels(pixels, tileY, tileX);
-  }, function(err) {
-    console.log(err, textureName);
+    tex.magFilter = gl.NEAREST
+    tex.minFilter = gl.LINEAR_MIPMAP_LINEAR
+    tex.mipSamples = 4
+
+    cb(null, tex);
   });
 };
 
-StitchPlugin.prototype.addTexturePixels = function(pixels, tileY, tileX) {
-  /* debug
-  var src = savePixels(pixels, 'canvas').toDataURL();
-  var img = new Image();
-  img.src = src;
-  document.body.appendChild(img);
-  */
+StitchPlugin.prototype.addTextureName = function(name) {
+  var self = this;
 
-  // copy to atlas
-  // TODO: bitblt? ndarray-group?
-  for (var i = 0; i < pixels.shape[0]; i += 1) {
-    for (var j = 0; j < pixels.shape[1]; j += 1) {
-      for (var k = 0; k < pixels.shape[2]; k += 1) {
-        this.atlas.set(tileY, tileX, i, j, k, pixels.get(i, j, k));
+  this.artpacks.getTextureImage(name, function(img) {
+
+    // if is animated strip, use only first frame for now TODO: animate
+    if (Array.isArray(img))
+      img = img[0];
+
+    var img2 = new Image();
+    img2.onload = function() {
+      img2.name = name;
+      self.atlas.pack(img2);
+      self.emit('added');
+
+      self.countLoaded += 1;
+      if (self.countLoaded % self.countLoading === 0) {
+        self.emit('addedAll');
       }
-    }
-  }
+    };
+    img2.src = touchup.repeat(img, self.tilePad, self.tilePad);
 
-  this.emit('added');
-  this.countLoaded += 1;
-  if (this.countLoaded % this.countLoading === 0) {
-    this.emit('addedAll');
-  }
+  }, function(err) {
+    console.log('addTextureName error in getTextureImage for '+name+': '+err);
+  });
 };
 
 StitchPlugin.prototype.showAtlas = function() {
-  var img = new Image();
-  var pixels = ndarray(this.atlas.data,
-      //[this.atlas.shape[0] * this.atlas.shape[2], this.atlas.shape[1] * this.atlas.shape[3], this.atlas.shape[4]]); // reshapeTileMap from gl-tile-map, same
-      [this.tileSize * this.tileCount, this.tileSize * this.tileCount, 4]);
-
-  img.src = savePixels(pixels, 'canvas').toDataURL();
-  console.log(img.src);
-  document.body.appendChild(img);
+  document.body.appendChild(this.atlas.canvas);
 }
 
 StitchPlugin.prototype.enable = function() {
@@ -43863,9 +44254,9 @@ StitchPlugin.prototype.disable = function() {
 
 
 
-},{"artpacks":224,"events":293,"inherits":275,"ndarray":276,"save-pixels":286,"toarray":287}],289:[function(require,module,exports){
+},{"artpacks":197,"atlaspack":248,"events":280,"get-pixels":249,"gl-texture2d":260,"inherits":261,"ndarray":262,"rect-mip-map":125,"save-pixels":272,"toarray":273,"touchup":274}],276:[function(require,module,exports){
 
-},{}],290:[function(require,module,exports){
+},{}],277:[function(require,module,exports){
 /**
  * The buffer module from node.js, for the browser.
  *
@@ -44977,11 +45368,11 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":291,"ieee754":292}],291:[function(require,module,exports){
-module.exports=require(248)
-},{}],292:[function(require,module,exports){
-module.exports=require(249)
-},{}],293:[function(require,module,exports){
+},{"base64-js":278,"ieee754":279}],278:[function(require,module,exports){
+module.exports=require(221)
+},{}],279:[function(require,module,exports){
+module.exports=require(222)
+},{}],280:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -45283,9 +45674,9 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],294:[function(require,module,exports){
+},{}],281:[function(require,module,exports){
 module.exports=require(95)
-},{}],295:[function(require,module,exports){
+},{}],282:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -45347,7 +45738,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],296:[function(require,module,exports){
+},{}],283:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -45575,7 +45966,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295}],297:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282}],284:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -45649,7 +46040,7 @@ function onend() {
   });
 }
 
-},{"./readable.js":301,"./writable.js":303,"inherits":294,"process/browser.js":299}],298:[function(require,module,exports){
+},{"./readable.js":288,"./writable.js":290,"inherits":281,"process/browser.js":286}],285:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -45778,7 +46169,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"./duplex.js":297,"./passthrough.js":300,"./readable.js":301,"./transform.js":302,"./writable.js":303,"events":293,"inherits":294}],299:[function(require,module,exports){
+},{"./duplex.js":284,"./passthrough.js":287,"./readable.js":288,"./transform.js":289,"./writable.js":290,"events":280,"inherits":281}],286:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -45833,7 +46224,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],300:[function(require,module,exports){
+},{}],287:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -45876,7 +46267,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./transform.js":302,"inherits":294}],301:[function(require,module,exports){
+},{"./transform.js":289,"inherits":281}],288:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -46813,7 +47204,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./index.js":298,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290,"events":293,"inherits":294,"process/browser.js":299,"string_decoder":304}],302:[function(require,module,exports){
+},{"./index.js":285,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"buffer":277,"events":280,"inherits":281,"process/browser.js":286,"string_decoder":291}],289:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -47019,7 +47410,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./duplex.js":297,"inherits":294}],303:[function(require,module,exports){
+},{"./duplex.js":284,"inherits":281}],290:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -47407,7 +47798,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./index.js":298,"buffer":290,"inherits":294,"process/browser.js":299}],304:[function(require,module,exports){
+},{"./index.js":285,"buffer":277,"inherits":281,"process/browser.js":286}],291:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -47600,14 +47991,14 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":290}],305:[function(require,module,exports){
+},{"buffer":277}],292:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],306:[function(require,module,exports){
+},{}],293:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -48197,7 +48588,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":305,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"inherits":294}],307:[function(require,module,exports){
+},{"./support/isBuffer":292,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"inherits":281}],294:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -48337,7 +48728,7 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":308}],308:[function(require,module,exports){
+},{"indexof":295}],295:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -48348,7 +48739,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],309:[function(require,module,exports){
+},{}],296:[function(require,module,exports){
 (function (Buffer){
 var Zlib = module.exports = require('./zlib');
 
@@ -48395,7 +48786,7 @@ Zlib.gzip = function gzip(stringOrBuffer, callback) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./zlib":310,"buffer":290}],310:[function(require,module,exports){
+},{"./zlib":297,"buffer":277}],297:[function(require,module,exports){
 (function (process,Buffer){
 /** @license zlib.js 0.1.7 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */(function() {'use strict';function q(b){throw b;}var t=void 0,u=!0;var A="undefined"!==typeof Uint8Array&&"undefined"!==typeof Uint16Array&&"undefined"!==typeof Uint32Array;function E(b,a){this.index="number"===typeof a?a:0;this.m=0;this.buffer=b instanceof(A?Uint8Array:Array)?b:new (A?Uint8Array:Array)(32768);2*this.buffer.length<=this.index&&q(Error("invalid index"));this.buffer.length<=this.index&&this.f()}E.prototype.f=function(){var b=this.buffer,a,c=b.length,d=new (A?Uint8Array:Array)(c<<1);if(A)d.set(b);else for(a=0;a<c;++a)d[a]=b[a];return this.buffer=d};
 E.prototype.d=function(b,a,c){var d=this.buffer,f=this.index,e=this.m,g=d[f],k;c&&1<a&&(b=8<a?(G[b&255]<<24|G[b>>>8&255]<<16|G[b>>>16&255]<<8|G[b>>>24&255])>>32-a:G[b]>>8-a);if(8>a+e)g=g<<a|b,e+=a;else for(k=0;k<a;++k)g=g<<1|b>>a-k-1&1,8===++e&&(e=0,d[f++]=G[g],g=0,f===d.length&&(d=this.f()));d[f]=g;this.buffer=d;this.m=e;this.index=f};E.prototype.finish=function(){var b=this.buffer,a=this.index,c;0<this.m&&(b[a]<<=8-this.m,b[a]=G[b[a]],a++);A?c=b.subarray(0,a):(b.length=a,c=b);return c};
@@ -48453,4 +48844,4 @@ function xb(b,a){var c;b.subarray=b.slice;c=(new pb(b)).i();a||(a={});return a.n
 function Cb(b){var a=new Buffer(b.length),c,d;c=0;for(d=b.length;c<d;++c)a[c]=b[c];return a};}).call(this); //@ sourceMappingURL=node-zlib.js.map
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":295,"buffer":290}]},{},[1])
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":282,"buffer":277}]},{},[1])
