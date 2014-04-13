@@ -2,7 +2,6 @@
 
 var createShell = require("gl-now")
 var createCamera = require("game-shell-fps-camera")
-var createTileMap = require("gl-tile-map")
 var ndarray = require("ndarray")
 var createWireShader = require("./lib/wireShader.js")
 var createAOShader = require("ao-shader")
@@ -73,13 +72,22 @@ shell.on("gl-init", function() {
   //Create texture atlas
   var stitcher = game.plugins.get('voxel-stitch') // TODO: load not as a plugin?
   var updateTexture = function() {
-    console.log('updateTexture() calling createTileMap()')
-    texture = createTileMap(gl, stitcher.atlas, 2)
-    texture.magFilter = gl.NEAREST
-    texture.minFilter = gl.LINEAR_MIPMAP_LINEAR
-    texture.mipSamples = 4
+    console.log('updateTexture() calling createGLTexture()')
+
+    stitcher.createGLTexture(gl, function(err, tex) {
+      if (err) throw new Error('stitcher createGLTexture error: ' + err)
+      texture = tex
+    })
+
+    // for highBlock, clone wool texture (if shows up as dirt, wrapped around)
+    for (var k = 0; k < 6; k++)
+      stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
+
+    mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
+    var c = mesh.center
+    camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
   }
-  stitcher.on('addedAll', updateTexture)
+  stitcher.on('updateTexture', updateTexture)
   stitcher.stitch()
 
   //Lookup voxel materials for terrain generation
@@ -94,16 +102,10 @@ shell.on("gl-init", function() {
     }
   }
 
-  // test manually assigned high block index - clone wool texture (if shows up as dirt, wrapped around)
+  // test manually assigned high block index
   // before https://github.com/mikolalysenko/ao-mesher/issues/2 max is 255, after max is 32767
   var highIndex = 32767
   terrainMaterials.highBlock = OPAQUE|highIndex
-  for (var k = 0; k < 6; k++)
-    stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
-
-  mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
-  var c = mesh.center
-  camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
 
   shell.bind('wireframe', 'F')
 })
@@ -139,10 +141,12 @@ shell.on("gl-render", function(t) {
   shader.uniforms.model = model
   shader.uniforms.tileSize = TILE_SIZE
   if (texture) shader.uniforms.tileMap = texture.bind() // texture might not have loaded yet
-  
-  mesh.triangleVAO.bind()
-  gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
-  mesh.triangleVAO.unbind()
+
+  if(mesh) {
+    mesh.triangleVAO.bind()
+    gl.drawArrays(gl.TRIANGLES, 0, mesh.triangleVertexCount)
+    mesh.triangleVAO.unbind()
+  }
 
   if(shell.wasDown('wireframe')) {
     //Bind the wire shader
@@ -151,10 +155,12 @@ shell.on("gl-render", function(t) {
     wireShader.uniforms.projection = projection
     wireShader.uniforms.model = model
     wireShader.uniforms.view = view
-    
-    mesh.wireVAO.bind()
-    gl.drawArrays(gl.LINES, 0, mesh.wireVertexCount)
-    mesh.wireVAO.unbind()
+
+    if(mesh) {
+      mesh.wireVAO.bind()
+      gl.drawArrays(gl.LINES, 0, mesh.wireVertexCount)
+      mesh.wireVAO.unbind()
+    }
   }
 })
 }
