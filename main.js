@@ -4,16 +4,13 @@ var createShell = require("gl-now")
 var createCamera = require("game-shell-fps-camera")
 var ndarray = require("ndarray")
 var createWireShader = require("./lib/wireShader.js")
-var createAOShader = require("ao-shader")
+var createAOShader = require("voxel-shader")
 var createTerrain = require("./lib/terrain.js") // TODO: replace with shama's chunker mentioned in https://github.com/voxel/issues/issues/4#issuecomment-39644684
 var createVoxelMesh = require("./lib/createMesh.js")
 var glm = require("gl-matrix")
 var mat4 = glm.mat4
 
 var createPlugins = require('voxel-plugins')
-
-//Tile size parameters
-var TILE_SIZE = 16  // TODO: heterogenous
 
 var game = {};
 global.game = game; // for debugging
@@ -47,6 +44,8 @@ var texture, shader, mesh, wireShader
 // bit in voxel array to indicate voxel is opaque (transparent if not set)
 var OPAQUE = 1<<15;
 
+var TILE_COUNT = null;
+
 shell.on("gl-init", function() {
   var gl = shell.gl
 
@@ -71,6 +70,7 @@ shell.on("gl-init", function() {
   
   //Create texture atlas
   var stitcher = game.plugins.get('voxel-stitch') // TODO: load not as a plugin?
+  TILE_COUNT = stitcher.tileCount // set for shader below (never changes)
   var updateTexture = function() {
     console.log('updateTexture() calling createGLTexture()')
 
@@ -83,7 +83,7 @@ shell.on("gl-init", function() {
     for (var k = 0; k < 6; k++)
       stitcher.voxelSideTextureIDs.set(highIndex, k, stitcher.voxelSideTextureIDs.get(registry.blockName2Index.wool-1, k))
 
-    mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs)
+    mesh = createVoxelMesh(shell.gl, createTerrain(terrainMaterials), stitcher.voxelSideTextureIDs, stitcher.voxelSideTextureSizes)
     var c = mesh.center
     camera.lookAt([c[0]+mesh.radius*2, c[1], c[2]], c, [0,1,0])
   }
@@ -139,7 +139,7 @@ shell.on("gl-render", function(t) {
   shader.uniforms.projection = projection
   shader.uniforms.view = view
   shader.uniforms.model = model
-  shader.uniforms.tileSize = TILE_SIZE
+  shader.uniforms.tileCount = TILE_COUNT
   if (texture) shader.uniforms.tileMap = texture.bind() // texture might not have loaded yet
 
   if(mesh) {
