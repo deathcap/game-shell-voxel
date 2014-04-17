@@ -6,27 +6,29 @@ var createGUI = require('dat-gui');
 
 require('voxel-plugins-ui');
 require('kb-bindings-ui');
-require('./lib/blocks.js');
 require('voxel-drop');
 require('voxel-keys');
 require('voxel-artpacks');
 require('voxel-wireframe');
+require('./lib/blocks.js');
+require('./lib/terrain.js');
 
 createShell({require: require, pluginOpts:
   {
     //'voxel-stitch': {debug: true},
     'voxel-plugins-ui': {gui: new createGUI.GUI()},
     'kb-bindings-ui': {},
-    './lib/blocks.js': {},
     'voxel-drop': {},
     'voxel-keys': {},
     'voxel-artpacks': {},
     'voxel-wireframe': {},
+    './lib/blocks.js': {},
+    './lib/terrain.js': {},
   }
 });
 
 
-},{"./":4,"./lib/blocks.js":2,"dat-gui":5,"kb-bindings-ui":25,"voxel-artpacks":38,"voxel-drop":45,"voxel-keys":70,"voxel-plugins-ui":110,"voxel-wireframe":278}],2:[function(require,module,exports){
+},{"./":4,"./lib/blocks.js":2,"./lib/terrain.js":3,"dat-gui":5,"kb-bindings-ui":25,"voxel-artpacks":38,"voxel-drop":45,"voxel-keys":70,"voxel-plugins-ui":110,"voxel-wireframe":278}],2:[function(require,module,exports){
 'use strict';
 
 // sample blocks for demo.js TODO: move to voxel-land as a proper plugin, refactor with lib/examples.js terrain gen
@@ -61,7 +63,55 @@ function BlocksPlugin(game, opts) {
 var ndarray = require("ndarray")
 var fill = require("ndarray-fill")
 
-module.exports = function(materials) {
+// TODO: refactor with voxel-land
+module.exports = function(game, opts) {
+  return new TerrainPlugin(game, opts);
+};
+module.exports.pluginInfo = {
+  loadAfter: ['voxel-registry', 'voxel-mesher']
+};
+
+function TerrainPlugin(game, opts) {
+  this.shell = game.shell;
+
+  this.registry = game.plugins.get('voxel-registry');
+  if (!this.registry) throw new Error('lib/terrain requires voxel-registry plugin');
+
+  this.mesher = game.plugins.get('voxel-mesher');
+  if (!this.mesher) throw new Error('lib/terrain requires voxel-mesher plugin');
+
+  this.enable();
+};
+
+TerrainPlugin.prototype.enable = function() {
+  // once the game is about to initialize, gather all registered materials and build voxels
+  // TODO: this doesn't really have to be done on gl-init, only when the blocks are ready. refactor with lib/blocks.js
+  this.shell.on('gl-init', this.onInit = this.addVoxels.bind(this));
+};
+
+TerrainPlugin.prototype.disable = function() {
+  this.shell.removeListener('gl-init', this.onInit);
+};
+
+// bit in voxel array to indicate voxel is opaque (transparent if not set)
+var OPAQUE = 1<<15;
+
+TerrainPlugin.prototype.addVoxels = function() {
+  var terrainMaterials = {};
+  for (var blockName in this.registry.blockName2Index) {
+    var blockIndex = this.registry.blockName2Index[blockName];
+    if (this.registry.getProp(blockName, 'transparent')) {
+      terrainMaterials[blockName] = blockIndex - 1 // TODO: remove -1 offset? leave 0 as 'air' (unused) in texture arrays?
+    } else {
+      terrainMaterials[blockName] = OPAQUE|(blockIndex - 1) // TODO: separate arrays? https://github.com/mikolalysenko/ao-mesher/issues/2
+    }
+  }
+
+  // add voxels
+  this.mesher.addVoxelArray(createTerrain(terrainMaterials));
+};
+
+var createTerrain = function(materials) {
   var size = [33,33,33]
   var result = ndarray(new Int32Array(size[0]*size[1]*size[2]), size)
   //Fill ndarray with function
@@ -127,7 +177,7 @@ module.exports = function(materials) {
     return materials.lava
   })
   return result
-}
+};
 
 
 
@@ -136,21 +186,20 @@ module.exports = function(materials) {
 "use strict"
 
 var createShell = require("gl-now")
-var createCamera = require("game-shell-fps-camera")
-var ndarray = require("ndarray")
-var createTerrain = require("./lib/terrain.js") // TODO: replace with shama's chunker mentioned in https://github.com/voxel/issues/issues/4#issuecomment-39644684
 
 var createPlugins = require('voxel-plugins')
 require('voxel-registry')
 require('voxel-stitch')
 require('voxel-shader')
 require('voxel-mesher')
+require('game-shell-fps-camera')
 
 var BUILTIN_PLUGIN_OPTS = {
   'voxel-registry': {},
   'voxel-stitch': {},
   'voxel-shader': {},
   'voxel-mesher': {},
+  'game-shell-fps-camera': {},
 };
 
 var game = {};
@@ -158,22 +207,13 @@ global.game = game; // for debugging
 
 var main = function(opts) {
   opts = opts || {};
-  opts.clearColor = [0.75, 0.8, 0.9, 1.0]
-  opts.pointerLock = true;
+  opts.clearColor = opts.clearColor || [0.75, 0.8, 0.9, 1.0]
+  opts.pointerLock = opts.pointerLock !== undefined ? opts.pointerLock : true;
 
   var shell = createShell(opts);
-  var camera = createCamera(shell);
-  shell.camera = camera; // TODO: move to a plugin instead of hanging off shell instance?
-  shell.meshes = []; // populated below TODO: move to voxels.meshes
-
-  camera.position[0] = -20;
-  camera.position[1] = -33;
-  camera.position[2] = -40;
 
   game.isClient = true;
   game.shell = shell;
-
-  // TODO: should plugin creation this be moved into gl-init?? see z-index note below
 
   var plugins = createPlugins(game, {require: function(name) {
     // we provide the built-in plugins ourselves; otherwise check caller's require, if any
@@ -185,7 +225,7 @@ var main = function(opts) {
     }
   }});
 
-  var pluginOpts = opts.pluginOpts || {}; // TODO: persist
+  var pluginOpts = opts.pluginOpts || {};
 
   for (var name in BUILTIN_PLUGIN_OPTS) {
     opts.pluginOpts[name] = opts.pluginOpts[name] || BUILTIN_PLUGIN_OPTS[name];
@@ -196,53 +236,28 @@ var main = function(opts) {
   }
   plugins.loadAll();
 
-// bit in voxel array to indicate voxel is opaque (transparent if not set)
-var OPAQUE = 1<<15;
+  shell.on("gl-init", function() {
+    var gl = shell.gl
 
-shell.on("gl-init", function() {
-  var gl = shell.gl
+    // since the plugins are loaded before gl-init, the <canvas> element will be
+    // below other UI widgets in the DOM tree, so by default the z-order will cause
+    // the canvas to cover the other widgets - to allow plugins to cover the canvas,
+    // we lower the z-index of the canvas below
+    shell.canvas.style.zIndex = '-1';
+  })
 
-  // since the plugins are loaded before gl-init, the <canvas> element will be
-  // below other UI widgets in the DOM tree, so by default the z-order will cause
-  // the canvas to cover the other widgets - to fix this, set z-index below
-  shell.canvas.style.zIndex = '-1';
-  shell.canvas.parentElement.style.zIndex = '-1';
+  shell.on("gl-error", function(err) {
+    document.body.appendChild(document.createTextNode('Fatal WebGL error: ' + err))
+  })
 
-  //Lookup voxel materials for terrain generation
-  var registry = plugins.get('voxel-registry')
-  if (registry) {
-    var terrainMaterials = {};
-    for (var blockName in registry.blockName2Index) {
-      var blockIndex = registry.blockName2Index[blockName];
-      if (registry.getProp(blockName, 'transparent')) {
-        terrainMaterials[blockName] = blockIndex - 1
-      } else {
-        terrainMaterials[blockName] = OPAQUE|(blockIndex - 1) // TODO: separate arrays? https://github.com/mikolalysenko/ao-mesher/issues/2
-      }
-    }
-  } else {
-    console.warn('voxel-registry plugin not found, expect no textures')
-  }
-
-  // add voxels
-  var mesher = plugins.get('voxel-mesher');
-  if (mesher) {
-    mesher.addVoxelArray(createTerrain(terrainMaterials));
-  }
-})
-
-shell.on("gl-error", function(err) {
-  document.body.appendChild(document.createTextNode('Fatal WebGL error: ' + err))
-})
-
-  return shell // TODO: fix indenting
+  return shell
 }
 
 module.exports = main
 
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/terrain.js":3,"game-shell-fps-camera":8,"gl-now":12,"ndarray":36,"voxel-mesher":74,"voxel-plugins":111,"voxel-registry":114,"voxel-shader":116,"voxel-stitch":237}],5:[function(require,module,exports){
+},{"game-shell-fps-camera":8,"gl-now":12,"voxel-mesher":74,"voxel-plugins":111,"voxel-registry":114,"voxel-shader":116,"voxel-stitch":237}],5:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
 module.exports.color = require('./vendor/dat.color')
 },{"./vendor/dat.color":6,"./vendor/dat.gui":7}],6:[function(require,module,exports){
@@ -4667,92 +4682,118 @@ dat.utils.common);
 
 var glm = require('gl-matrix');
 var vec3 = glm.vec3;
-
 var createBasicCamera = require('basic-camera');
 
-var scratch0 = vec3.create();
-var y_axis = vec3.fromValues(0, 1, 0);
-
-var enableFlight; // TODO: expose
-
-var attachCamera = function(shell, opts) {
-  var camera = createBasicCamera();
-
-  opts = opts || {};
-  enableFlight = opts.enableFlight !== undefined ? opts.enableFlight : true;
-
-  shell.bind('move-left', 'left', 'A');
-  shell.bind('move-right', 'right', 'D');
-  shell.bind('move-forward', 'up', 'W');
-  shell.bind('move-back', 'down', 'S');
-  shell.bind('move-up', 'space');
-  shell.bind('move-down', 'shift');
-
-  var max_dpitch = Math.PI / 2;
-  var max_dyaw = Math.PI / 2;
-  var scale = 0.0002;
-  var speed = 1.0;
-  var cameraVector = vec3.create();
-
-  shell.on('tick', function() {
-    if (!shell.pointerLock) {
-      return;
-    }
-
-    // movement relative to camera
-    camera.getCameraVector(cameraVector);
-    if (shell.wasDown('move-forward')) {
-      vec3.scaleAndAdd(camera.position, camera.position, cameraVector, speed);
-    }
-    if (shell.wasDown('move-back')) {
-      vec3.scaleAndAdd(camera.position, camera.position, cameraVector, -speed);
-    }
-    if (shell.wasDown('move-right')) {
-      vec3.cross(scratch0, cameraVector, y_axis);
-      vec3.scaleAndAdd(camera.position, camera.position, scratch0, speed);
-    }
-    if (shell.wasDown('move-left')) {
-      vec3.cross(scratch0, cameraVector, y_axis);
-      vec3.scaleAndAdd(camera.position, camera.position, scratch0, -speed);
-    }
-
-    // fly straight up or down
-    if (enableFlight) {
-      if (shell.wasDown('move-up')) {
-        camera.position[1] -= 1;
-      }
-      if (shell.wasDown('move-down')) {
-        camera.position[1] += 1;
-      }
-    }
-
-
-    // mouselook
-    var dx = shell.mouseX - shell.prevMouseX;
-    var dy = shell.mouseY - shell.prevMouseY;
-    var dt = shell.frameTime;
-    //console.log(dx,dy,dt);
-
-    var dpitch = dy / dt * scale;
-    var dyaw = dx / dt * scale;
-
-    if (dpitch > max_dpitch) dpitch = max_dpitch;
-    if (dpitch < -max_dpitch) dpitch = -max_dpitch;
-    if (dyaw > max_dyaw) dyaw = max_dyaw;
-    if (dyaw < -max_dyaw) dyaw = -max_dyaw;
-
-    //console.log(dpitch,dyaw);
-
-    camera.rotateX(dpitch);
-    camera.rotateY(dyaw);
-  });
-
-  camera.lookAt = function(eye, center, up) { console.log(eye, center, up); }; // TODO: add to basic-camera, as in orbit-camera (https://github.com/hughsk/basic-camera/issues/5)
-
-  return camera;
+module.exports = function(game, opts) {
+  return new CameraPlugin(game, opts);
+}
+module.exports.pluginInfo = {
+  clientOnly: true
 };
 
-module.exports = attachCamera;
+function CameraPlugin(game, opts) {
+  this.shell = game.shell;
+
+  opts = opts || {};
+  this.enableFlight = opts.enableFlight !== undefined ? opts.enableFlight : true;
+
+  this.camera = createBasicCamera();
+  this.camera.lookAt = function(eye, center, up) { console.log(eye, center, up); }; // TODO: add to basic-camera, as in orbit-camera (https://github.com/hughsk/basic-camera/issues/5)
+  // TODO: remove hardcoded position
+  this.camera.position[0] = -20;
+  this.camera.position[1] = -33;
+  this.camera.position[2] = -40;
+
+  this.max_dpitch = Math.PI / 2;
+  this.max_dyaw = Math.PI / 2;
+  this.scale = 0.0002;
+  this.speed = 1.0;
+  this.cameraVector = vec3.create();
+
+  this.scratch0 = vec3.create();
+  this.y_axis = vec3.fromValues(0, 1, 0);
+
+  this.enable();
+}
+
+
+CameraPlugin.prototype.enable = function() {
+  this.shell.bind('move-left', 'left', 'A');
+  this.shell.bind('move-right', 'right', 'D');
+  this.shell.bind('move-forward', 'up', 'W');
+  this.shell.bind('move-back', 'down', 'S');
+  this.shell.bind('move-up', 'space');
+  this.shell.bind('move-down', 'shift');
+
+  this.shell.on('tick', this.onTick = this.tick.bind(this));
+};
+
+CameraPlugin.prototype.disable = function() {
+  this.shell.removeListener('tick', this.onTick);
+  this.shell.unbind('move-left');
+  this.shell.unbind('move-right');
+  this.shell.unbind('move-forward');
+  this.shell.unbind('move-back');
+  this.shell.unbind('move-up');
+  this.shell.unbind('move-down');
+};
+
+CameraPlugin.prototype.view = function(out) {
+  return this.camera.view(out);
+};
+
+CameraPlugin.prototype.tick = function() {
+  if (!this.shell.pointerLock) {
+    return;
+  }
+
+  // movement relative to camera
+  this.camera.getCameraVector(this.cameraVector);
+  if (this.shell.wasDown('move-forward')) {
+    vec3.scaleAndAdd(this.camera.position, this.camera.position, this.cameraVector, this.speed);
+  }
+  if (this.shell.wasDown('move-back')) {
+    vec3.scaleAndAdd(this.camera.position, this.camera.position, this.cameraVector, -this.speed);
+  }
+  if (this.shell.wasDown('move-right')) {
+    vec3.cross(this.scratch0, this.cameraVector, this.y_axis);
+    vec3.scaleAndAdd(this.camera.position, this.camera.position, this.scratch0, this.speed);
+  }
+  if (this.shell.wasDown('move-left')) {
+    vec3.cross(this.scratch0, this.cameraVector, this.y_axis);
+    vec3.scaleAndAdd(this.camera.position, this.camera.position, this.scratch0, -this.speed);
+  }
+
+  // fly straight up or down
+  if (this.enableFlight) {
+    if (this.shell.wasDown('move-up')) {
+      this.camera.position[1] -= 1;
+    }
+    if (this.shell.wasDown('move-down')) {
+      this.camera.position[1] += 1;
+    }
+  }
+
+
+  // mouselook
+  var dx = this.shell.mouseX - this.shell.prevMouseX;
+  var dy = this.shell.mouseY - this.shell.prevMouseY;
+  var dt = this.shell.frameTime;
+  //console.log(dx,dy,dt);
+
+  var dpitch = dy / dt * this.scale;
+  var dyaw = dx / dt * this.scale;
+
+  if (dpitch > this.max_dpitch) dpitch = max_dpitch;
+  if (dpitch < -this.max_dpitch) dpitch = -max_dpitch;
+  if (dyaw > this.max_dyaw) dyaw = max_dyaw;
+  if (dyaw < -this.max_dyaw) dyaw = -max_dyaw;
+
+  //console.log(dpitch,dyaw);
+
+  this.camera.rotateX(dpitch);
+  this.camera.rotateY(dyaw);
+};
 
 
 },{"basic-camera":9,"gl-matrix":11}],9:[function(require,module,exports){
@@ -27819,7 +27860,7 @@ module.exports = function(game, opts) {
 };
 module.exports.pluginInfo = {
   clientOnly: true,
-  loadAfter: ['voxel-stitch', 'voxel-mesher'],
+  loadAfter: ['voxel-stitch', 'voxel-mesher', 'game-shell-fps-camera'],
 };
 
 function ShaderPlugin(game, opts) {
@@ -27830,6 +27871,9 @@ function ShaderPlugin(game, opts) {
 
   this.mesher = game.plugins.get('voxel-mesher');
   if (!this.mesher) throw new Error('voxel-shader requires voxel-mesher plugin'); // for meshes array TODO: ~ voxel module
+
+  this.camera = game.plugins.get('game-shell-fps-camera');
+  if (!this.camera) throw new Error('voxel-shader requires game-shell-fps-camera plugin'); // for camera view matrix
 
   this.perspectiveResize = opts.perspectiveResize !== undefined ? opts.perspectiveResize : true;
 
@@ -27857,6 +27901,7 @@ ShaderPlugin.prototype.updateTexture = function(texture) {
 ShaderPlugin.prototype.ginit = function() {
   this.shader = this.createAOShader();
   this.resize();
+  this.viewMatrix = mat4.create();
   this.modelMatrix = mat4.identity(new Float32Array(16)) // TODO: merge with view into modelView? or leave for flexibility?
 };
 
@@ -27868,7 +27913,7 @@ ShaderPlugin.prototype.resize = function() {
 ShaderPlugin.prototype.render = function() {
   var gl = this.shell.gl
 
-  this.viewMatrix = this.shell.camera.view() // TODO: expose camera through a plugin instead?
+  this.camera.view(this.viewMatrix)
 
   gl.enable(gl.CULL_FACE)
   gl.enable(gl.DEPTH_TEST)
@@ -27891,8 +27936,6 @@ ShaderPlugin.prototype.render = function() {
   shader.uniforms.view = this.viewMatrix
   shader.uniforms.model = this.modelMatrix
   shader.uniforms.tileCount = this.stitcher.tileCount
-
-  // TODO: relocate variables off of game.shell (texture, meshes)
 
   if (this.texture) shader.uniforms.tileMap = this.texture.bind() // texture might not have loaded yet
 
