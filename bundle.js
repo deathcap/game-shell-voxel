@@ -28,7 +28,7 @@ createShell({require: require, pluginOpts:
 });
 
 
-},{"./":4,"./lib/blocks.js":2,"./lib/terrain.js":3,"dat-gui":5,"kb-bindings-ui":25,"voxel-artpacks":38,"voxel-drop":45,"voxel-keys":70,"voxel-plugins-ui":110,"voxel-wireframe":278}],2:[function(require,module,exports){
+},{"./":4,"./lib/blocks.js":2,"./lib/terrain.js":3,"dat-gui":5,"kb-bindings-ui":24,"voxel-artpacks":46,"voxel-drop":53,"voxel-keys":78,"voxel-plugins-ui":111,"voxel-wireframe":252}],2:[function(require,module,exports){
 'use strict';
 
 // sample blocks for demo.js TODO: move to voxel-land as a proper plugin, refactor with lib/examples.js terrain gen
@@ -181,7 +181,7 @@ var createTerrain = function(materials) {
 
 
 
-},{"ndarray":36,"ndarray-fill":27}],4:[function(require,module,exports){
+},{"ndarray":35,"ndarray-fill":26}],4:[function(require,module,exports){
 (function (global){
 "use strict"
 
@@ -257,7 +257,7 @@ module.exports = main
 
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"game-shell-fps-camera":8,"gl-now":12,"voxel-mesher":74,"voxel-plugins":111,"voxel-registry":114,"voxel-shader":116,"voxel-stitch":237}],5:[function(require,module,exports){
+},{"game-shell-fps-camera":8,"gl-now":11,"voxel-mesher":82,"voxel-plugins":112,"voxel-registry":115,"voxel-shader":117,"voxel-stitch":211}],5:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
 module.exports.color = require('./vendor/dat.color')
 },{"./vendor/dat.color":6,"./vendor/dat.gui":7}],6:[function(require,module,exports){
@@ -4796,7 +4796,7 @@ CameraPlugin.prototype.tick = function() {
 };
 
 
-},{"basic-camera":9,"gl-matrix":11}],9:[function(require,module,exports){
+},{"basic-camera":9,"gl-matrix":10}],9:[function(require,module,exports){
 var glm = require('gl-matrix')
 var vec3 = glm.vec3
 var mat4 = glm.mat4
@@ -9101,8 +9101,6 @@ if(typeof(exports) !== 'undefined') {
 })(this);
 
 },{}],11:[function(require,module,exports){
-module.exports=require(10)
-},{}],12:[function(require,module,exports){
 "use strict"
 
 var makeGameShell = require("game-shell")
@@ -9153,7 +9151,7 @@ function createGLShell(options) {
 
     //Load default parameters
     shell.clearFlags = options.clearFlags === undefined ? (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT) : options.clearFlags
-    shell.clearColor = options.clearColor || [0.2, 0.4, 0.8, 1.0]
+    shell.clearColor = options.clearColor || [0,0,0,0]
     shell.clearDepth = options.clearDepth || 1.0
     shell.clearStencil = options.clearStencil || 0
 
@@ -9243,7 +9241,7 @@ function createGLShell(options) {
 }
 
 module.exports = createGLShell
-},{"game-shell":22,"webglew":24}],13:[function(require,module,exports){
+},{"game-shell":21,"webglew":23}],12:[function(require,module,exports){
 if(typeof window.performance === "object") {
   if(window.performance.now) {
     module.exports = function() { return window.performance.now() }
@@ -9255,7 +9253,7 @@ if(typeof window.performance === "object") {
 } else {
   module.exports = function() { return (new Date()).getTime() }
 }
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 //Adapted from here: https://developer.mozilla.org/en-US/docs/Web/Reference/Events/wheel?redirectlocale=en-US&redirectslug=DOM%2FMozilla_event_reference%2Fwheel
 
 var prefix = "", _addEventListener, onwheel, support;
@@ -9315,7 +9313,7 @@ module.exports = function( elem, callback, useCapture ) {
     _addWheelListener( elem, "MozMousePixelScroll", callback, useCapture );
   }
 };
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
  
@@ -9345,7 +9343,7 @@ if (!window.cancelAnimationFrame)
         clearTimeout(id);
     };
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 "use strict"
 
 function compileSearch(funcName, predicate, reversed, extraArgs, useNdarray, earlyOut) {
@@ -9407,7 +9405,7 @@ module.exports = {
   eq: compileBoundsSearch("-", true, "EQ", true)
 }
 
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /*!
   * domready (c) Dustin Diaz 2012 - License MIT
   */
@@ -9464,7 +9462,7 @@ module.exports = {
     })
 })
 
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 "use strict"
 
 function invert(hash) {
@@ -9478,7 +9476,7 @@ function invert(hash) {
 }
 
 module.exports = invert
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict"
 
 function iota(n) {
@@ -9490,7 +9488,7 @@ function iota(n) {
 }
 
 module.exports = iota
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict"
 
 function unique_pred(list, compare) {
@@ -9548,7 +9546,7 @@ function unique(list, compare, sorted) {
 }
 
 module.exports = unique
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var ua = typeof window !== 'undefined' ? window.navigator.userAgent : ''
   , isOSX = /OS X/.test(ua)
   , isOpera = /Opera/.test(ua)
@@ -9686,7 +9684,7 @@ for(i = 112; i < 136; ++i) {
   output[i] = 'F'+(i-111)
 }
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict"
 
 var EventEmitter = require("events").EventEmitter
@@ -9773,7 +9771,7 @@ function GameShell() {
   this.tickTime = this._tickRate
   this.frameTime = 10.0
   this.stickyFullscreen = false
-  this.stuckyPointLock = false
+  this.stickyPointLock = false
   
   //Scroll stuff
   this.scroll = [0,0,0]
@@ -10403,8 +10401,7 @@ function createShell(options) {
 }
 
 module.exports = createShell
-
-},{"./lib/hrtime-polyfill.js":13,"./lib/mousewheel-polyfill.js":14,"./lib/raf-polyfill.js":15,"binary-search-bounds":16,"domready":17,"events":284,"invert-hash":18,"iota-array":19,"uniq":20,"util":297,"vkey":21}],23:[function(require,module,exports){
+},{"./lib/hrtime-polyfill.js":12,"./lib/mousewheel-polyfill.js":13,"./lib/raf-polyfill.js":14,"binary-search-bounds":15,"domready":16,"events":258,"invert-hash":17,"iota-array":18,"uniq":19,"util":271,"vkey":20}],22:[function(require,module,exports){
 /* (The MIT License)
  *
  * Copyright (c) 2012 Brandon Benvie <http://bbenvie.com>
@@ -10646,7 +10643,7 @@ void function(global, undefined_, undefined){
     global.WeakMap.createStorage = createStorage;
 }((0, eval)('this'));
 
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 "use strict";
 
 var weakMap = typeof WeakMap === "undefined" ? require("weakmap") : WeakMap
@@ -10683,7 +10680,7 @@ function initWebGLEW(gl) {
   return extensions
 }
 module.exports = initWebGLEW
-},{"weakmap":23}],25:[function(require,module,exports){
+},{"weakmap":22}],24:[function(require,module,exports){
 'use strict';
 
 var vkey = require('vkey');
@@ -10803,9 +10800,9 @@ BindingsUI.prototype.removeBindings = function(binding) {
 };
 
 
-},{"vkey":26}],26:[function(require,module,exports){
-module.exports=require(21)
-},{}],27:[function(require,module,exports){
+},{"vkey":25}],25:[function(require,module,exports){
+module.exports=require(20)
+},{}],26:[function(require,module,exports){
 "use strict"
 
 var fill = require("cwise")({
@@ -10820,7 +10817,7 @@ module.exports = function(array, f) {
   return array
 }
 
-},{"cwise":28}],28:[function(require,module,exports){
+},{"cwise":27}],27:[function(require,module,exports){
 "use strict"
 
 var parse   = require("cwise-parser")
@@ -10857,7 +10854,7 @@ function createCWise(user_args) {
 
 module.exports = createCWise
 
-},{"cwise-compiler":29,"cwise-parser":33}],29:[function(require,module,exports){
+},{"cwise-compiler":28,"cwise-parser":32}],28:[function(require,module,exports){
 "use strict"
 
 var createThunk = require("./lib/thunk.js")
@@ -10963,7 +10960,7 @@ function compileCwise(user_args) {
 
 module.exports = compileCwise
 
-},{"./lib/thunk.js":31}],30:[function(require,module,exports){
+},{"./lib/thunk.js":30}],29:[function(require,module,exports){
 "use strict"
 
 var uniq = require("uniq")
@@ -11220,7 +11217,7 @@ function generateCWiseOp(proc, typesig) {
   return f()
 }
 module.exports = generateCWiseOp
-},{"uniq":32}],31:[function(require,module,exports){
+},{"uniq":31}],30:[function(require,module,exports){
 "use strict"
 
 var compile = require("./compile.js")
@@ -11269,9 +11266,9 @@ function createThunk(proc) {
 
 module.exports = createThunk
 
-},{"./compile.js":30}],32:[function(require,module,exports){
-module.exports=require(20)
-},{}],33:[function(require,module,exports){
+},{"./compile.js":29}],31:[function(require,module,exports){
+module.exports=require(19)
+},{}],32:[function(require,module,exports){
 "use strict"
 
 var esprima = require("esprima")
@@ -11467,7 +11464,7 @@ function preprocess(func) {
 }
 
 module.exports = preprocess
-},{"esprima":34,"uniq":35}],34:[function(require,module,exports){
+},{"esprima":33,"uniq":34}],33:[function(require,module,exports){
 /*
   Copyright (C) 2012 Ariya Hidayat <ariya.hidayat@gmail.com>
   Copyright (C) 2012 Mathias Bynens <mathias@qiwi.be>
@@ -15377,9 +15374,9 @@ parseStatement: true, parseSourceElement: true */
 }));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
+},{}],34:[function(require,module,exports){
+module.exports=require(19)
 },{}],35:[function(require,module,exports){
-module.exports=require(20)
-},{}],36:[function(require,module,exports){
 (function (Buffer){
 "use strict"
 
@@ -15422,17 +15419,37 @@ function order() {
 
 function compileConstructor(dtype, dimension) {
   var className = ["View", dimension, "d", dtype].join("")
+  if(dimension < 0) {
+    className = "View_Nil" + dtype
+  }
   var useGetters = (dtype === "generic")
   
-  //Special case for 0d arrays
-  if(dimension === 0) {
-    var code = [
-      "function ", className, "(a,d) {\
+  if(dimension === -1) {
+    //Special case for trivial arrays
+    var code = 
+      "function "+className+"(a){this.data=a;};\
+var proto="+className+".prototype;\
+proto.dtype='"+dtype+"';\
+proto.index=function(){return -1};\
+proto.size=0;\
+proto.dimension=-1;\
+proto.shape=proto.stride=proto.order=[];\
+proto.lo=proto.hi=proto.transpose=proto.step=\
+function(){return new "+className+"(this.data);};\
+proto.get=proto.set=function(){};\
+proto.pick=function(){return null};\
+return function construct_"+className+"(a){return new "+className+"(a);}"
+    var procedure = new Function(code)
+    return procedure()
+  } else if(dimension === 0) {
+    //Special case for 0d arrays
+    var code =
+      "function "+className+"(a,d) {\
 this.data = a;\
 this.offset = d\
 };\
-var proto=", className, ".prototype;\
-proto.dtype='", dtype, "';\
+var proto="+className+".prototype;\
+proto.dtype='"+dtype+"';\
 proto.index=function(){return this.offset};\
 proto.dimension=0;\
 proto.size=1;\
@@ -15442,19 +15459,21 @@ proto.order=[];\
 proto.lo=\
 proto.hi=\
 proto.transpose=\
-proto.step=\
-proto.pick=function ", className, "_copy() {\
-return new ", className, "(this.data,this.offset)\
+proto.step=function "+className+"_copy() {\
+return new "+className+"(this.data,this.offset)\
 };\
-proto.get=function ", className, "_get(){\
-return ", (useGetters ? "this.data.get(this.offset)" : "this.data[this.offset]"),
+proto.pick=function "+className+"_pick(){\
+return TrivialArray(this.data);\
+};\
+proto.valueOf=proto.get=function "+className+"_get(){\
+return "+(useGetters ? "this.data.get(this.offset)" : "this.data[this.offset]")+
 "};\
-proto.set=function ", className, "_set(v){\
-return ", (useGetters ? "this.data.get(this.offset)" : "this.data[this.offset]"), "=v\
+proto.set=function "+className+"_set(v){\
+return "+(useGetters ? "this.data.set(this.offset,v)" : "this.data[this.offset]=v")+"\
 };\
-return function construct_", className, "(a,b,c,d){return new ", className, "(a,d)}"].join("")
-    var procedure = new Function(code)
-    return procedure()
+return function construct_"+className+"(a,b,c,d){return new "+className+"(a,d)}"
+    var procedure = new Function("TrivialArray", code)
+    return procedure(CACHED_CONSTRUCTORS[dtype][0])
   }
 
   var code = ["'use strict'"]
@@ -15465,43 +15484,41 @@ return function construct_", className, "(a,b,c,d){return new ", className, "(a,
   var index_str = "this.offset+" + indices.map(function(i) {
         return ["this._stride", i, "*i",i].join("")
       }).join("+")
-  code.push(["function ", className, "(a,",
+  code.push("function "+className+"(a,"+
     indices.map(function(i) {
       return "b"+i
-    }).join(","), ",",
+    }).join(",")+","+
     indices.map(function(i) {
       return "c"+i
-    }).join(","), ",d){this.data=a"].join(""))
+    }).join(",")+",d){this.data=a")
   for(var i=0; i<dimension; ++i) {
-    code.push(["this._shape",i,"=b",i,"|0"].join(""))
+    code.push("this._shape"+i+"=b"+i+"|0")
   }
   for(var i=0; i<dimension; ++i) {
-    code.push(["this._stride",i,"=c",i,"|0"].join(""))
+    code.push("this._stride"+i+"=c"+i+"|0")
   }
-  code.push("this.offset=d|0}")
-  
-  //Get prototype
-  code.push(["var proto=",className,".prototype"].join(""))
-  
-  //view.dtype:
-  code.push(["proto.dtype='", dtype, "'"].join(""))
-  code.push("proto.dimension="+dimension)
+  code.push("this.offset=d|0}",
+    "var proto="+className+".prototype",
+    "proto.dtype='"+dtype+"'",
+    "proto.dimension="+dimension)
   
   //view.stride and view.shape
-  var strideClassName = ["VStride", dimension, "d", dtype].join("")
-  var shapeClassName = ["VShape", dimension, "d", dtype].join("")
+  var strideClassName = "VStride" + dimension + "d" + dtype
+  var shapeClassName = "VShape" + dimension + "d" + dtype
   var props = {"stride":strideClassName, "shape":shapeClassName}
   for(var prop in props) {
     var arrayName = props[prop]
-    code.push(["function ", arrayName, "(v) {this._v=v} var aproto=", arrayName, ".prototype"].join(""))
-    code.push(["aproto.length=",dimension].join(""))
+    code.push(
+      "function " + arrayName + "(v) {this._v=v} var aproto=" + arrayName + ".prototype",
+      "aproto.length="+dimension)
     
     var array_elements = []
     for(var i=0; i<dimension; ++i) {
       array_elements.push(["this._v._", prop, i].join(""))
     }
-    code.push(["aproto.toJSON=function ", arrayName, "_toJSON(){return [", array_elements.join(","), "]}"].join(""))
-    code.push(["aproto.toString=function ", arrayName, "_toString(){return [", array_elements.join(","), "].join()}"].join(""))
+    code.push(
+      "aproto.toJSON=function " + arrayName + "_toJSON(){return [" + array_elements.join(",") + "]}",
+      "aproto.valueOf=aproto.toString=function " + arrayName + "_toString(){return [" + array_elements.join(",") + "].join()}")
     
     for(var i=0; i<dimension; ++i) {
       code.push(["Object.defineProperty(aproto,", i, ",{get:function(){return this._v._", prop, i, "},set:function(v){return this._v._", prop, i, "=v|0},enumerable:true})"].join(""))
@@ -15653,7 +15670,7 @@ b",i,"*=d\
   for(var i=0; i<dimension; ++i) {
     code.push(["if(typeof i",i,"==='number'&&i",i,">=0){c=(c+this._stride",i,"*i",i,")|0}else{a.push(this._shape",i,");b.push(this._stride",i,")}"].join(""))
   }
-  code.push("var ctor=CTOR_LIST[a.length];return ctor(this.data,a,b,c)}")
+  code.push("var ctor=CTOR_LIST[a.length+1];return ctor(this.data,a,b,c)}")
     
   //Add return statement
   code.push(["return function construct_",className,"(data,shape,stride,offset){return new ", className,"(data,",
@@ -15711,7 +15728,19 @@ var CACHED_CONSTRUCTORS = {
   "generic":[]
 }
 
+;(function() {
+  for(var id in CACHED_CONSTRUCTORS) {
+    CACHED_CONSTRUCTORS[id] = [ compileConstructor(id, -1) ]
+  }
+});
+
 function wrappedNDArrayCtor(data, shape, stride, offset) {
+  if(data === undefined) {
+    var ctor = CACHED_CONSTRUCTORS.array[0]
+    return ctor([])
+  } else if(typeof data === "number") {
+    data = [data]
+  }
   if(shape === undefined) {
     shape = [ data.length ]
   }
@@ -15733,18 +15762,1491 @@ function wrappedNDArrayCtor(data, shape, stride, offset) {
   }
   var dtype = arrayDType(data)
   var ctor_list = CACHED_CONSTRUCTORS[dtype]
-  while(ctor_list.length <= d) {
-    ctor_list.push(compileConstructor(dtype, ctor_list.length))
+  while(ctor_list.length <= d+1) {
+    ctor_list.push(compileConstructor(dtype, ctor_list.length-1))
   }
-  var ctor = ctor_list[d]
+  var ctor = ctor_list[d+1]
   return ctor(data, shape, stride, offset)
 }
 
 module.exports = wrappedNDArrayCtor
 }).call(this,require("buffer").Buffer)
-},{"buffer":281,"iota-array":37}],37:[function(require,module,exports){
-module.exports=require(19)
-},{}],38:[function(require,module,exports){
+},{"buffer":255,"iota-array":36}],36:[function(require,module,exports){
+module.exports=require(18)
+},{}],37:[function(require,module,exports){
+(function (Buffer){
+// Copyright (c) 2012 Kuba Niegowski
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+'use strict';
+
+
+var util = require('util'),
+    Stream = require('stream');
+
+
+var ChunkStream = module.exports = function() {
+    Stream.call(this);
+
+    this._buffers = [];
+    this._buffered = 0;
+
+    this._reads = [];
+    this._paused = false;
+
+    this._encoding = 'utf8';
+    this.writable = true;
+};
+util.inherits(ChunkStream, Stream);
+
+
+ChunkStream.prototype.read = function(length, callback) {
+
+    this._reads.push({
+        length: Math.abs(length),  // if length < 0 then at most this length
+        allowLess: length < 0,
+        func: callback
+    });
+
+    this._process();
+
+    // its paused and there is not enought data then ask for more
+    if (this._paused && this._reads.length > 0) {
+        this._paused = false;
+
+        this.emit('drain');
+    }
+};
+
+ChunkStream.prototype.write = function(data, encoding) {
+
+    if (!this.writable) {
+        this.emit('error', new Error('Stream not writable'));
+        return false;
+    }
+
+    if (!Buffer.isBuffer(data))
+        data = new Buffer(data, encoding || this._encoding);
+
+    this._buffers.push(data);
+    this._buffered += data.length;
+
+    this._process();
+
+    // ok if there are no more read requests
+    if (this._reads && this._reads.length == 0)
+        this._paused = true;
+
+    return this.writable && !this._paused;
+};
+
+ChunkStream.prototype.end = function(data, encoding) {
+
+    if (data) this.write(data, encoding);
+
+    this.writable = false;
+
+    // already destroyed
+    if (!this._buffers) return;
+
+    // enqueue or handle end
+    if (this._buffers.length == 0) {
+        this._end();
+    } else {
+        this._buffers.push(null);
+        this._process();
+    }
+};
+
+ChunkStream.prototype.destroySoon = ChunkStream.prototype.end;
+
+ChunkStream.prototype._end = function() {
+
+    if (this._reads.length > 0) {
+        this.emit('error',
+            new Error('There are some read requests waitng on finished stream')
+        );
+    }
+
+    this.destroy();
+};
+
+ChunkStream.prototype.destroy = function() {
+
+    if (!this._buffers) return;
+
+    this.writable = false;
+    this._reads = null;
+    this._buffers = null;
+
+    this.emit('close');
+};
+
+ChunkStream.prototype._process = function() {
+
+    // as long as there is any data and read requests
+    while (this._buffered > 0 && this._reads && this._reads.length > 0) {
+
+        var read = this._reads[0];
+
+        // read any data (but no more than length)
+        if (read.allowLess) {
+
+            // ok there is any data so that we can satisfy this request
+            this._reads.shift(); // == read
+
+            // first we need to peek into first buffer
+            var buf = this._buffers[0];
+
+            // ok there is more data than we need
+            if (buf.length > read.length) {
+
+                this._buffered -= read.length;
+                this._buffers[0] = buf.slice(read.length);
+
+                read.func.call(this, buf.slice(0, read.length));
+
+            } else {
+                // ok this is less than maximum length so use it all
+                this._buffered -= buf.length;
+                this._buffers.shift(); // == buf
+
+                read.func.call(this, buf);
+            }
+
+        } else if (this._buffered >= read.length) {
+            // ok we can meet some expectations
+
+            this._reads.shift(); // == read
+
+            var pos = 0,
+                count = 0,
+                data = new Buffer(read.length);
+
+            // create buffer for all data
+            while (pos < read.length) {
+
+                var buf = this._buffers[count++],
+                    len = Math.min(buf.length, read.length - pos);
+
+                buf.copy(data, pos, 0, len);
+                pos += len;
+
+                // last buffer wasn't used all so just slice it and leave
+                if (len != buf.length)
+                    this._buffers[--count] = buf.slice(len);
+            }
+
+            // remove all used buffers
+            if (count > 0)
+                this._buffers.splice(0, count);
+
+            this._buffered -= read.length;
+
+            read.func.call(this, data);
+
+        } else {
+            // not enought data to satisfy first request in queue
+            // so we need to wait for more
+            break;
+        }
+    }
+
+    if (this._buffers && this._buffers.length > 0 && this._buffers[0] == null) {
+        this._end();
+    }
+};
+
+}).call(this,require("buffer").Buffer)
+},{"buffer":255,"stream":263,"util":271}],38:[function(require,module,exports){
+// Copyright (c) 2012 Kuba Niegowski
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+'use strict';
+
+
+module.exports = {
+
+    PNG_SIGNATURE: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+
+    TYPE_IHDR: 0x49484452,
+    TYPE_IEND: 0x49454e44,
+    TYPE_IDAT: 0x49444154,
+    TYPE_PLTE: 0x504c5445,
+    TYPE_tRNS: 0x74524e53,
+    TYPE_gAMA: 0x67414d41,
+
+    COLOR_PALETTE: 1,
+    COLOR_COLOR: 2,
+    COLOR_ALPHA: 4
+};
+
+},{}],39:[function(require,module,exports){
+// Copyright (c) 2012 Kuba Niegowski
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+'use strict';
+
+var util = require('util'),
+    Stream = require('stream');
+
+
+var CrcStream = module.exports = function() {
+    Stream.call(this);
+
+    this._crc = -1;
+
+    this.writable = true;
+};
+util.inherits(CrcStream, Stream);
+
+
+CrcStream.prototype.write = function(data) {
+
+    for (var i = 0; i < data.length; i++) {
+        this._crc = crcTable[(this._crc ^ data[i]) & 0xff] ^ (this._crc >>> 8);
+    }
+    return true;
+};
+
+CrcStream.prototype.end = function(data) {
+    if (data) this.write(data);
+
+    this.emit('crc', this.crc32());
+};
+
+CrcStream.prototype.crc32 = function() {
+    return this._crc ^ -1;
+};
+
+
+CrcStream.crc32 = function(buf) {
+
+    var crc = -1;
+    for (var i = 0; i < buf.length; i++) {
+        crc = crcTable[(crc ^ buf[i]) & 0xff] ^ (crc >>> 8);
+    }
+    return crc ^ -1;
+};
+
+
+
+var crcTable = [];
+
+for (var i = 0; i < 256; i++) {
+    var c = i;
+    for (var j = 0; j < 8; j++) {
+        if (c & 1) {
+            c = 0xedb88320 ^ (c >>> 1);
+        } else {
+            c = c >>> 1;
+        }
+    }
+    crcTable[i] = c;
+}
+
+},{"stream":263,"util":271}],40:[function(require,module,exports){
+(function (Buffer){
+// Copyright (c) 2012 Kuba Niegowski
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+'use strict';
+
+var util = require('util'),
+    zlib = require('zlib'),
+    ChunkStream = require('./chunkstream');
+
+
+var Filter = module.exports = function(width, height, Bpp, data, options) {
+    ChunkStream.call(this);
+
+    this._width = width;
+    this._height = height;
+    this._Bpp = Bpp;
+    this._data = data;
+    this._options = options;
+
+    this._line = 0;
+
+    if (!('filterType' in options) || options.filterType == -1) {
+        options.filterType = [0, 1, 2, 3, 4];
+    } else if (typeof options.filterType == 'number') {
+        options.filterType = [options.filterType];
+    }
+
+    this._filters = {
+        0: this._filterNone.bind(this),
+        1: this._filterSub.bind(this),
+        2: this._filterUp.bind(this),
+        3: this._filterAvg.bind(this),
+        4: this._filterPaeth.bind(this)
+    };
+
+    this.read(this._width * Bpp + 1, this._reverseFilterLine.bind(this));
+};
+util.inherits(Filter, ChunkStream);
+
+
+var pixelBppMap = {
+    1: { // L
+        0: 0,
+        1: 0,
+        2: 0,
+        3: 0xff
+    },
+    2: { // LA
+        0: 0,
+        1: 0,
+        2: 0,
+        3: 1
+    },
+    3: { // RGB
+        0: 0,
+        1: 1,
+        2: 2,
+        3: 0xff
+    },
+    4: { // RGBA
+        0: 0,
+        1: 1,
+        2: 2,
+        3: 3
+    }
+};
+
+Filter.prototype._reverseFilterLine = function(rawData) {
+
+    var pxData = this._data,
+        pxLineLength = this._width << 2,
+        pxRowPos = this._line * pxLineLength,
+        filter = rawData[0];
+
+    if (filter == 0) {
+        for (var x = 0; x < this._width; x++) {
+            var pxPos = pxRowPos + (x << 2),
+                rawPos = 1 + x * this._Bpp;
+
+            for (var i = 0; i < 4; i++) {
+                var idx = pixelBppMap[this._Bpp][i];
+                pxData[pxPos + i] = idx != 0xff ? rawData[rawPos + idx] : 0xff;
+            }
+        }
+
+    } else if (filter == 1) {
+        for (var x = 0; x < this._width; x++) {
+            var pxPos = pxRowPos + (x << 2),
+                rawPos = 1 + x * this._Bpp;
+
+            for (var i = 0; i < 4; i++) {
+                var idx = pixelBppMap[this._Bpp][i],
+                    left = x > 0 ? pxData[pxPos + i - 4] : 0;
+
+                pxData[pxPos + i] = idx != 0xff ? rawData[rawPos + idx] + left : 0xff;
+            }
+        }
+
+    } else if (filter == 2) {
+        for (var x = 0; x < this._width; x++) {
+            var pxPos = pxRowPos + (x << 2),
+                rawPos = 1 + x * this._Bpp;
+
+            for (var i = 0; i < 4; i++) {
+                var idx = pixelBppMap[this._Bpp][i],
+                    up = this._line > 0 ? pxData[pxPos - pxLineLength + i] : 0;
+
+                pxData[pxPos + i] = idx != 0xff ? rawData[rawPos + idx] + up : 0xff;
+            }
+
+        }
+
+    } else if (filter == 3) {
+        for (var x = 0; x < this._width; x++) {
+            var pxPos = pxRowPos + (x << 2),
+                rawPos = 1 + x * this._Bpp;
+
+            for (var i = 0; i < 4; i++) {
+                var idx = pixelBppMap[this._Bpp][i],
+                    left = x > 0 ? pxData[pxPos + i - 4] : 0,
+                    up = this._line > 0 ? pxData[pxPos - pxLineLength + i] : 0,
+                    add = Math.floor((left + up) / 2);
+
+                 pxData[pxPos + i] = idx != 0xff ? rawData[rawPos + idx] + add : 0xff;
+            }
+
+        }
+
+    } else if (filter == 4) {
+        for (var x = 0; x < this._width; x++) {
+            var pxPos = pxRowPos + (x << 2),
+                rawPos = 1 + x * this._Bpp;
+
+            for (var i = 0; i < 4; i++) {
+                var idx = pixelBppMap[this._Bpp][i],
+                    left = x > 0 ? pxData[pxPos + i - 4] : 0,
+                    up = this._line > 0 ? pxData[pxPos - pxLineLength + i] : 0,
+                    upLeft = x > 0 && this._line > 0
+                            ? pxData[pxPos - pxLineLength + i - 4] : 0,
+                    add = PaethPredictor(left, up, upLeft);
+
+                pxData[pxPos + i] = idx != 0xff ? rawData[rawPos + idx] + add : 0xff;
+            }
+        }
+    }
+
+
+    this._line++;
+
+    if (this._line < this._height)
+        this.read(this._width * this._Bpp + 1, this._reverseFilterLine.bind(this));
+    else
+        this.emit('complete', this._data, this._width, this._height);
+};
+
+
+
+
+Filter.prototype.filter = function() {
+
+    var pxData = this._data,
+        rawData = new Buffer(((this._width << 2) + 1) * this._height);
+
+    for (var y = 0; y < this._height; y++) {
+
+        // find best filter for this line (with lowest sum of values)
+        var filterTypes = this._options.filterType,
+            min = Infinity,
+            sel = 0;
+
+        for (var i = 0; i < filterTypes.length; i++) {
+            var sum = this._filters[filterTypes[i]](pxData, y, null);
+            if (sum < min) {
+                sel = filterTypes[i];
+                min = sum;
+            }
+        }
+
+        this._filters[sel](pxData, y, rawData);
+    }
+    return rawData;
+};
+
+Filter.prototype._filterNone = function(pxData, y, rawData) {
+
+    var pxRowLength = this._width << 2,
+        rawRowLength = pxRowLength + 1,
+        sum = 0;
+
+    if (!rawData) {
+        for (var x = 0; x < pxRowLength; x++)
+            sum += Math.abs(pxData[y * pxRowLength + x]);
+
+    } else {
+        rawData[y * rawRowLength] = 0;
+        pxData.copy(rawData, rawRowLength * y + 1, pxRowLength * y, pxRowLength * (y + 1));
+    }
+
+    return sum;
+};
+
+Filter.prototype._filterSub = function(pxData, y, rawData) {
+
+    var pxRowLength = this._width << 2,
+        rawRowLength = pxRowLength + 1,
+        sum = 0;
+
+    if (rawData)
+        rawData[y * rawRowLength] = 1;
+
+    for (var x = 0; x < pxRowLength; x++) {
+
+        var left = x >= 4 ? pxData[y * pxRowLength + x - 4] : 0,
+            val = pxData[y * pxRowLength + x] - left;
+
+        if (!rawData) sum += Math.abs(val);
+        else rawData[y * rawRowLength + 1 + x] = val;
+    }
+    return sum;
+};
+
+Filter.prototype._filterUp = function(pxData, y, rawData) {
+
+    var pxRowLength = this._width << 2,
+        rawRowLength = pxRowLength + 1,
+        sum = 0;
+
+    if (rawData)
+        rawData[y * rawRowLength] = 2;
+
+    for (var x = 0; x < pxRowLength; x++) {
+
+        var up = y > 0 ? pxData[(y - 1) * pxRowLength + x] : 0,
+            val = pxData[y * pxRowLength + x] - up;
+
+        if (!rawData) sum += Math.abs(val);
+        else rawData[y * rawRowLength + 1 + x] = val;
+    }
+    return sum;
+};
+
+Filter.prototype._filterAvg = function(pxData, y, rawData) {
+
+    var pxRowLength = this._width << 2,
+        rawRowLength = pxRowLength + 1,
+        sum = 0;
+
+    if (rawData)
+        rawData[y * rawRowLength] = 3;
+
+    for (var x = 0; x < pxRowLength; x++) {
+
+        var left = x >= 4 ? pxData[y * pxRowLength + x - 4] : 0,
+            up = y > 0 ? pxData[(y - 1) * pxRowLength + x] : 0,
+            val = pxData[y * pxRowLength + x] - ((left + up) >> 1);
+
+        if (!rawData) sum += Math.abs(val);
+        else rawData[y * rawRowLength + 1 + x] = val;
+    }
+    return sum;
+};
+
+Filter.prototype._filterPaeth = function(pxData, y, rawData) {
+
+    var pxRowLength = this._width << 2,
+        rawRowLength = pxRowLength + 1,
+        sum = 0;
+
+    if (rawData)
+        rawData[y * rawRowLength] = 4;
+
+    for (var x = 0; x < pxRowLength; x++) {
+
+        var left = x >= 4 ? pxData[y * pxRowLength + x - 4] : 0,
+            up = y > 0 ? pxData[(y - 1) * pxRowLength + x] : 0,
+            upLeft = x >= 4 && y > 0 ? pxData[(y - 1) * pxRowLength + x - 4] : 0,
+            val = pxData[y * pxRowLength + x] - PaethPredictor(left, up, upLeft);
+
+        if (!rawData) sum += Math.abs(val);
+        else rawData[y * rawRowLength + 1 + x] = val;
+    }
+    return sum;
+};
+
+
+
+var PaethPredictor = function(left, above, upLeft) {
+
+    var p = left + above - upLeft,
+        pLeft = Math.abs(p - left),
+        pAbove = Math.abs(p - above),
+        pUpLeft = Math.abs(p - upLeft);
+
+    if (pLeft <= pAbove && pLeft <= pUpLeft) return left;
+    else if (pAbove <= pUpLeft) return above;
+    else return upLeft;
+};
+
+}).call(this,require("buffer").Buffer)
+},{"./chunkstream":37,"buffer":255,"util":271,"zlib":274}],41:[function(require,module,exports){
+(function (Buffer){
+// Copyright (c) 2012 Kuba Niegowski
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+'use strict';
+
+
+var util = require('util'),
+    Stream = require('stream'),
+    zlib = require('zlib'),
+    Filter = require('./filter'),
+    CrcStream = require('./crc'),
+    constants = require('./constants');
+
+
+var Packer = module.exports = function(options) {
+    Stream.call(this);
+
+    this._options = options;
+
+    options.deflateChunkSize = options.deflateChunkSize || 32 * 1024;
+    options.deflateLevel = options.deflateLevel || 9;
+    options.deflateStrategy = options.deflateStrategy || 3;
+
+    this.readable = true;
+};
+util.inherits(Packer, Stream);
+
+
+Packer.prototype.pack = function(data, width, height) {
+
+    // Signature
+    this.emit('data', new Buffer(constants.PNG_SIGNATURE));
+    this.emit('data', this._packIHDR(width, height));
+
+    // filter pixel data
+    var filter = new Filter(width, height, 4, data, this._options);
+    var data = filter.filter();
+
+    // compress it
+    var deflate = zlib.createDeflate({
+            chunkSize: this._options.deflateChunkSize,
+            level: this._options.deflateLevel,
+            strategy: this._options.deflateStrategy
+        });
+    deflate.on('error', this.emit.bind(this, 'error'));
+
+    deflate.on('data', function(data) {
+        this.emit('data', this._packIDAT(data));
+    }.bind(this));
+
+    deflate.on('end', function() {
+        this.emit('data', this._packIEND());
+        this.emit('end');
+    }.bind(this));
+
+    deflate.end(data);
+};
+
+Packer.prototype._packChunk = function(type, data) {
+
+    var len = (data ? data.length : 0),
+        buf = new Buffer(len + 12);
+
+    buf.writeUInt32BE(len, 0);
+    buf.writeUInt32BE(type, 4);
+
+    if (data) data.copy(buf, 8);
+
+    buf.writeInt32BE(CrcStream.crc32(buf.slice(4, buf.length - 4)), buf.length - 4);
+    return buf;
+};
+
+Packer.prototype._packIHDR = function(width, height) {
+
+    var buf = new Buffer(13);
+    buf.writeUInt32BE(width, 0);
+    buf.writeUInt32BE(height, 4);
+    buf[8] = 8;
+    buf[9] = 6; // colorType
+    buf[10] = 0; // compression
+    buf[11] = 0; // filter
+    buf[12] = 0; // interlace
+
+    return this._packChunk(constants.TYPE_IHDR, buf);
+};
+
+Packer.prototype._packIDAT = function(data) {
+    return this._packChunk(constants.TYPE_IDAT, data);
+};
+
+Packer.prototype._packIEND = function() {
+    return this._packChunk(constants.TYPE_IEND, null);
+};
+
+}).call(this,require("buffer").Buffer)
+},{"./constants":38,"./crc":39,"./filter":40,"buffer":255,"stream":263,"util":271,"zlib":274}],42:[function(require,module,exports){
+(function (Buffer){
+// Copyright (c) 2012 Kuba Niegowski
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+'use strict';
+
+
+var util = require('util'),
+    zlib = require('zlib'),
+    CrcStream = require('./crc'),
+    ChunkStream = require('./chunkstream'),
+    constants = require('./constants'),
+    Filter = require('./filter');
+
+
+var Parser = module.exports = function(options) {
+    ChunkStream.call(this);
+
+    this._options = options;
+    options.checkCRC = options.checkCRC !== false;
+
+    this._hasIHDR = false;
+    this._hasIEND = false;
+
+    this._inflate = null;
+    this._filter = null;
+    this._crc = null;
+
+    // input flags/metadata
+    this._palette = [];
+    this._colorType = 0;
+
+    this._chunks = {};
+    this._chunks[constants.TYPE_IHDR] = this._handleIHDR.bind(this);
+    this._chunks[constants.TYPE_IEND] = this._handleIEND.bind(this);
+    this._chunks[constants.TYPE_IDAT] = this._handleIDAT.bind(this);
+    this._chunks[constants.TYPE_PLTE] = this._handlePLTE.bind(this);
+    this._chunks[constants.TYPE_tRNS] = this._handleTRNS.bind(this);
+    this._chunks[constants.TYPE_gAMA] = this._handleGAMA.bind(this);
+
+    this.writable = true;
+
+    this.on('error', this._handleError.bind(this));
+    this._handleSignature();
+};
+util.inherits(Parser, ChunkStream);
+
+
+Parser.prototype._handleError = function() {
+
+    this.writable = false;
+
+    this.destroy();
+
+    if (this._inflate)
+        this._inflate.destroy();
+};
+
+Parser.prototype._handleSignature = function() {
+    this.read(constants.PNG_SIGNATURE.length,
+        this._parseSignature.bind(this)
+    );
+};
+
+Parser.prototype._parseSignature = function(data) {
+
+    var signature = constants.PNG_SIGNATURE;
+
+    for (var i = 0; i < signature.length; i++) {
+        if (data[i] != signature[i]) {
+            this.emit('error', new Error('Invalid file signature'));
+            return;
+        }
+    }
+    this.read(8, this._parseChunkBegin.bind(this));
+};
+
+Parser.prototype._parseChunkBegin = function(data) {
+
+    // chunk content length
+    var length = data.readUInt32BE(0);
+
+    // chunk type
+    var type = data.readUInt32BE(4),
+        name = '';
+    for (var i = 4; i < 8; i++)
+        name += String.fromCharCode(data[i]);
+
+    // console.log('chunk ', name, length);
+
+    // chunk flags
+    var ancillary  = !!(data[4] & 0x20),  // or critical
+        priv       = !!(data[5] & 0x20),  // or public
+        safeToCopy = !!(data[7] & 0x20);  // or unsafe
+
+    if (!this._hasIHDR && type != constants.TYPE_IHDR) {
+        this.emit('error', new Error('Expected IHDR on beggining'));
+        return;
+    }
+
+    this._crc = new CrcStream();
+    this._crc.write(new Buffer(name));
+
+    if (this._chunks[type]) {
+        return this._chunks[type](length);
+
+    } else if (!ancillary) {
+        this.emit('error', new Error('Unsupported critical chunk type ' + name));
+        return;
+    } else {
+        this.read(length + 4, this._skipChunk.bind(this));
+    }
+};
+
+Parser.prototype._skipChunk = function(data) {
+    this.read(8, this._parseChunkBegin.bind(this));
+};
+
+Parser.prototype._handleChunkEnd = function() {
+    this.read(4, this._parseChunkEnd.bind(this));
+};
+
+Parser.prototype._parseChunkEnd = function(data) {
+
+    var fileCrc = data.readInt32BE(0),
+        calcCrc = this._crc.crc32();
+
+    // check CRC
+    if (this._options.checkCRC && calcCrc != fileCrc) {
+        this.emit('error', new Error('Crc error'));
+        return;
+    }
+
+    if (this._hasIEND) {
+        this.destroySoon();
+
+    } else {
+        this.read(8, this._parseChunkBegin.bind(this));
+    }
+};
+
+
+Parser.prototype._handleIHDR = function(length) {
+    this.read(length, this._parseIHDR.bind(this));
+};
+Parser.prototype._parseIHDR = function(data) {
+
+    this._crc.write(data);
+
+    var width = data.readUInt32BE(0),
+        height = data.readUInt32BE(4),
+        depth = data[8],
+        colorType = data[9], // bits: 1 palette, 2 color, 4 alpha
+        compr = data[10],
+        filter = data[11],
+        interlace = data[12];
+
+    // console.log('    width', width, 'height', height,
+    //     'depth', depth, 'colorType', colorType,
+    //     'compr', compr, 'filter', filter, 'interlace', interlace
+    // );
+
+    if (depth != 8) {
+        this.emit('error', new Error('Unsupported bit depth ' + depth));
+        return;
+    }
+    if (!(colorType in colorTypeToBppMap)) {
+        this.emit('error', new Error('Unsupported color type'));
+        return;
+    }
+    if (compr != 0) {
+        this.emit('error', new Error('Unsupported compression method'));
+        return;
+    }
+    if (filter != 0) {
+        this.emit('error', new Error('Unsupported filter method'));
+        return;
+    }
+    if (interlace != 0) {
+        this.emit('error', new Error('Unsupported interlace method'));
+        return;
+    }
+
+    this._colorType = colorType;
+
+    this._data = new Buffer(width * height * 4);
+    this._filter = new Filter(
+        width, height,
+        colorTypeToBppMap[this._colorType],
+        this._data,
+        this._options
+    );
+
+    this._hasIHDR = true;
+
+    this.emit('metadata', {
+        width: width,
+        height: height,
+        palette: !!(colorType & constants.COLOR_PALETTE),
+        color: !!(colorType & constants.COLOR_COLOR),
+        alpha: !!(colorType & constants.COLOR_ALPHA),
+        data: this._data
+    });
+
+    this._handleChunkEnd();
+};
+
+
+Parser.prototype._handlePLTE = function(length) {
+    this.read(length, this._parsePLTE.bind(this));
+};
+Parser.prototype._parsePLTE = function(data) {
+
+    this._crc.write(data);
+
+    var entries = Math.floor(data.length / 3);
+    // console.log('Palette:', entries);
+
+    for (var i = 0; i < entries; i++) {
+        this._palette.push([
+            data.readUInt8(i * 3),
+            data.readUInt8(i * 3 + 1),
+            data.readUInt8(i * 3 + 2 ),
+            0xff
+        ]);
+    }
+
+    this._handleChunkEnd();
+};
+
+Parser.prototype._handleTRNS = function(length) {
+    this.read(length, this._parseTRNS.bind(this));
+};
+Parser.prototype._parseTRNS = function(data) {
+
+    this._crc.write(data);
+
+    // palette
+    if (this._colorType == 3) {
+        if (this._palette.length == 0) {
+            this.emit('error', new Error('Transparency chunk must be after palette'));
+            return;
+        }
+        if (data.length > this._palette.length) {
+            this.emit('error', new Error('More transparent colors than palette size'));
+            return;
+        }
+        for (var i = 0; i < this._palette.length; i++) {
+            this._palette[i][3] = i < data.length ? data.readUInt8(i) : 0xff;
+        }
+    }
+
+    // for colorType 0 (grayscale) and 2 (rgb)
+    // there might be one gray/color defined as transparent
+
+    this._handleChunkEnd();
+};
+
+Parser.prototype._handleGAMA = function(length) {
+    this.read(length, this._parseGAMA.bind(this));
+};
+Parser.prototype._parseGAMA = function(data) {
+
+    this._crc.write(data);
+    this.emit('gamma', data.readUInt32BE(0) / 100000);
+
+    this._handleChunkEnd();
+};
+
+Parser.prototype._handleIDAT = function(length) {
+    this.read(-length, this._parseIDAT.bind(this, length));
+};
+Parser.prototype._parseIDAT = function(length, data) {
+
+    this._crc.write(data);
+
+    if (this._colorType == 3 && this._palette.length == 0)
+        throw new Error('Expected palette not found');
+
+    if (!this._inflate) {
+        this._inflate = zlib.createInflate();
+
+        this._inflate.on('error', this.emit.bind(this, 'error'));
+        this._filter.on('complete', this._reverseFiltered.bind(this));
+
+        this._inflate.pipe(this._filter);
+    }
+
+    this._inflate.write(data);
+    length -= data.length;
+
+    if (length > 0)
+        this._handleIDAT(length);
+    else
+        this._handleChunkEnd();
+};
+
+
+Parser.prototype._handleIEND = function(length) {
+    this.read(length, this._parseIEND.bind(this));
+};
+Parser.prototype._parseIEND = function(data) {
+
+    this._crc.write(data);
+
+    // no more data to inflate
+    this._inflate.end();
+
+    this._hasIEND = true;
+    this._handleChunkEnd();
+};
+
+
+var colorTypeToBppMap = {
+    0: 1,
+    2: 3,
+    3: 1,
+    4: 2,
+    6: 4
+};
+
+Parser.prototype._reverseFiltered = function(data, width, height) {
+
+    if (this._colorType == 3) { // paletted
+
+        // use values from palette
+        var pxLineLength = width << 2;
+
+        for (var y = 0; y < height; y++) {
+            var pxRowPos = y * pxLineLength;
+
+            for (var x = 0; x < width; x++) {
+                var pxPos = pxRowPos + (x << 2),
+                    color = this._palette[data[pxPos]];
+
+                for (var i = 0; i < 4; i++)
+                    data[pxPos + i] = color[i];
+            }
+        }
+    }
+
+    this.emit('parsed', data);
+};
+
+}).call(this,require("buffer").Buffer)
+},{"./chunkstream":37,"./constants":38,"./crc":39,"./filter":40,"buffer":255,"util":271,"zlib":274}],43:[function(require,module,exports){
+(function (process,Buffer){
+// Copyright (c) 2012 Kuba Niegowski
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+'use strict';
+
+
+var util = require('util'),
+    Stream = require('stream'),
+    Parser = require('./parser'),
+    Packer = require('./packer');
+
+
+var PNG = exports.PNG = function(options) {
+    Stream.call(this);
+
+    options = options || {};
+
+    this.width = options.width || 0;
+    this.height = options.height || 0;
+
+    this.data = this.width > 0 && this.height > 0
+            ? new Buffer(4 * this.width * this.height) : null;
+
+    this.gamma = 0;
+    this.readable = this.writable = true;
+
+    this._parser = new Parser(options || {});
+
+    this._parser.on('error', this.emit.bind(this, 'error'));
+    this._parser.on('close', this._handleClose.bind(this));
+    this._parser.on('metadata', this._metadata.bind(this));
+    this._parser.on('gamma', this._gamma.bind(this));
+    this._parser.on('parsed', function(data) {
+        this.data = data;
+        this.emit('parsed', data);
+    }.bind(this));
+
+    this._packer = new Packer(options);
+    this._packer.on('data', this.emit.bind(this, 'data'));
+    this._packer.on('end', this.emit.bind(this, 'end'));
+    this._parser.on('close', this._handleClose.bind(this));
+    this._packer.on('error', this.emit.bind(this, 'error'));
+
+};
+util.inherits(PNG, Stream);
+
+
+PNG.prototype.pack = function() {
+
+    process.nextTick(function() {
+        this._packer.pack(this.data, this.width, this.height);
+    }.bind(this));
+
+    return this;
+};
+
+
+PNG.prototype.parse = function(data, callback) {
+
+    if (callback) {
+        var onParsed = null, onError = null;
+
+        this.once('parsed', onParsed = function(data) {
+            this.removeListener('error', onError);
+
+            this.data = data;
+            callback(null, this);
+
+        }.bind(this));
+
+        this.once('error', onError = function(err) {
+            this.removeListener('parsed', onParsed);
+
+            callback(err, null);
+        }.bind(this));
+    }
+
+    this.end(data);
+    return this;
+};
+
+PNG.prototype.write = function(data) {
+    this._parser.write(data);
+    return true;
+};
+
+PNG.prototype.end = function(data) {
+    this._parser.end(data);
+};
+
+PNG.prototype._metadata = function(metadata) {
+    this.width = metadata.width;
+    this.height = metadata.height;
+    this.data = metadata.data;
+
+    delete metadata.data;
+    this.emit('metadata', metadata);
+};
+
+PNG.prototype._gamma = function(gamma) {
+    this.gamma = gamma;
+};
+
+PNG.prototype._handleClose = function() {
+    if (!this._parser.writable && !this._packer.readable)
+        this.emit('close');
+};
+
+
+PNG.prototype.bitblt = function(dst, sx, sy, w, h, dx, dy) {
+
+    var src = this;
+
+    if (sx > src.width || sy > src.height
+            || sx + w > src.width || sy + h > src.height)
+        throw new Error('bitblt reading outside image');
+    if (dx > dst.width || dy > dst.height
+            || dx + w > dst.width || dy + h > dst.height)
+        throw new Error('bitblt writing outside image');
+
+    for (var y = 0; y < h; y++) {
+        src.data.copy(dst.data,
+            ((dy + y) * dst.width + dx) << 2,
+            ((sy + y) * src.width + sx) << 2,
+            ((sy + y) * src.width + sx + w) << 2
+        );
+    }
+
+    return this;
+};
+
+}).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
+},{"./packer":41,"./parser":42,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"buffer":255,"stream":263,"util":271}],44:[function(require,module,exports){
+(function (process){
+var Stream = require('stream')
+
+// through
+//
+// a stream that does nothing but re-emit the input.
+// useful for aggregating a series of changing but not ending streams into one stream)
+
+exports = module.exports = through
+through.through = through
+
+//create a readable writable stream.
+
+function through (write, end, opts) {
+  write = write || function (data) { this.queue(data) }
+  end = end || function () { this.queue(null) }
+
+  var ended = false, destroyed = false, buffer = [], _ended = false
+  var stream = new Stream()
+  stream.readable = stream.writable = true
+  stream.paused = false
+
+//  stream.autoPause   = !(opts && opts.autoPause   === false)
+  stream.autoDestroy = !(opts && opts.autoDestroy === false)
+
+  stream.write = function (data) {
+    write.call(this, data)
+    return !stream.paused
+  }
+
+  function drain() {
+    while(buffer.length && !stream.paused) {
+      var data = buffer.shift()
+      if(null === data)
+        return stream.emit('end')
+      else
+        stream.emit('data', data)
+    }
+  }
+
+  stream.queue = stream.push = function (data) {
+//    console.error(ended)
+    if(_ended) return stream
+    if(data == null) _ended = true
+    buffer.push(data)
+    drain()
+    return stream
+  }
+
+  //this will be registered as the first 'end' listener
+  //must call destroy next tick, to make sure we're after any
+  //stream piped from here.
+  //this is only a problem if end is not emitted synchronously.
+  //a nicer way to do this is to make sure this is the last listener for 'end'
+
+  stream.on('end', function () {
+    stream.readable = false
+    if(!stream.writable && stream.autoDestroy)
+      process.nextTick(function () {
+        stream.destroy()
+      })
+  })
+
+  function _end () {
+    stream.writable = false
+    end.call(stream)
+    if(!stream.readable && stream.autoDestroy)
+      stream.destroy()
+  }
+
+  stream.end = function (data) {
+    if(ended) return
+    ended = true
+    if(arguments.length) stream.write(data)
+    _end() // will emit or queue
+    return stream
+  }
+
+  stream.destroy = function () {
+    if(destroyed) return
+    destroyed = true
+    ended = true
+    buffer.length = 0
+    stream.writable = stream.readable = false
+    stream.emit('close')
+    return stream
+  }
+
+  stream.pause = function () {
+    if(stream.paused) return
+    stream.paused = true
+    return stream
+  }
+
+  stream.resume = function () {
+    if(stream.paused) {
+      stream.paused = false
+      stream.emit('resume')
+    }
+    drain()
+    //may have become paused again,
+    //as drain emits 'data'.
+    if(!stream.paused)
+      stream.emit('drain')
+    return stream
+  }
+  return stream
+}
+
+
+}).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"stream":263}],45:[function(require,module,exports){
+"use strict"
+
+var PNG = require("pngjs").PNG
+var through = require("through")
+
+function handleData(array, data) {
+  var i, j, ptr = 0, c
+  if(array.shape.length === 3) {
+    if(array.shape[2] === 3) {
+      for(i=0; i<array.shape[0]; ++i) {
+        for(j=0; j<array.shape[1]; ++j) {
+          data[ptr++] = array.get(i,j,0)>>>0
+          data[ptr++] = array.get(i,j,1)>>>0
+          data[ptr++] = array.get(i,j,2)>>>0
+          data[ptr++] = 255
+        }
+      }
+    } else if(array.shape[2] === 4) {
+      for(i=0; i<array.shape[0]; ++i) {
+        for(j=0; j<array.shape[1]; ++j) {
+          data[ptr++] = array.get(i,j,0)>>>0
+          data[ptr++] = array.get(i,j,1)>>>0
+          data[ptr++] = array.get(i,j,2)>>>0
+          data[ptr++] = array.get(i,j,3)>>>0
+        }
+      }
+    } else if(array.shape[3] === 1) {
+      for(i=0; i<array.shape[0]; ++i) {
+        for(j=0; j<array.shape[1]; ++j) {
+          var c = array.get(i,j,0)>>>0
+          data[ptr++] = c
+          data[ptr++] = c
+          data[ptr++] = c
+          data[ptr++] = 255
+        }
+      }
+    } else {
+      return new Error("Incompatible array shape")
+    }
+  } else if(array.shape.length === 2) {
+    for(i=0; i<array.shape[0]; ++i) {
+      for(j=0; j<array.shape[1]; ++j) {
+        var c = array.get(i,j,0)>>>0
+        data[ptr++] = c
+        data[ptr++] = c
+        data[ptr++] = c
+        data[ptr++] = 255
+      }
+    }
+  } else {
+    return new Error("Incompatible array shape")
+  }
+  return data
+}
+
+function haderror(err) {
+  var result = through()
+  result.emit("error", err)
+  return result
+}
+
+module.exports = function savePixels(array, type) {
+  switch(type.toUpperCase()) {
+    case "PNG":
+    case ".PNG":
+      var png = new PNG({
+        width: array.shape[1],
+        height: array.shape[0]
+      })
+      var data = handleData(array, png.data)
+      if (typeof data === "Error") return haderror(data)
+      png.data = data
+      return png.pack()
+
+    case "CANVAS":
+      var canvas = document.createElement("canvas")
+      var context = canvas.getContext("2d")
+      canvas.width = array.shape[1]
+      canvas.height = array.shape[0]
+      var imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+      var data = imageData.data
+      data = handleData(array, data)
+      if (typeof data === "Error") return haderror(data)
+      context.putImageData(imageData, 0, 0)
+      return canvas
+    
+    default:
+      return haderror(new Error("Unsupported file type: " + type))
+  }
+}
+
+},{"pngjs":43,"through":44}],46:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var APDialog, APPlugin, ModalDialog, createSelector,
@@ -15855,7 +17357,7 @@ module.exports=require(19)
 
 }).call(this);
 
-},{"artpacks-ui":39,"voxel-modal-dialog":40}],39:[function(require,module,exports){
+},{"artpacks-ui":47,"voxel-modal-dialog":48}],47:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var APSelector;
@@ -16003,7 +17505,7 @@ module.exports=require(19)
 
 }).call(this);
 
-},{}],40:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var Modal, ModalDialog,
@@ -16055,7 +17557,7 @@ module.exports=require(19)
 
 }).call(this);
 
-},{"voxel-modal":41}],41:[function(require,module,exports){
+},{"voxel-modal":49}],49:[function(require,module,exports){
 /*jshint globalstrict: true*/
 'use strict';
 
@@ -16148,7 +17650,7 @@ Modal.prototype.toggle = function() {
     this.open();
 };
 
-},{"ever":42}],42:[function(require,module,exports){
+},{"ever":50}],50:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 
 module.exports = function (elem) {
@@ -16260,7 +17762,7 @@ Ever.typeOf = (function () {
     };
 })();;
 
-},{"./init.json":43,"./types.json":44,"events":284}],43:[function(require,module,exports){
+},{"./init.json":51,"./types.json":52,"events":258}],51:[function(require,module,exports){
 module.exports={
   "initEvent" : [
     "type",
@@ -16303,7 +17805,7 @@ module.exports={
   ]
 }
 
-},{}],44:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 module.exports={
   "MouseEvent" : [
     "click",
@@ -16348,7 +17850,7 @@ module.exports={
   ]
 }
 
-},{}],45:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var DropPlugin, coffee_script, ever, playerdat;
@@ -16535,7 +18037,7 @@ module.exports={
 
 }).call(this);
 
-},{"coffee-script":46,"ever":55,"playerdat":58,"string.prototype.endswith":69}],46:[function(require,module,exports){
+},{"coffee-script":54,"ever":63,"playerdat":66,"string.prototype.endswith":77}],54:[function(require,module,exports){
 (function (process,global){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -16874,7 +18376,7 @@ module.exports={
 }).call(this);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./helpers":47,"./lexer":48,"./nodes":49,"./parser":50,"./register":51,"./sourcemap":54,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"fs":280,"module":280,"path":287,"vm":298}],47:[function(require,module,exports){
+},{"./helpers":55,"./lexer":56,"./nodes":57,"./parser":58,"./register":59,"./sourcemap":62,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"fs":254,"module":254,"path":261,"vm":272}],55:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -17130,7 +18632,7 @@ module.exports={
 }).call(this);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286}],48:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260}],56:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var BOM, BOOL, CALLABLE, CODE, COFFEE_ALIASES, COFFEE_ALIAS_MAP, COFFEE_KEYWORDS, COMMENT, COMPARE, COMPOUND_ASSIGN, HEREDOC, HEREDOC_ILLEGAL, HEREDOC_INDENT, HEREGEX, HEREGEX_OMIT, IDENTIFIER, INDENTABLE_CLOSERS, INDEXABLE, INVERSES, JSTOKEN, JS_FORBIDDEN, JS_KEYWORDS, LINE_BREAK, LINE_CONTINUER, LOGIC, Lexer, MATH, MULTILINER, MULTI_DENT, NOT_REGEX, NOT_SPACED_REGEX, NUMBER, OPERATOR, REGEX, RELATION, RESERVED, Rewriter, SHIFT, SIMPLESTR, STRICT_PROSCRIBED, TRAILING_SPACES, UNARY, UNARY_MATH, WHITESPACE, compact, count, invertLiterate, key, last, locationDataToString, repeat, starts, throwSyntaxError, _ref, _ref1,
@@ -18058,7 +19560,7 @@ module.exports={
 
 }).call(this);
 
-},{"./helpers":47,"./rewriter":52}],49:[function(require,module,exports){
+},{"./helpers":55,"./rewriter":60}],57:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var Access, Arr, Assign, Base, Block, Call, Class, Code, CodeFragment, Comment, Existence, Expansion, Extends, For, HEXNUM, IDENTIFIER, IDENTIFIER_STR, IS_REGEX, IS_STRING, If, In, Index, LEVEL_ACCESS, LEVEL_COND, LEVEL_LIST, LEVEL_OP, LEVEL_PAREN, LEVEL_TOP, Literal, METHOD_DEF, NEGATE, NO, NUMBER, Obj, Op, Param, Parens, RESERVED, Range, Return, SIMPLENUM, STRICT_PROSCRIBED, Scope, Slice, Splat, Switch, TAB, THIS, Throw, Try, UTILITIES, Value, While, YES, addLocationDataFn, compact, del, ends, extend, flatten, fragmentsToText, isLiteralArguments, isLiteralThis, last, locationDataToString, merge, multident, parseNum, some, starts, throwSyntaxError, unfoldSoak, utility, _ref, _ref1,
@@ -21218,7 +22720,7 @@ module.exports={
 
 }).call(this);
 
-},{"./helpers":47,"./lexer":48,"./scope":53}],50:[function(require,module,exports){
+},{"./helpers":55,"./lexer":56,"./scope":61}],58:[function(require,module,exports){
 (function (process){
 /* parser generated by jison 0.4.13 */
 /*
@@ -21945,7 +23447,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"fs":280,"path":287}],51:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"fs":254,"path":261}],59:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var CoffeeScript, Module, binary, child_process, ext, findExtension, fork, helpers, loadFile, path, _i, _len, _ref;
@@ -22013,7 +23515,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{"./coffee-script":46,"./helpers":47,"child_process":280,"module":280,"path":287}],52:[function(require,module,exports){
+},{"./coffee-script":54,"./helpers":55,"child_process":254,"module":254,"path":261}],60:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var BALANCED_PAIRS, CALL_CLOSERS, EXPRESSION_CLOSE, EXPRESSION_END, EXPRESSION_START, IMPLICIT_CALL, IMPLICIT_END, IMPLICIT_FUNC, IMPLICIT_UNSPACED_CALL, INVERSES, LINEBREAKS, SINGLE_CLOSERS, SINGLE_LINERS, generate, left, rite, _i, _len, _ref,
@@ -22490,7 +23992,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{}],53:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var Scope, extend, last, _ref;
@@ -22638,7 +24140,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{"./helpers":47}],54:[function(require,module,exports){
+},{"./helpers":55}],62:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.1
 (function() {
   var LineMap, SourceMap;
@@ -22801,13 +24303,13 @@ if (typeof module !== 'undefined' && require.main === module) {
 
 }).call(this);
 
-},{}],55:[function(require,module,exports){
-module.exports=require(42)
-},{"./init.json":56,"./types.json":57,"events":284}],56:[function(require,module,exports){
-module.exports=require(43)
-},{}],57:[function(require,module,exports){
-module.exports=require(44)
-},{}],58:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
+module.exports=require(50)
+},{"./init.json":64,"./types.json":65,"events":258}],64:[function(require,module,exports){
+module.exports=require(51)
+},{}],65:[function(require,module,exports){
+module.exports=require(52)
+},{}],66:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 
@@ -22921,7 +24423,7 @@ module.exports = {
 
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":281,"inventory":59,"itempile":64,"nbt":67}],59:[function(require,module,exports){
+},{"buffer":255,"inventory":67,"itempile":71,"nbt":76}],67:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var EventEmitter, Inventory, ItemPile, deepEqual,
@@ -23084,16 +24586,10 @@ module.exports = {
 
 }).call(this);
 
-},{"deep-equal":60,"events":284,"itempile":61}],60:[function(require,module,exports){
+},{"deep-equal":68,"events":258,"itempile":71}],68:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
-var Object_keys = typeof Object.keys === 'function'
-    ? Object.keys
-    : function (obj) {
-        var keys = [];
-        for (var key in obj) keys.push(key);
-        return keys;
-    }
-;
+var objectKeys = require('./lib/keys.js');
+var isArguments = require('./lib/is_arguments.js');
 
 var deepEqual = module.exports = function (actual, expected, opts) {
   if (!opts) opts = {};
@@ -23124,12 +24620,7 @@ function isUndefinedOrNull(value) {
   return value === null || value === undefined;
 }
 
-function isArguments(object) {
-  return Object.prototype.toString.call(object) == '[object Arguments]';
-}
-
 function objEquiv(a, b, opts) {
-  if (!opts) opts = {};
   if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
     return false;
   // an identical 'prototype' property.
@@ -23145,8 +24636,8 @@ function objEquiv(a, b, opts) {
     return deepEqual(a, b, opts);
   }
   try {
-    var ka = Object_keys(a),
-        kb = Object_keys(b),
+    var ka = objectKeys(a),
+        kb = objectKeys(b),
         key, i;
   } catch (e) {//happens when one is a string literal and the other isn't
     return false;
@@ -23172,7 +24663,40 @@ function objEquiv(a, b, opts) {
   return true;
 }
 
-},{}],61:[function(require,module,exports){
+},{"./lib/is_arguments.js":69,"./lib/keys.js":70}],69:[function(require,module,exports){
+var supportsArgumentsClass = (function(){
+  return Object.prototype.toString.call(arguments)
+})() == '[object Arguments]';
+
+exports = module.exports = supportsArgumentsClass ? supported : unsupported;
+
+exports.supported = supported;
+function supported(object) {
+  return Object.prototype.toString.call(object) == '[object Arguments]';
+};
+
+exports.unsupported = unsupported;
+function unsupported(object){
+  return object &&
+    typeof object == 'object' &&
+    typeof object.length == 'number' &&
+    Object.prototype.hasOwnProperty.call(object, 'callee') &&
+    !Object.prototype.propertyIsEnumerable.call(object, 'callee') ||
+    false;
+};
+
+},{}],70:[function(require,module,exports){
+exports = module.exports = typeof Object.keys === 'function'
+  ? Object.keys : shim;
+
+exports.shim = shim;
+function shim (obj) {
+  var keys = [];
+  for (var key in obj) keys.push(key);
+  return keys;
+}
+
+},{}],71:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var ItemPile, clone, deepEqual;
@@ -23288,9 +24812,6 @@ function objEquiv(a, b, opts) {
     };
 
     ItemPile.prototype.splitPile = function(n) {
-      if (n === 0) {
-        return false;
-      }
       if (n < 0) {
         n = this.count + n;
       } else if (n < 1) {
@@ -23354,7 +24875,7 @@ function objEquiv(a, b, opts) {
 
 }).call(this);
 
-},{"clone":62,"deep-equal":63}],62:[function(require,module,exports){
+},{"clone":72,"deep-equal":73}],72:[function(require,module,exports){
 (function (Buffer){
 "use strict";
 
@@ -23517,15 +25038,13 @@ clone.clonePrototype = function(parent) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":281}],63:[function(require,module,exports){
-module.exports=require(60)
-},{}],64:[function(require,module,exports){
-module.exports=require(61)
-},{"clone":65,"deep-equal":66}],65:[function(require,module,exports){
-module.exports=require(62)
-},{"buffer":281}],66:[function(require,module,exports){
-module.exports=require(60)
-},{}],67:[function(require,module,exports){
+},{"buffer":255}],73:[function(require,module,exports){
+module.exports=require(68)
+},{"./lib/is_arguments.js":74,"./lib/keys.js":75}],74:[function(require,module,exports){
+module.exports=require(69)
+},{}],75:[function(require,module,exports){
+module.exports=require(70)
+},{}],76:[function(require,module,exports){
 (function (Buffer){
 /*
 	NBT.js - a JavaScript parser for NBT archives
@@ -23542,11 +25061,9 @@ module.exports=require(60)
 (function() {
 	'use strict';
 
-	var nbt = this;
 	var zlib = require('zlib');
-	var Int64 = require('node-int64');
 
-	nbt.tagTypes = {
+	var tagTypes = {
 		'end': 0,
 		'byte': 1,
 		'short': 2,
@@ -23561,23 +25078,16 @@ module.exports=require(60)
 		'intArray': 11
 	};
 
-	nbt.tagTypeNames = {};
+	var tagTypeNames = {};
 	(function() {
-		for (var typeName in nbt.tagTypes) {
-			if (nbt.tagTypes.hasOwnProperty(typeName)) {
-				nbt.tagTypeNames[nbt.tagTypes[typeName]] = typeName;
+		for (var typeName in tagTypes) {
+			if (tagTypes.hasOwnProperty(typeName)) {
+				tagTypeNames[tagTypes[typeName]] = typeName;
 			}
 		}
 	})();
 
-	var hasGzipHeader = function(data){
-		var result=true;
-		if(data[0]!=0x1f) result=false;
-		if(data[1]!=0x8b) result=false;
-		return result;
-	}
-
-	nbt.Reader = function(buffer) {
+	var ValueReader = function(buffer) {
 		var offset = 0;
 
 		function read(dataType, size) {
@@ -23586,29 +25096,30 @@ module.exports=require(60)
 			return val;
 		}
 
-		this[nbt.tagTypes.byte]   = read.bind(this, 'Int8', 1);
-		this[nbt.tagTypes.short]  = read.bind(this, 'Int16BE', 2);
-		this[nbt.tagTypes.int]    = read.bind(this, 'Int32BE', 4);
-		this[nbt.tagTypes.float]  = read.bind(this, 'FloatBE', 4);
-		this[nbt.tagTypes.double] = read.bind(this, 'DoubleBE', 8);
+		this[tagTypes.byte]   = read.bind(this, 'Int8', 1);
+		this[tagTypes.short]  = read.bind(this, 'Int16BE', 2);
+		this[tagTypes.int]    = read.bind(this, 'Int32BE', 4);
+		this[tagTypes.float]  = read.bind(this, 'FloatBE', 4);
+		this[tagTypes.double] = read.bind(this, 'DoubleBE', 8);
 
-		this[nbt.tagTypes.long] = function() {
+		this[tagTypes.long] = function() {
+			/* FIXME: this can overflow, JS has 53 bit prevision */
 			var upper = this.int();
 			var lower = this.int();
-			return new Int64(upper, lower);
+			return upper << 32 + lower;
 		};
 
-		this[nbt.tagTypes.byteArray] = function() {
+		this[tagTypes.byteArray] = function() {
 			var length = this.int();
 			var bytes = [];
 			var i;
 			for (i = 0; i < length; i++) {
 				bytes.push(this.byte());
 			}
-			return bytes;
+			return new Buffer(bytes);
 		};
 
-		this[nbt.tagTypes.intArray] = function() {
+		this[tagTypes.intArray] = function() {
 			var length = this.int();
 			var ints = [];
 			var i;
@@ -23618,14 +25129,14 @@ module.exports=require(60)
 			return ints;
 		};
 
-		this[nbt.tagTypes.string] = function() {
+		this[tagTypes.string] = function() {
 			var length = this.short();
 			var val = buffer.toString('utf8', offset, offset + length);
 			offset += length;
 			return val;
 		};
 
-		this[nbt.tagTypes.list] = function() {
+		this[tagTypes.list] = function() {
 			var type = this.byte();
 			var length = this.int();
 			var values = [];
@@ -23636,11 +25147,11 @@ module.exports=require(60)
 			return values;
 		};
 
-		this[nbt.tagTypes.compound] = function() {
+		this[tagTypes.compound] = function() {
 			var values = {};
 			while (true) {
 				var type = this.byte();
-				if (type === nbt.tagTypes.end) {
+				if (type === tagTypes.end) {
 					break;
 				}
 				var name = this.string();
@@ -23651,24 +25162,24 @@ module.exports=require(60)
 		};
 
 		var typeName;
-		for (typeName in nbt.tagTypes) {
-			if (nbt.tagTypes.hasOwnProperty(typeName)) {
-				this[typeName] = this[nbt.tagTypes[typeName]];
+		for (typeName in tagTypes) {
+			if (tagTypes.hasOwnProperty(typeName)) {
+				this[typeName] = this[tagTypes[typeName]];
 			}
 		}
 	};
 
 	var parseUncompressed = function(data) {
 		var buffer = new Buffer(data);
-		var reader = new nbt.Reader(buffer);
+		var valueReader = new ValueReader(buffer);
 
-		var type = reader.byte();
-		if (type !== nbt.tagTypes.compound) {
+		var type = valueReader.byte();
+		if (type !== tagTypes.compound) {
 			throw new Error('Top tag should be a compound');
 		}
 
-		var name = reader.string();
-		var value = reader.compound();
+		var name = valueReader.string();
+		var value = valueReader.compound();
 
 		if (name === '') {
 			return value;
@@ -23677,231 +25188,21 @@ module.exports=require(60)
 			result[name] = value;
 			return result;
 		}
-	}
+	};
 
 	this.parse = function(data, callback) {
-		if (hasGzipHeader(data)) {
-			zlib.gunzip(data, function(error, uncompressed) {
-				if (error) {
-					callback(error, data);
-				} else {
-					callback(null, parseUncompressed(uncompressed));
-				}
-			});
-		} else {
-			callback(null, parseUncompressed(data));
-		}
+		zlib.unzip(data, function(err, uncompressed) {
+			if (err) {
+				callback(null, parseUncompressed(data));
+			} else {
+				callback(null, parseUncompressed(uncompressed));
+			}
+		});
 	};
 }).apply(exports || (nbt = {}));
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":281,"node-int64":68,"zlib":300}],68:[function(require,module,exports){
-(function (Buffer){
-//     Int64.js
-//
-//     Copyright (c) 2012 Robert Kieffer
-//     MIT License - http://opensource.org/licenses/mit-license.php
-
-/**
- * Support for handling 64-bit int numbers in Javascript (node.js)
- *
- * JS Numbers are IEEE-754 binary double-precision floats, which limits the
- * range of values that can be represented with integer precision to:
- *
- * 2^^53 <= N <= 2^53
- *
- * Int64 objects wrap a node Buffer that holds the 8-bytes of int64 data.  These
- * objects operate directly on the buffer which means that if they are created
- * using an existing buffer then setting the value will modify the Buffer, and
- * vice-versa.
- *
- * Internal Representation
- *
- * The internal buffer format is Big Endian.  I.e. the most-significant byte is
- * at buffer[0], the least-significant at buffer[7].  For the purposes of
- * converting to/from JS native numbers, the value is assumed to be a signed
- * integer stored in 2's complement form.
- *
- * For details about IEEE-754 see:
- * http://en.wikipedia.org/wiki/Double_precision_floating-point_format
- */
-
-// Useful masks and values for bit twiddling
-var MASK31 =  0x7fffffff, VAL31 = 0x80000000;
-var MASK32 =  0xffffffff, VAL32 = 0x100000000;
-
-// Map for converting hex octets to strings
-var _HEX = [];
-for (var i = 0; i < 256; i++) {
-  _HEX[i] = (i > 0xF ? '' : '0') + i.toString(16);
-}
-
-//
-// Int64
-//
-
-/**
- * Constructor accepts any of the following argument types:
- *
- * new Int64(buffer[, offset=0]) - Existing Buffer with byte offset
- * new Int64(string)             - Hex string (throws if n is outside int64 range)
- * new Int64(number)             - Number (throws if n is outside int64 range)
- * new Int64(hi, lo)             - Raw bits as two 32-bit values
- */
-var Int64 = module.exports = function(a1, a2) {
-  if (a1 instanceof Buffer) {
-    this.buffer = a1;
-    this.offset = a2 || 0;
-  } else {
-    this.buffer = this.buffer || new Buffer(8);
-    this.offset = 0;
-    this.setValue.apply(this, arguments);
-  }
-};
-
-
-// Max integer value that JS can accurately represent
-Int64.MAX_INT = Math.pow(2, 53);
-
-// Min integer value that JS can accurately represent
-Int64.MIN_INT = -Math.pow(2, 53);
-
-Int64.prototype = {
-  /**
-   * Do in-place 2's compliment.  See
-   * http://en.wikipedia.org/wiki/Two's_complement
-   */
-  _2scomp: function() {
-    var b = this.buffer, o = this.offset, carry = 1;
-    for (var i = o + 7; i >= o; i--) {
-      var v = (b[i] ^ 0xff) + carry;
-      b[i] = v & 0xff;
-      carry = v >> 8;
-    }
-  },
-
-  /**
-   * Set the value. Takes any of the following arguments:
-   *
-   * setValue(string) - A hexidecimal string
-   * setValue(number) - Number (throws if n is outside int64 range)
-   * setValue(hi, lo) - Raw bits as two 32-bit values
-   */
-  setValue: function(hi, lo) {
-    var negate = false;
-    if (arguments.length == 1) {
-      if (typeof(hi) == 'number') {
-        // Simplify bitfield retrieval by using abs() value.  We restore sign
-        // later
-        negate = hi < 0;
-        hi = Math.abs(hi);
-        lo = hi % VAL32;
-        hi = hi / VAL32;
-        if (hi > VAL32) throw new RangeError(hi  + ' is outside Int64 range');
-        hi = hi | 0;
-      } else if (typeof(hi) == 'string') {
-        hi = (hi + '').replace(/^0x/, '');
-        lo = hi.substr(-8);
-        hi = hi.length > 8 ? hi.substr(0, hi.length - 8) : '';
-        hi = parseInt(hi, 16);
-        lo = parseInt(lo, 16);
-      } else {
-        throw new Error(hi + ' must be a Number or String');
-      }
-    }
-
-    // Technically we should throw if hi or lo is outside int32 range here, but
-    // it's not worth the effort. Anything past the 32'nd bit is ignored.
-
-    // Copy bytes to buffer
-    var b = this.buffer, o = this.offset;
-    for (var i = 7; i >= 0; i--) {
-      b[o+i] = lo & 0xff;
-      lo = i == 4 ? hi : lo >>> 8;
-    }
-
-    // Restore sign of passed argument
-    if (negate) this._2scomp();
-  },
-
-  /**
-   * Convert to a native JS number.
-   *
-   * WARNING: Do not expect this value to be accurate to integer precision for
-   * large (positive or negative) numbers!
-   *
-   * @param allowImprecise If true, no check is performed to verify the
-   * returned value is accurate to integer precision.  If false, imprecise
-   * numbers (very large positive or negative numbers) will be forced to +/-
-   * Infinity.
-   */
-  toNumber: function(allowImprecise) {
-    var b = this.buffer, o = this.offset;
-
-    // Running sum of octets, doing a 2's complement
-    var negate = b[o] & 0x80, x = 0, carry = 1;
-    for (var i = 7, m = 1; i >= 0; i--, m *= 256) {
-      var v = b[o+i];
-
-      // 2's complement for negative numbers
-      if (negate) {
-        v = (v ^ 0xff) + carry;
-        carry = v >> 8;
-        v = v & 0xff;
-      }
-
-      x += v * m;
-    }
-
-    // Return Infinity if we've lost integer precision
-    if (!allowImprecise && x >= Int64.MAX_INT) {
-      return negate ? -Infinity : Infinity;
-    }
-
-    return negate ? -x : x;
-  },
-
-  /**
-   * Convert to a JS Number. Returns +/-Infinity for values that can't be
-   * represented to integer precision.
-   */
-  valueOf: function() {
-    return this.toNumber(false);
-  },
-
-  /**
-   * Return string value
-   *
-   * @param radix Just like Number#toString()'s radix
-   */
-  toString: function(radix) {
-    return this.valueOf().toString(radix || 10);
-  },
-
-  /**
-   * Return a string showing the buffer octets, with MSB on the left.
-   *
-   * @param sep separator string. default is '' (empty string)
-   */
-  toOctetString: function(sep) {
-    var out = new Array(8);
-    var b = this.buffer, o = this.offset;
-    for (var i = 0; i < 8; i++) {
-      out[i] = _HEX[b[o+i]];
-    }
-    return out.join(sep || '');
-  },
-
-  /**
-   * Pretty output in console.log
-   */
-  inspect: function() {
-    return '[Int64 value:' + this + ' octets:' + this.toOctetString(' ') + ']';
-  }
-};
-
-}).call(this,require("buffer").Buffer)
-},{"buffer":281}],69:[function(require,module,exports){
+},{"buffer":255,"zlib":274}],77:[function(require,module,exports){
 /*! http://mths.be/endswith v0.1.0 by @mathias */
 if (!String.prototype.endsWith) {
 	(function() {
@@ -23954,7 +25255,7 @@ if (!String.prototype.endsWith) {
 	}());
 }
 
-},{}],70:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 'use strict';
 
 var vkey = require('vkey');
@@ -24082,7 +25383,7 @@ KeysPlugin.prototype.keyUp = function(ev) {
 };
 
 
-},{"events":284,"inherits":71,"vkey":72}],71:[function(require,module,exports){
+},{"events":258,"inherits":79,"vkey":80}],79:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -24107,9 +25408,9 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],72:[function(require,module,exports){
-module.exports=require(21)
-},{}],73:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
+module.exports=require(20)
+},{}],81:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -24177,7 +25478,7 @@ function createVoxelMesh(gl, voxels, voxelSideTextureIDs, voxelSideTextureSizes)
 
 module.exports = createVoxelMesh
 
-},{"./mesh.js":75,"gl-buffer":80,"gl-vao":96,"ndarray":105,"ndarray-ops":100}],74:[function(require,module,exports){
+},{"./mesh.js":83,"gl-buffer":88,"gl-vao":99,"ndarray":35,"ndarray-ops":103}],82:[function(require,module,exports){
 'use strict';
 
 var createVoxelMesh = require('./mesh-buffer.js');
@@ -24232,7 +25533,7 @@ MesherPlugin.prototype.createMeshes = function() {
   */
 };
 
-},{"./mesh-buffer.js":73}],75:[function(require,module,exports){
+},{"./mesh-buffer.js":81}],83:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -24783,7 +26084,7 @@ function computeMesh(array, voxelSideTextureIDs, voxelSideTextureSizes) {
 
 module.exports = computeMesh
 
-},{"cwise-compiler":76,"greedy-mesher":97,"ndarray":105,"typedarray-pool":109}],76:[function(require,module,exports){
+},{"cwise-compiler":84,"greedy-mesher":100,"ndarray":35,"typedarray-pool":110}],84:[function(require,module,exports){
 "use strict"
 
 var createThunk = require("./lib/thunk.js")
@@ -24891,7 +26192,7 @@ function compileCwise(user_args) {
 
 module.exports = compileCwise
 
-},{"./lib/thunk.js":78}],77:[function(require,module,exports){
+},{"./lib/thunk.js":86}],85:[function(require,module,exports){
 "use strict"
 
 var uniq = require("uniq")
@@ -25175,11 +26476,11 @@ function generateCWiseOp(proc, typesig) {
   return f()
 }
 module.exports = generateCWiseOp
-},{"uniq":79}],78:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"./compile.js":77}],79:[function(require,module,exports){
-module.exports=require(20)
-},{}],80:[function(require,module,exports){
+},{"uniq":87}],86:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./compile.js":85}],87:[function(require,module,exports){
+module.exports=require(19)
+},{}],88:[function(require,module,exports){
 "use strict"
 
 var pool = require("typedarray-pool")
@@ -25331,7 +26632,1020 @@ function createBuffer(gl, data, type, usage) {
 }
 
 module.exports = createBuffer
-},{"ndarray":105,"ndarray-ops":81,"typedarray-pool":88,"webglew":90}],81:[function(require,module,exports){
+},{"ndarray":35,"ndarray-ops":103,"typedarray-pool":91,"webglew":93}],89:[function(require,module,exports){
+/**
+ * Bit twiddling hacks for JavaScript.
+ *
+ * Author: Mikola Lysenko
+ *
+ * Ported from Stanford bit twiddling hack library:
+ *    http://graphics.stanford.edu/~seander/bithacks.html
+ */
+
+"use strict"; "use restrict";
+
+//Number of bits in an integer
+var INT_BITS = 32;
+
+//Constants
+exports.INT_BITS  = INT_BITS;
+exports.INT_MAX   =  0x7fffffff;
+exports.INT_MIN   = -1<<(INT_BITS-1);
+
+//Returns -1, 0, +1 depending on sign of x
+exports.sign = function(v) {
+  return (v > 0) - (v < 0);
+}
+
+//Computes absolute value of integer
+exports.abs = function(v) {
+  var mask = v >> (INT_BITS-1);
+  return (v ^ mask) - mask;
+}
+
+//Computes minimum of integers x and y
+exports.min = function(x, y) {
+  return y ^ ((x ^ y) & -(x < y));
+}
+
+//Computes maximum of integers x and y
+exports.max = function(x, y) {
+  return x ^ ((x ^ y) & -(x < y));
+}
+
+//Checks if a number is a power of two
+exports.isPow2 = function(v) {
+  return !(v & (v-1)) && (!!v);
+}
+
+//Computes log base 2 of v
+exports.log2 = function(v) {
+  var r, shift;
+  r =     (v > 0xFFFF) << 4; v >>>= r;
+  shift = (v > 0xFF  ) << 3; v >>>= shift; r |= shift;
+  shift = (v > 0xF   ) << 2; v >>>= shift; r |= shift;
+  shift = (v > 0x3   ) << 1; v >>>= shift; r |= shift;
+  return r | (v >> 1);
+}
+
+//Computes log base 10 of v
+exports.log10 = function(v) {
+  return  (v >= 1000000000) ? 9 : (v >= 100000000) ? 8 : (v >= 10000000) ? 7 :
+          (v >= 1000000) ? 6 : (v >= 100000) ? 5 : (v >= 10000) ? 4 :
+          (v >= 1000) ? 3 : (v >= 100) ? 2 : (v >= 10) ? 1 : 0;
+}
+
+//Counts number of bits
+exports.popCount = function(v) {
+  v = v - ((v >>> 1) & 0x55555555);
+  v = (v & 0x33333333) + ((v >>> 2) & 0x33333333);
+  return ((v + (v >>> 4) & 0xF0F0F0F) * 0x1010101) >>> 24;
+}
+
+//Counts number of trailing zeros
+function countTrailingZeros(v) {
+  var c = 32;
+  v &= -v;
+  if (v) c--;
+  if (v & 0x0000FFFF) c -= 16;
+  if (v & 0x00FF00FF) c -= 8;
+  if (v & 0x0F0F0F0F) c -= 4;
+  if (v & 0x33333333) c -= 2;
+  if (v & 0x55555555) c -= 1;
+  return c;
+}
+exports.countTrailingZeros = countTrailingZeros;
+
+//Rounds to next power of 2
+exports.nextPow2 = function(v) {
+  v += v === 0;
+  --v;
+  v |= v >>> 1;
+  v |= v >>> 2;
+  v |= v >>> 4;
+  v |= v >>> 8;
+  v |= v >>> 16;
+  return v + 1;
+}
+
+//Rounds down to previous power of 2
+exports.prevPow2 = function(v) {
+  v |= v >>> 1;
+  v |= v >>> 2;
+  v |= v >>> 4;
+  v |= v >>> 8;
+  v |= v >>> 16;
+  return v - (v>>>1);
+}
+
+//Computes parity of word
+exports.parity = function(v) {
+  v ^= v >>> 16;
+  v ^= v >>> 8;
+  v ^= v >>> 4;
+  v &= 0xf;
+  return (0x6996 >>> v) & 1;
+}
+
+var REVERSE_TABLE = new Array(256);
+
+(function(tab) {
+  for(var i=0; i<256; ++i) {
+    var v = i, r = i, s = 7;
+    for (v >>>= 1; v; v >>>= 1) {
+      r <<= 1;
+      r |= v & 1;
+      --s;
+    }
+    tab[i] = (r << s) & 0xff;
+  }
+})(REVERSE_TABLE);
+
+//Reverse bits in a 32 bit word
+exports.reverse = function(v) {
+  return  (REVERSE_TABLE[ v         & 0xff] << 24) |
+          (REVERSE_TABLE[(v >>> 8)  & 0xff] << 16) |
+          (REVERSE_TABLE[(v >>> 16) & 0xff] << 8)  |
+           REVERSE_TABLE[(v >>> 24) & 0xff];
+}
+
+//Interleave bits of 2 coordinates with 16 bits.  Useful for fast quadtree codes
+exports.interleave2 = function(x, y) {
+  x &= 0xFFFF;
+  x = (x | (x << 8)) & 0x00FF00FF;
+  x = (x | (x << 4)) & 0x0F0F0F0F;
+  x = (x | (x << 2)) & 0x33333333;
+  x = (x | (x << 1)) & 0x55555555;
+
+  y &= 0xFFFF;
+  y = (y | (y << 8)) & 0x00FF00FF;
+  y = (y | (y << 4)) & 0x0F0F0F0F;
+  y = (y | (y << 2)) & 0x33333333;
+  y = (y | (y << 1)) & 0x55555555;
+
+  return x | (y << 1);
+}
+
+//Extracts the nth interleaved component
+exports.deinterleave2 = function(v, n) {
+  v = (v >>> n) & 0x55555555;
+  v = (v | (v >>> 1))  & 0x33333333;
+  v = (v | (v >>> 2))  & 0x0F0F0F0F;
+  v = (v | (v >>> 4))  & 0x00FF00FF;
+  v = (v | (v >>> 16)) & 0x000FFFF;
+  return (v << 16) >> 16;
+}
+
+
+//Interleave bits of 3 coordinates, each with 10 bits.  Useful for fast octree codes
+exports.interleave3 = function(x, y, z) {
+  x &= 0x3FF;
+  x  = (x | (x<<16)) & 4278190335;
+  x  = (x | (x<<8))  & 251719695;
+  x  = (x | (x<<4))  & 3272356035;
+  x  = (x | (x<<2))  & 1227133513;
+
+  y &= 0x3FF;
+  y  = (y | (y<<16)) & 4278190335;
+  y  = (y | (y<<8))  & 251719695;
+  y  = (y | (y<<4))  & 3272356035;
+  y  = (y | (y<<2))  & 1227133513;
+  x |= (y << 1);
+  
+  z &= 0x3FF;
+  z  = (z | (z<<16)) & 4278190335;
+  z  = (z | (z<<8))  & 251719695;
+  z  = (z | (z<<4))  & 3272356035;
+  z  = (z | (z<<2))  & 1227133513;
+  
+  return x | (z << 2);
+}
+
+//Extracts nth interleaved component of a 3-tuple
+exports.deinterleave3 = function(v, n) {
+  v = (v >>> n)       & 1227133513;
+  v = (v | (v>>>2))   & 3272356035;
+  v = (v | (v>>>4))   & 251719695;
+  v = (v | (v>>>8))   & 4278190335;
+  v = (v | (v>>>16))  & 0x3FF;
+  return (v<<22)>>22;
+}
+
+//Computes next combination in colexicographic order (this is mistakenly called nextPermutation on the bit twiddling hacks page)
+exports.nextCombination = function(v) {
+  var t = v | (v - 1);
+  return (t + 1) | (((~t & -~t) - 1) >>> (countTrailingZeros(v) + 1));
+}
+
+
+},{}],90:[function(require,module,exports){
+"use strict"
+
+function dupe_array(count, value, i) {
+  var c = count[i]|0
+  if(c <= 0) {
+    return []
+  }
+  var result = new Array(c), j
+  if(i === count.length-1) {
+    for(j=0; j<c; ++j) {
+      result[j] = value
+    }
+  } else {
+    for(j=0; j<c; ++j) {
+      result[j] = dupe_array(count, value, i+1)
+    }
+  }
+  return result
+}
+
+function dupe_number(count, value) {
+  var result, i
+  result = new Array(count)
+  for(i=0; i<count; ++i) {
+    result[i] = value
+  }
+  return result
+}
+
+function dupe(count, value) {
+  if(typeof value === "undefined") {
+    value = 0
+  }
+  switch(typeof count) {
+    case "number":
+      if(count > 0) {
+        return dupe_number(count|0, value)
+      }
+    break
+    case "object":
+      if(typeof (count.length) === "number") {
+        return dupe_array(count, value, 0)
+      }
+    break
+  }
+  return []
+}
+
+module.exports = dupe
+},{}],91:[function(require,module,exports){
+(function (global,Buffer){
+"use strict"
+
+var bits = require("bit-twiddle")
+var dup = require("dup")
+if(!global.__TYPEDARRAY_POOL) {
+  global.__TYPEDARRAY_POOL = {
+      UINT8   : dup([32, 0])
+    , UINT16  : dup([32, 0])
+    , UINT32  : dup([32, 0])
+    , INT8    : dup([32, 0])
+    , INT16   : dup([32, 0])
+    , INT32   : dup([32, 0])
+    , FLOAT   : dup([32, 0])
+    , DOUBLE  : dup([32, 0])
+    , DATA    : dup([32, 0])
+    , UINT8C  : dup([32, 0])
+    , BUFFER  : dup([32, 0])
+  }
+}
+var POOL = global.__TYPEDARRAY_POOL
+if(!POOL.UINT8C) {
+  POOL.UINT8C = dup([32, 0])
+}
+if(!POOL.BUFFER) {
+  POOL.BUFFER = dup([32, 0])
+}
+var UINT8   = POOL.UINT8
+  , UINT16  = POOL.UINT16
+  , UINT32  = POOL.UINT32
+  , INT8    = POOL.INT8
+  , INT16   = POOL.INT16
+  , INT32   = POOL.INT32
+  , FLOAT   = POOL.FLOAT
+  , DOUBLE  = POOL.DOUBLE
+  , DATA    = POOL.DATA
+  , UINT8C  = POOL.UINT8C
+  , BUFFER  = POOL.BUFFER
+
+exports.free = function free(array) {
+  if(array instanceof ArrayBuffer) {
+    var n = array.byteLength|0
+      , log_n = bits.log2(n)
+    DATA[log_n].push(array)
+  } else {
+    var n = array.length|0
+      , log_n = bits.log2(n)
+    if(array instanceof Uint8Array) {
+      UINT8[log_n].push(array)
+    } else if(array instanceof Uint16Array) {
+      UINT16[log_n].push(array)
+    } else if(array instanceof Uint32Array) {
+      UINT32[log_n].push(array)
+    } else if(array instanceof Int8Array) {
+      INT8[log_n].push(array)
+    } else if(array instanceof Int16Array) {
+      INT16[log_n].push(array)
+    } else if(array instanceof Int32Array) {
+      INT32[log_n].push(array)
+    } else if(array instanceof Float32Array) {
+      FLOAT[log_n].push(array)
+    } else if(array instanceof Float64Array) {
+      DOUBLE[log_n].push(array)
+    } else if(array instanceof Uint8ClampedArray) {
+      UINT8C[log_n].push(array)
+    } else if(array instanceof Buffer) {
+      BUFFER[log_n].push(array)
+    } else {
+      throw new Error("typedarray-pool: Unspecified array type")
+    }
+  }
+}
+
+exports.freeUint8 = function freeUint8(array) {
+  UINT8[bits.log2(array.length)].push(array)
+}
+
+exports.freeUint16 = function freeUint16(array) {
+  UINT16[bits.log2(array.length)].push(array)
+}
+
+exports.freeUint32 = function freeUint32(array) {
+  UINT32[bits.log2(array.length)].push(array)
+}
+
+exports.freeInt8 = function freeInt8(array) {
+  INT8[bits.log2(array.length)].push(array)
+}
+
+exports.freeInt16 = function freeInt16(array) {
+  INT16[bits.log2(array.length)].push(array)
+}
+
+exports.freeInt32 = function freeInt32(array) {
+  INT32[bits.log2(array.length)].push(array)
+}
+
+exports.freeFloat32 = exports.freeFloat = function freeFloat(array) {
+  FLOAT[bits.log2(array.length)].push(array)
+}
+
+exports.freeFloat64 = exports.freeDouble = function freeDouble(array) {
+  DOUBLE[bits.log2(array.length)].push(array)
+}
+
+exports.freeArrayBuffer = function freeArrayBuffer(array) {
+  DATA[bits.log2(array.length)].push(array)
+}
+
+exports.freeUint8Clamped = function freeUint8Clamped(array) {
+  UINT8C[bits.log2(array.length)].push(array)
+}
+
+exports.freeBuffer = function freeBuffer(array) {
+  BUFFER[bits.log2(array.length)].push(array)
+}
+
+exports.malloc = function malloc(n, dtype) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  if(dtype === undefined) {
+    var d = DATA[log_n]
+    if(d.length > 0) {
+      var r = d[d.length-1]
+      d.pop()
+      return r
+    }
+    return new ArrayBuffer(n)
+  } else {
+    switch(dtype) {
+      case "uint8":
+        var u8 = UINT8[log_n]
+        if(u8.length > 0) {
+          return u8.pop()
+        }
+        return new Uint8Array(n)
+      break
+
+      case "uint16":
+        var u16 = UINT16[log_n]
+        if(u16.length > 0) {
+          return u16.pop()
+        }
+        return new Uint16Array(n)
+      break
+
+      case "uint32":
+        var u32 = UINT32[log_n]
+        if(u32.length > 0) {
+          return u32.pop()
+        }
+        return new Uint32Array(n)
+      break
+
+      case "int8":
+        var i8 = INT8[log_n]
+        if(i8.length > 0) {
+          return i8.pop()
+        }
+        return new Int8Array(n)
+      break
+
+      case "int16":
+        var i16 = INT16[log_n]
+        if(i16.length > 0) {
+          return i16.pop()
+        }
+        return new Int16Array(n)
+      break
+
+      case "int32":
+        var i32 = INT32[log_n]
+        if(i32.length > 0) {
+          return i32.pop()
+        }
+        return new Int32Array(n)
+      break
+
+      case "float":
+      case "float32":
+        var f = FLOAT[log_n]
+        if(f.length > 0) {
+          return f.pop()
+        }
+        return new Float32Array(n)
+      break
+
+      case "double":
+      case "float64":
+        var dd = DOUBLE[log_n]
+        if(dd.length > 0) {
+          return dd.pop()
+        }
+        return new Float64Array(n)
+      break
+
+      case "uint8_clamped":
+        var u8c = UINT8C[log_n]
+        if(u8c.length > 0) {
+          return u8c.pop()
+        }
+        return new Uint8ClampedArray(n)
+      break
+
+      case "buffer":
+        var buf = BUFFER[log_n]
+        if(buf.length > 0) {
+          return buf.pop()
+        }
+        return new Buffer(n)
+      break
+
+      default:
+        return null
+    }
+  }
+  return null
+}
+
+exports.mallocUint8 = function mallocUint8(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = UINT8[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new Uint8Array(n)
+}
+
+exports.mallocUint16 = function mallocUint16(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = UINT16[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new Uint16Array(n)
+}
+
+exports.mallocUint32 = function mallocUint32(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = UINT32[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new Uint32Array(n)
+}
+
+exports.mallocInt8 = function mallocInt8(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = INT8[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new Int8Array(n)
+}
+
+exports.mallocInt16 = function mallocInt16(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = INT16[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new Int16Array(n)
+}
+
+exports.mallocInt32 = function mallocInt32(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = INT32[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new Int32Array(n)
+}
+
+exports.mallocFloat32 = exports.mallocFloat = function mallocFloat(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = FLOAT[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new Float32Array(n)
+}
+
+exports.mallocFloat64 = exports.mallocDouble = function mallocDouble(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = DOUBLE[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new Float64Array(n)
+}
+
+exports.mallocArrayBuffer = function mallocArrayBuffer(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = DATA[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new ArrayBuffer(n)
+}
+
+exports.mallocUint8Clamped = function mallocUint8Clamped(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = UINT8C[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new Uint8ClampedArray(n)
+}
+
+exports.mallocBuffer = function mallocBuffer(n) {
+  n = bits.nextPow2(n)
+  var log_n = bits.log2(n)
+  var cache = BUFFER[log_n]
+  if(cache.length > 0) {
+    return cache.pop()
+  }
+  return new Buffer(n)
+}
+
+exports.clearCache = function clearCache() {
+  for(var i=0; i<32; ++i) {
+    UINT8[i].length = 0
+    UINT16[i].length = 0
+    UINT32[i].length = 0
+    INT8[i].length = 0
+    INT16[i].length = 0
+    INT32[i].length = 0
+    FLOAT[i].length = 0
+    DOUBLE[i].length = 0
+    DATA[i].length = 0
+    UINT8C[i].length = 0
+    BUFFER[i].length = 0
+  }
+}
+
+}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
+},{"bit-twiddle":89,"buffer":255,"dup":90}],92:[function(require,module,exports){
+module.exports=require(22)
+},{}],93:[function(require,module,exports){
+module.exports=require(23)
+},{"weakmap":92}],94:[function(require,module,exports){
+"use strict"
+
+function doBind(gl, elements, attributes) {
+  if(elements) {
+    elements.bind()
+  } else {
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
+  }
+  var nattribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS)|0
+  if(attributes) {
+    if(attributes.length > nattribs) {
+      throw new Error("gl-vao: Too many vertex attributes")
+    }
+    for(var i=0; i<attributes.length; ++i) {
+      var attrib = attributes[i]
+      if(attrib.buffer) {
+        var buffer = attrib.buffer
+        var size = attrib.size || 4
+        var type = attrib.type || gl.FLOAT
+        var normalized = !!attrib.normalized
+        var stride = attrib.stride || 0
+        var offset = attrib.offset || 0
+        buffer.bind()
+        gl.enableVertexAttribArray(i)
+        gl.vertexAttribPointer(i, size, type, normalized, stride, offset)
+      } else {
+        if(typeof attrib === "number") {
+          gl.vertexAttrib1f(i, attrib)
+        } else if(attrib.length === 1) {
+          gl.vertexAttrib1f(i, attrib[0])
+        } else if(attrib.length === 2) {
+          gl.vertexAttrib2f(i, attrib[0], attrib[1])
+        } else if(attrib.length === 3) {
+          gl.vertexAttrib3f(i, attrib[0], attrib[1], attrib[2])
+        } else if(attrib.length === 4) {
+          gl.vertexAttrib4f(i, attrib[0], attrib[1], attrib[2], attrib[3])
+        } else {
+          throw new Error("gl-vao: Invalid vertex attribute")
+        }
+        gl.disableVertexAttribArray(i)
+      }
+    }
+    for(; i<nattribs; ++i) {
+      gl.disableVertexAttribArray(i)
+    }
+  } else {
+    gl.bindBuffer(gl.ARRAY_BUFFER, null)
+    for(var i=0; i<nattribs; ++i) {
+      gl.disableVertexAttribArray(i)
+    }
+  }
+}
+
+module.exports = doBind
+},{}],95:[function(require,module,exports){
+"use strict"
+
+var bindAttribs = require("./do-bind.js")
+
+function VAOEmulated(gl) {
+  this.gl = gl
+  this._elements = null
+  this._attributes = null
+}
+
+VAOEmulated.prototype.bind = function() {
+  bindAttribs(this.gl, this._elements, this._attributes)
+}
+
+VAOEmulated.prototype.update = function(attributes, elements) {
+  this._elements = elements
+  this._attributes = attributes
+}
+
+VAOEmulated.prototype.dispose = function() { }
+VAOEmulated.prototype.unbind = function() { }
+
+VAOEmulated.prototype.draw = function(mode, count, offset) {
+  offset = offset || 0
+  var gl = this.gl
+  if(this._elements) {
+    gl.drawElements(mode, count, gl.UNSIGNED_SHORT, offset)
+  } else {
+    gl.drawArrays(mode, offset, count)
+  }
+}
+
+function createVAOEmulated(gl) {
+  return new VAOEmulated(gl)
+}
+
+module.exports = createVAOEmulated
+},{"./do-bind.js":94}],96:[function(require,module,exports){
+"use strict"
+
+var bindAttribs = require("./do-bind.js")
+
+function VertexAttribute(location, dimension, a, b, c, d) {
+  this.location = location
+  this.dimension = dimension
+  this.a = a
+  this.b = b
+  this.c = c
+  this.d = d
+}
+
+VertexAttribute.prototype.bind = function(gl) {
+  switch(this.dimension) {
+    case 1:
+      gl.vertexAttrib1f(this.location, this.a)
+    break
+    case 2:
+      gl.vertexAttrib2f(this.location, this.a, this.b)
+    break
+    case 3:
+      gl.vertexAttrib3f(this.location, this.a, this.b, this.c)
+    break
+    case 4:
+      gl.vertexAttrib4f(this.location, this.a, this.b, this.c, this.d)
+    break
+  }
+}
+
+function VAONative(gl, ext, handle) {
+  this.gl = gl
+  this._ext = ext
+  this.handle = handle
+  this._attribs = []
+  this._useElements = false
+}
+
+VAONative.prototype.bind = function() {
+  this._ext.bindVertexArrayOES(this.handle)
+  for(var i=0; i<this._attribs.length; ++i) {
+    this._attribs[i].bind(this.gl)
+  }
+}
+
+VAONative.prototype.unbind = function() {
+  this._ext.bindVertexArrayOES(null)
+}
+
+VAONative.prototype.dispose = function() {
+  this._ext.deleteVertexArrayOES(this.handle)
+}
+
+VAONative.prototype.update = function(attributes, elements) {
+  this.bind()
+  bindAttribs(this.gl, elements, attributes)
+  this.unbind()
+  this._attribs.length = 0
+  if(attributes)
+  for(var i=0; i<attributes.length; ++i) {
+    var a = attributes[i]
+    if(typeof a === "number") {
+      this._attribs.push(new VertexAttribute(i, 1, a))
+    } else if(Array.isArray(a)) {
+      this._attribs.push(new VertexAttribute(i, a.length, a[0], a[1], a[2], a[3]))
+    }
+  }
+  this._useElements = !!elements
+}
+
+VAONative.prototype.draw = function(mode, count, offset) {
+  offset = offset || 0
+  var gl = this.gl
+  if(this._useElements) {
+    gl.drawElements(mode, count, gl.UNSIGNED_SHORT, offset)
+  } else {
+    gl.drawArrays(mode, offset, count)
+  }
+}
+
+function createVAONative(gl, ext) {
+  return new VAONative(gl, ext, ext.createVertexArrayOES())
+}
+
+module.exports = createVAONative
+},{"./do-bind.js":94}],97:[function(require,module,exports){
+module.exports=require(22)
+},{}],98:[function(require,module,exports){
+module.exports=require(23)
+},{"weakmap":97}],99:[function(require,module,exports){
+"use strict"
+
+var webglew = require("webglew")
+var createVAONative = require("./lib/vao-native.js")
+var createVAOEmulated = require("./lib/vao-emulated.js")
+
+function createVAO(gl, attributes, elements) {
+  var ext = webglew(gl).OES_vertex_array_object
+  var vao
+  if(ext) {
+    vao = createVAONative(gl, ext)
+  } else {
+    vao = createVAOEmulated(gl)
+  }
+  vao.update(attributes, elements)
+  return vao
+}
+
+module.exports = createVAO
+},{"./lib/vao-emulated.js":95,"./lib/vao-native.js":96,"webglew":98}],100:[function(require,module,exports){
+"use strict"
+
+var pool = require("typedarray-pool")
+var uniq = require("uniq")
+var iota = require("iota-array")
+
+function generateMesher(order, skip, merge, append, num_options, options, useGetter) {
+  var code = []
+  var d = order.length
+  var i, j, k
+  
+  //Build arguments for append macro
+  var append_args = new Array(2*d+1+num_options)
+  for(i=0; i<d; ++i) {
+    append_args[i] = "i"+i
+  }
+  for(i=0; i<d; ++i) {
+    append_args[i+d] = "j"+i
+  }
+  append_args[2*d] = "oval"
+  
+  var opt_args = new Array(num_options)
+  for(i=0; i<num_options; ++i) {
+    opt_args[i] = "opt"+i
+    append_args[2*d+1+i] = "opt"+i
+  }
+
+  //Unpack stride and shape arrays into variables
+  code.push("var data=array.data,offset=array.offset,shape=array.shape,stride=array.stride")
+  for(var i=0; i<d; ++i) {
+    code.push(["var stride",i,"=stride[",order[i],"]|0,shape",i,"=shape[",order[i],"]|0"].join(""))
+    if(i > 0) {
+      code.push(["var astep",i,"=(stride",i,"-stride",i-1,"*shape",i-1,")|0"].join(""))
+    } else {
+      code.push(["var astep",i,"=stride",i,"|0"].join(""))
+    }
+    if(i > 0) {
+      code.push(["var vstep",i,"=(vstep",i-1,"*shape",i-1,")|0"].join(""))
+    } else {
+      code.push(["var vstep",i,"=1"].join(""))
+    }
+    code.push(["var i",i,"=0,j",i,"=0,k",i,"=0,ustep",i,"=vstep",i,"|0,bstep",i,"=astep",i,"|0"].join(""))
+  }
+  
+  //Initialize pointers
+  code.push("var a_ptr=offset>>>0,b_ptr=0,u_ptr=0,v_ptr=0,i=0,d=0,val=0,oval=0")
+  
+  //Initialize count
+  code.push("var count=" + iota(d).map(function(i) { return "shape"+i}).join("*"))
+  code.push("var visited=mallocUint8(count)")
+  
+  //Zero out visited map
+  code.push("for(;i<count;++i){visited[i]=0}")
+  
+  //Begin traversal
+  for(i=d-1; i>=0; --i) {
+    code.push(["for(i",i,"=0;i",i,"<shape",i,";++i",i,"){"].join(""))
+  }
+  code.push("if(!visited[v_ptr]){")
+  
+    if(useGetter) {
+      code.push("val=data.get(a_ptr)")
+    } else {
+      code.push("val=data[a_ptr]")
+    }
+  
+    if(skip) {
+      code.push("if(!skip(val)){")
+    } else {
+      code.push("if(val!==0){")
+    }
+  
+      //Save val to oval
+      code.push("oval = val")
+  
+      //Generate merging code
+      for(i=0; i<d; ++i) {
+        code.push("u_ptr=v_ptr+vstep"+i)
+        code.push("b_ptr=a_ptr+stride"+i)
+        code.push(["j",i,"_loop: for(j",i,"=1+i",i,";j",i,"<shape",i,";++j",i,"){"].join(""))
+        for(j=i-1; j>=0; --j) {
+          code.push(["for(k",j,"=i",j,";k",j,"<j",j,";++k",j,"){"].join(""))
+        }
+        
+          //Check if we can merge this voxel
+          code.push("if(visited[u_ptr]) { break j"+i+"_loop; }")
+        
+          if(useGetter) {
+            code.push("val=data.get(b_ptr)")
+          } else {
+            code.push("val=data[b_ptr]")
+          }
+        
+          if(skip && merge) {
+            code.push("if(skip(val) || !merge(oval,val)){ break j"+i+"_loop; }")
+          } else if(skip) {
+            code.push("if(skip(val) || val !== oval){ break j"+i+"_loop; }")
+          } else if(merge) {
+            code.push("if(val === 0 || !merge(oval,val)){ break j"+i+"_loop; }")
+          } else {
+            code.push("if(val === 0 || val !== oval){ break j"+i+"_loop; }")
+          }
+          
+          //Close off loop bodies
+          code.push("++u_ptr")
+          code.push("b_ptr+=stride0")
+        code.push("}")
+        
+        for(j=1; j<=i; ++j) {
+          code.push("u_ptr+=ustep"+j)
+          code.push("b_ptr+=bstep"+j)
+          code.push("}")
+        }
+        if(i < d-1) {
+          code.push("d=j"+i+"-i"+i)
+          code.push(["ustep",i+1,"=(vstep",i+1,"-vstep",i,"*d)|0"].join(""))
+          code.push(["bstep",i+1,"=(stride",i+1,"-stride",i,"*d)|0"].join(""))
+        }
+      }
+  
+      //Mark off visited table
+      code.push("u_ptr=v_ptr")
+      for(i=d-1; i>=0; --i) {
+        code.push(["for(k",i,"=i",i,";k",i,"<j",i,";++k",i,"){"].join(""))
+      }
+      code.push("visited[u_ptr++]=1")
+      code.push("}")
+      for(i=1; i<d; ++i) {
+        code.push("u_ptr+=ustep"+i)
+        code.push("}")
+      }
+  
+      //Append chunk to mesh
+      code.push("append("+ append_args.join(",")+ ")")
+    
+    code.push("}")
+  code.push("}")
+  code.push("++v_ptr")
+  for(var i=0; i<d; ++i) {
+    code.push("a_ptr+=astep"+i)
+    code.push("}")
+  }
+  
+  code.push("freeUint8(visited)")
+  
+  if(options.debug) {
+    console.log("GENERATING MESHER:")
+    console.log(code.join("\n"))
+  }
+  
+  //Compile procedure
+  var args = ["append", "mallocUint8", "freeUint8"]
+  if(merge) {
+    args.unshift("merge")
+  }
+  if(skip) {
+    args.unshift("skip")
+  }
+  
+  //Build wrapper
+  var local_args = ["array"].concat(opt_args)
+  var funcName = ["greedyMesher", d, "d_ord", order.join("s") , (skip ? "skip" : "") , (merge ? "merge" : "")].join("")
+  var gen_body = ["'use strict';function ", funcName, "(", local_args.join(","), "){", code.join("\n"), "};return ", funcName].join("")
+  args.push(gen_body)
+  var proc = Function.apply(undefined, args)
+  
+  if(skip && merge) {
+    return proc(skip, merge, append, pool.mallocUint8, pool.freeUint8)
+  } else if(skip) {
+    return proc(skip, append, pool.mallocUint8, pool.freeUint8)
+  } else if(merge) {
+    return proc(merge, append, pool.mallocUint8, pool.freeUint8)
+  } else {
+    return proc(append, pool.mallocUint8, pool.freeUint8)
+  }
+}
+
+//The actual mesh compiler
+function compileMesher(options) {
+  options = options || {}
+  if(!options.order) {
+    throw new Error("greedy-mesher: Missing order field")
+  }
+  if(!options.append) {
+    throw new Error("greedy-mesher: Missing append field")
+  }
+  return generateMesher(
+    options.order,
+    options.skip,
+    options.merge,
+    options.append,
+    options.extraArgs|0,
+    options,
+    !!options.useGetter
+  )
+}
+module.exports = compileMesher
+
+},{"iota-array":101,"typedarray-pool":110,"uniq":102}],101:[function(require,module,exports){
+module.exports=require(18)
+},{}],102:[function(require,module,exports){
+module.exports=require(19)
+},{}],103:[function(require,module,exports){
 "use strict"
 
 var compile = require("cwise-compiler")
@@ -25794,1046 +28108,19 @@ exports.equals = compile({
 
 
 
-},{"cwise-compiler":82}],82:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"./lib/thunk.js":84}],83:[function(require,module,exports){
-module.exports=require(30)
-},{"uniq":85}],84:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"./compile.js":83}],85:[function(require,module,exports){
-module.exports=require(20)
-},{}],86:[function(require,module,exports){
-/**
- * Bit twiddling hacks for JavaScript.
- *
- * Author: Mikola Lysenko
- *
- * Ported from Stanford bit twiddling hack library:
- *    http://graphics.stanford.edu/~seander/bithacks.html
- */
-
-"use strict"; "use restrict";
-
-//Number of bits in an integer
-var INT_BITS = 32;
-
-//Constants
-exports.INT_BITS  = INT_BITS;
-exports.INT_MAX   =  0x7fffffff;
-exports.INT_MIN   = -1<<(INT_BITS-1);
-
-//Returns -1, 0, +1 depending on sign of x
-exports.sign = function(v) {
-  return (v > 0) - (v < 0);
-}
-
-//Computes absolute value of integer
-exports.abs = function(v) {
-  var mask = v >> (INT_BITS-1);
-  return (v ^ mask) - mask;
-}
-
-//Computes minimum of integers x and y
-exports.min = function(x, y) {
-  return y ^ ((x ^ y) & -(x < y));
-}
-
-//Computes maximum of integers x and y
-exports.max = function(x, y) {
-  return x ^ ((x ^ y) & -(x < y));
-}
-
-//Checks if a number is a power of two
-exports.isPow2 = function(v) {
-  return !(v & (v-1)) && (!!v);
-}
-
-//Computes log base 2 of v
-exports.log2 = function(v) {
-  var r, shift;
-  r =     (v > 0xFFFF) << 4; v >>>= r;
-  shift = (v > 0xFF  ) << 3; v >>>= shift; r |= shift;
-  shift = (v > 0xF   ) << 2; v >>>= shift; r |= shift;
-  shift = (v > 0x3   ) << 1; v >>>= shift; r |= shift;
-  return r | (v >> 1);
-}
-
-//Computes log base 10 of v
-exports.log10 = function(v) {
-  return  (v >= 1000000000) ? 9 : (v >= 100000000) ? 8 : (v >= 10000000) ? 7 :
-          (v >= 1000000) ? 6 : (v >= 100000) ? 5 : (v >= 10000) ? 4 :
-          (v >= 1000) ? 3 : (v >= 100) ? 2 : (v >= 10) ? 1 : 0;
-}
-
-//Counts number of bits
-exports.popCount = function(v) {
-  v = v - ((v >>> 1) & 0x55555555);
-  v = (v & 0x33333333) + ((v >>> 2) & 0x33333333);
-  return ((v + (v >>> 4) & 0xF0F0F0F) * 0x1010101) >>> 24;
-}
-
-//Counts number of trailing zeros
-function countTrailingZeros(v) {
-  var c = 32;
-  v &= -v;
-  if (v) c--;
-  if (v & 0x0000FFFF) c -= 16;
-  if (v & 0x00FF00FF) c -= 8;
-  if (v & 0x0F0F0F0F) c -= 4;
-  if (v & 0x33333333) c -= 2;
-  if (v & 0x55555555) c -= 1;
-  return c;
-}
-exports.countTrailingZeros = countTrailingZeros;
-
-//Rounds to next power of 2
-exports.nextPow2 = function(v) {
-  v += v === 0;
-  --v;
-  v |= v >>> 1;
-  v |= v >>> 2;
-  v |= v >>> 4;
-  v |= v >>> 8;
-  v |= v >>> 16;
-  return v + 1;
-}
-
-//Rounds down to previous power of 2
-exports.prevPow2 = function(v) {
-  v |= v >>> 1;
-  v |= v >>> 2;
-  v |= v >>> 4;
-  v |= v >>> 8;
-  v |= v >>> 16;
-  return v - (v>>>1);
-}
-
-//Computes parity of word
-exports.parity = function(v) {
-  v ^= v >>> 16;
-  v ^= v >>> 8;
-  v ^= v >>> 4;
-  v &= 0xf;
-  return (0x6996 >>> v) & 1;
-}
-
-var REVERSE_TABLE = new Array(256);
-
-(function(tab) {
-  for(var i=0; i<256; ++i) {
-    var v = i, r = i, s = 7;
-    for (v >>>= 1; v; v >>>= 1) {
-      r <<= 1;
-      r |= v & 1;
-      --s;
-    }
-    tab[i] = (r << s) & 0xff;
-  }
-})(REVERSE_TABLE);
-
-//Reverse bits in a 32 bit word
-exports.reverse = function(v) {
-  return  (REVERSE_TABLE[ v         & 0xff] << 24) |
-          (REVERSE_TABLE[(v >>> 8)  & 0xff] << 16) |
-          (REVERSE_TABLE[(v >>> 16) & 0xff] << 8)  |
-           REVERSE_TABLE[(v >>> 24) & 0xff];
-}
-
-//Interleave bits of 2 coordinates with 16 bits.  Useful for fast quadtree codes
-exports.interleave2 = function(x, y) {
-  x &= 0xFFFF;
-  x = (x | (x << 8)) & 0x00FF00FF;
-  x = (x | (x << 4)) & 0x0F0F0F0F;
-  x = (x | (x << 2)) & 0x33333333;
-  x = (x | (x << 1)) & 0x55555555;
-
-  y &= 0xFFFF;
-  y = (y | (y << 8)) & 0x00FF00FF;
-  y = (y | (y << 4)) & 0x0F0F0F0F;
-  y = (y | (y << 2)) & 0x33333333;
-  y = (y | (y << 1)) & 0x55555555;
-
-  return x | (y << 1);
-}
-
-//Extracts the nth interleaved component
-exports.deinterleave2 = function(v, n) {
-  v = (v >>> n) & 0x55555555;
-  v = (v | (v >>> 1))  & 0x33333333;
-  v = (v | (v >>> 2))  & 0x0F0F0F0F;
-  v = (v | (v >>> 4))  & 0x00FF00FF;
-  v = (v | (v >>> 16)) & 0x000FFFF;
-  return (v << 16) >> 16;
-}
-
-
-//Interleave bits of 3 coordinates, each with 10 bits.  Useful for fast octree codes
-exports.interleave3 = function(x, y, z) {
-  x &= 0x3FF;
-  x  = (x | (x<<16)) & 4278190335;
-  x  = (x | (x<<8))  & 251719695;
-  x  = (x | (x<<4))  & 3272356035;
-  x  = (x | (x<<2))  & 1227133513;
-
-  y &= 0x3FF;
-  y  = (y | (y<<16)) & 4278190335;
-  y  = (y | (y<<8))  & 251719695;
-  y  = (y | (y<<4))  & 3272356035;
-  y  = (y | (y<<2))  & 1227133513;
-  x |= (y << 1);
-  
-  z &= 0x3FF;
-  z  = (z | (z<<16)) & 4278190335;
-  z  = (z | (z<<8))  & 251719695;
-  z  = (z | (z<<4))  & 3272356035;
-  z  = (z | (z<<2))  & 1227133513;
-  
-  return x | (z << 2);
-}
-
-//Extracts nth interleaved component of a 3-tuple
-exports.deinterleave3 = function(v, n) {
-  v = (v >>> n)       & 1227133513;
-  v = (v | (v>>>2))   & 3272356035;
-  v = (v | (v>>>4))   & 251719695;
-  v = (v | (v>>>8))   & 4278190335;
-  v = (v | (v>>>16))  & 0x3FF;
-  return (v<<22)>>22;
-}
-
-//Computes next combination in colexicographic order (this is mistakenly called nextPermutation on the bit twiddling hacks page)
-exports.nextCombination = function(v) {
-  var t = v | (v - 1);
-  return (t + 1) | (((~t & -~t) - 1) >>> (countTrailingZeros(v) + 1));
-}
-
-
-},{}],87:[function(require,module,exports){
-"use strict"
-
-function dupe_array(count, value, i) {
-  var c = count[i]|0
-  if(c <= 0) {
-    return []
-  }
-  var result = new Array(c), j
-  if(i === count.length-1) {
-    for(j=0; j<c; ++j) {
-      result[j] = value
-    }
-  } else {
-    for(j=0; j<c; ++j) {
-      result[j] = dupe_array(count, value, i+1)
-    }
-  }
-  return result
-}
-
-function dupe_number(count, value) {
-  var result, i
-  result = new Array(count)
-  for(i=0; i<count; ++i) {
-    result[i] = value
-  }
-  return result
-}
-
-function dupe(count, value) {
-  if(typeof value === "undefined") {
-    value = 0
-  }
-  switch(typeof count) {
-    case "number":
-      if(count > 0) {
-        return dupe_number(count|0, value)
-      }
-    break
-    case "object":
-      if(typeof (count.length) === "number") {
-        return dupe_array(count, value, 0)
-      }
-    break
-  }
-  return []
-}
-
-module.exports = dupe
-},{}],88:[function(require,module,exports){
-(function (global,Buffer){
-"use strict"
-
-var bits = require("bit-twiddle")
-var dup = require("dup")
-if(!global.__TYPEDARRAY_POOL) {
-  global.__TYPEDARRAY_POOL = {
-      UINT8   : dup([32, 0])
-    , UINT16  : dup([32, 0])
-    , UINT32  : dup([32, 0])
-    , INT8    : dup([32, 0])
-    , INT16   : dup([32, 0])
-    , INT32   : dup([32, 0])
-    , FLOAT   : dup([32, 0])
-    , DOUBLE  : dup([32, 0])
-    , DATA    : dup([32, 0])
-    , UINT8C  : dup([32, 0])
-    , BUFFER  : dup([32, 0])
-  }
-}
-var POOL = global.__TYPEDARRAY_POOL
-if(!POOL.UINT8C) {
-  POOL.UINT8C = dup([32, 0])
-}
-if(!POOL.BUFFER) {
-  POOL.BUFFER = dup([32, 0])
-}
-var UINT8   = POOL.UINT8
-  , UINT16  = POOL.UINT16
-  , UINT32  = POOL.UINT32
-  , INT8    = POOL.INT8
-  , INT16   = POOL.INT16
-  , INT32   = POOL.INT32
-  , FLOAT   = POOL.FLOAT
-  , DOUBLE  = POOL.DOUBLE
-  , DATA    = POOL.DATA
-  , UINT8C  = POOL.UINT8C
-  , BUFFER  = POOL.BUFFER
-
-exports.free = function free(array) {
-  if(array instanceof ArrayBuffer) {
-    var n = array.byteLength|0
-      , log_n = bits.log2(n)
-    DATA[log_n].push(array)
-  } else {
-    var n = array.length|0
-      , log_n = bits.log2(n)
-    if(array instanceof Uint8Array) {
-      UINT8[log_n].push(array)
-    } else if(array instanceof Uint16Array) {
-      UINT16[log_n].push(array)
-    } else if(array instanceof Uint32Array) {
-      UINT32[log_n].push(array)
-    } else if(array instanceof Int8Array) {
-      INT8[log_n].push(array)
-    } else if(array instanceof Int16Array) {
-      INT16[log_n].push(array)
-    } else if(array instanceof Int32Array) {
-      INT32[log_n].push(array)
-    } else if(array instanceof Float32Array) {
-      FLOAT[log_n].push(array)
-    } else if(array instanceof Float64Array) {
-      DOUBLE[log_n].push(array)
-    } else if(array instanceof Uint8ClampedArray) {
-      UINT8C[log_n].push(array)
-    } else if(array instanceof Buffer) {
-      BUFFER[log_n].push(array)
-    } else {
-      throw new Error("typedarray-pool: Unspecified array type")
-    }
-  }
-}
-
-exports.freeUint8 = function freeUint8(array) {
-  UINT8[bits.log2(array.length)].push(array)
-}
-
-exports.freeUint16 = function freeUint16(array) {
-  UINT16[bits.log2(array.length)].push(array)
-}
-
-exports.freeUint32 = function freeUint32(array) {
-  UINT32[bits.log2(array.length)].push(array)
-}
-
-exports.freeInt8 = function freeInt8(array) {
-  INT8[bits.log2(array.length)].push(array)
-}
-
-exports.freeInt16 = function freeInt16(array) {
-  INT16[bits.log2(array.length)].push(array)
-}
-
-exports.freeInt32 = function freeInt32(array) {
-  INT32[bits.log2(array.length)].push(array)
-}
-
-exports.freeFloat32 = exports.freeFloat = function freeFloat(array) {
-  FLOAT[bits.log2(array.length)].push(array)
-}
-
-exports.freeFloat64 = exports.freeDouble = function freeDouble(array) {
-  DOUBLE[bits.log2(array.length)].push(array)
-}
-
-exports.freeArrayBuffer = function freeArrayBuffer(array) {
-  DATA[bits.log2(array.length)].push(array)
-}
-
-exports.freeUint8Clamped = function freeUint8Clamped(array) {
-  UINT8C[bits.log2(array.length)].push(array)
-}
-
-exports.freeBuffer = function freeBuffer(array) {
-  BUFFER[bits.log2(array.length)].push(array)
-}
-
-exports.malloc = function malloc(n, dtype) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  if(dtype === undefined) {
-    var d = DATA[log_n]
-    if(d.length > 0) {
-      var r = d[d.length-1]
-      d.pop()
-      return r
-    }
-    return new ArrayBuffer(n)
-  } else {
-    switch(dtype) {
-      case "uint8":
-        var u8 = UINT8[log_n]
-        if(u8.length > 0) {
-          return u8.pop()
-        }
-        return new Uint8Array(n)
-      break
-
-      case "uint16":
-        var u16 = UINT16[log_n]
-        if(u16.length > 0) {
-          return u16.pop()
-        }
-        return new Uint16Array(n)
-      break
-
-      case "uint32":
-        var u32 = UINT32[log_n]
-        if(u32.length > 0) {
-          return u32.pop()
-        }
-        return new Uint32Array(n)
-      break
-
-      case "int8":
-        var i8 = INT8[log_n]
-        if(i8.length > 0) {
-          return i8.pop()
-        }
-        return new Int8Array(n)
-      break
-
-      case "int16":
-        var i16 = INT16[log_n]
-        if(i16.length > 0) {
-          return i16.pop()
-        }
-        return new Int16Array(n)
-      break
-
-      case "int32":
-        var i32 = INT32[log_n]
-        if(i32.length > 0) {
-          return i32.pop()
-        }
-        return new Int32Array(n)
-      break
-
-      case "float":
-      case "float32":
-        var f = FLOAT[log_n]
-        if(f.length > 0) {
-          return f.pop()
-        }
-        return new Float32Array(n)
-      break
-
-      case "double":
-      case "float64":
-        var dd = DOUBLE[log_n]
-        if(dd.length > 0) {
-          return dd.pop()
-        }
-        return new Float64Array(n)
-      break
-
-      case "uint8_clamped":
-        var u8c = UINT8C[log_n]
-        if(u8c.length > 0) {
-          return u8c.pop()
-        }
-        return new Uint8ClampedArray(n)
-      break
-
-      case "buffer":
-        var buf = BUFFER[log_n]
-        if(buf.length > 0) {
-          return buf.pop()
-        }
-        return new Buffer(n)
-      break
-
-      default:
-        return null
-    }
-  }
-  return null
-}
-
-exports.mallocUint8 = function mallocUint8(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = UINT8[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new Uint8Array(n)
-}
-
-exports.mallocUint16 = function mallocUint16(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = UINT16[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new Uint16Array(n)
-}
-
-exports.mallocUint32 = function mallocUint32(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = UINT32[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new Uint32Array(n)
-}
-
-exports.mallocInt8 = function mallocInt8(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = INT8[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new Int8Array(n)
-}
-
-exports.mallocInt16 = function mallocInt16(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = INT16[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new Int16Array(n)
-}
-
-exports.mallocInt32 = function mallocInt32(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = INT32[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new Int32Array(n)
-}
-
-exports.mallocFloat32 = exports.mallocFloat = function mallocFloat(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = FLOAT[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new Float32Array(n)
-}
-
-exports.mallocFloat64 = exports.mallocDouble = function mallocDouble(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = DOUBLE[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new Float64Array(n)
-}
-
-exports.mallocArrayBuffer = function mallocArrayBuffer(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = DATA[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new ArrayBuffer(n)
-}
-
-exports.mallocUint8Clamped = function mallocUint8Clamped(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = UINT8C[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new Uint8ClampedArray(n)
-}
-
-exports.mallocBuffer = function mallocBuffer(n) {
-  n = bits.nextPow2(n)
-  var log_n = bits.log2(n)
-  var cache = BUFFER[log_n]
-  if(cache.length > 0) {
-    return cache.pop()
-  }
-  return new Buffer(n)
-}
-
-exports.clearCache = function clearCache() {
-  for(var i=0; i<32; ++i) {
-    UINT8[i].length = 0
-    UINT16[i].length = 0
-    UINT32[i].length = 0
-    INT8[i].length = 0
-    INT16[i].length = 0
-    INT32[i].length = 0
-    FLOAT[i].length = 0
-    DOUBLE[i].length = 0
-    DATA[i].length = 0
-    UINT8C[i].length = 0
-    BUFFER[i].length = 0
-  }
-}
-
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"bit-twiddle":86,"buffer":281,"dup":87}],89:[function(require,module,exports){
-module.exports=require(23)
-},{}],90:[function(require,module,exports){
-module.exports=require(24)
-},{"weakmap":89}],91:[function(require,module,exports){
-"use strict"
-
-function doBind(gl, elements, attributes) {
-  if(elements) {
-    elements.bind()
-  } else {
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
-  }
-  var nattribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS)|0
-  if(attributes) {
-    if(attributes.length > nattribs) {
-      throw new Error("gl-vao: Too many vertex attributes")
-    }
-    for(var i=0; i<attributes.length; ++i) {
-      var attrib = attributes[i]
-      if(attrib.buffer) {
-        var buffer = attrib.buffer
-        var size = attrib.size || 4
-        var type = attrib.type || gl.FLOAT
-        var normalized = !!attrib.normalized
-        var stride = attrib.stride || 0
-        var offset = attrib.offset || 0
-        buffer.bind()
-        gl.enableVertexAttribArray(i)
-        gl.vertexAttribPointer(i, size, type, normalized, stride, offset)
-      } else {
-        if(typeof attrib === "number") {
-          gl.vertexAttrib1f(i, attrib)
-        } else if(attrib.length === 1) {
-          gl.vertexAttrib1f(i, attrib[0])
-        } else if(attrib.length === 2) {
-          gl.vertexAttrib2f(i, attrib[0], attrib[1])
-        } else if(attrib.length === 3) {
-          gl.vertexAttrib3f(i, attrib[0], attrib[1], attrib[2])
-        } else if(attrib.length === 4) {
-          gl.vertexAttrib4f(i, attrib[0], attrib[1], attrib[2], attrib[3])
-        } else {
-          throw new Error("gl-vao: Invalid vertex attribute")
-        }
-        gl.disableVertexAttribArray(i)
-      }
-    }
-    for(; i<nattribs; ++i) {
-      gl.disableVertexAttribArray(i)
-    }
-  } else {
-    gl.bindBuffer(gl.ARRAY_BUFFER, null)
-    for(var i=0; i<nattribs; ++i) {
-      gl.disableVertexAttribArray(i)
-    }
-  }
-}
-
-module.exports = doBind
-},{}],92:[function(require,module,exports){
-"use strict"
-
-var bindAttribs = require("./do-bind.js")
-
-function VAOEmulated(gl) {
-  this.gl = gl
-  this._elements = null
-  this._attributes = null
-}
-
-VAOEmulated.prototype.bind = function() {
-  bindAttribs(this.gl, this._elements, this._attributes)
-}
-
-VAOEmulated.prototype.update = function(attributes, elements) {
-  this._elements = elements
-  this._attributes = attributes
-}
-
-VAOEmulated.prototype.dispose = function() { }
-VAOEmulated.prototype.unbind = function() { }
-
-VAOEmulated.prototype.draw = function(mode, count, offset) {
-  offset = offset || 0
-  var gl = this.gl
-  if(this._elements) {
-    gl.drawElements(mode, count, gl.UNSIGNED_SHORT, offset)
-  } else {
-    gl.drawArrays(mode, offset, count)
-  }
-}
-
-function createVAOEmulated(gl) {
-  return new VAOEmulated(gl)
-}
-
-module.exports = createVAOEmulated
-},{"./do-bind.js":91}],93:[function(require,module,exports){
-"use strict"
-
-var bindAttribs = require("./do-bind.js")
-
-function VertexAttribute(location, dimension, a, b, c, d) {
-  this.location = location
-  this.dimension = dimension
-  this.a = a
-  this.b = b
-  this.c = c
-  this.d = d
-}
-
-VertexAttribute.prototype.bind = function(gl) {
-  switch(this.dimension) {
-    case 1:
-      gl.vertexAttrib1f(this.location, this.a)
-    break
-    case 2:
-      gl.vertexAttrib2f(this.location, this.a, this.b)
-    break
-    case 3:
-      gl.vertexAttrib3f(this.location, this.a, this.b, this.c)
-    break
-    case 4:
-      gl.vertexAttrib4f(this.location, this.a, this.b, this.c, this.d)
-    break
-  }
-}
-
-function VAONative(gl, ext, handle) {
-  this.gl = gl
-  this._ext = ext
-  this.handle = handle
-  this._attribs = []
-  this._useElements = false
-}
-
-VAONative.prototype.bind = function() {
-  this._ext.bindVertexArrayOES(this.handle)
-  for(var i=0; i<this._attribs.length; ++i) {
-    this._attribs[i].bind(this.gl)
-  }
-}
-
-VAONative.prototype.unbind = function() {
-  this._ext.bindVertexArrayOES(null)
-}
-
-VAONative.prototype.dispose = function() {
-  this._ext.deleteVertexArrayOES(this.handle)
-}
-
-VAONative.prototype.update = function(attributes, elements) {
-  this.bind()
-  bindAttribs(this.gl, elements, attributes)
-  this.unbind()
-  this._attribs.length = 0
-  if(attributes)
-  for(var i=0; i<attributes.length; ++i) {
-    var a = attributes[i]
-    if(typeof a === "number") {
-      this._attribs.push(new VertexAttribute(i, 1, a))
-    } else if(Array.isArray(a)) {
-      this._attribs.push(new VertexAttribute(i, a.length, a[0], a[1], a[2], a[3]))
-    }
-  }
-  this._useElements = !!elements
-}
-
-VAONative.prototype.draw = function(mode, count, offset) {
-  offset = offset || 0
-  var gl = this.gl
-  if(this._useElements) {
-    gl.drawElements(mode, count, gl.UNSIGNED_SHORT, offset)
-  } else {
-    gl.drawArrays(mode, offset, count)
-  }
-}
-
-function createVAONative(gl, ext) {
-  return new VAONative(gl, ext, ext.createVertexArrayOES())
-}
-
-module.exports = createVAONative
-},{"./do-bind.js":91}],94:[function(require,module,exports){
-module.exports=require(23)
-},{}],95:[function(require,module,exports){
-module.exports=require(24)
-},{"weakmap":94}],96:[function(require,module,exports){
-"use strict"
-
-var webglew = require("webglew")
-var createVAONative = require("./lib/vao-native.js")
-var createVAOEmulated = require("./lib/vao-emulated.js")
-
-function createVAO(gl, attributes, elements) {
-  var ext = webglew(gl).OES_vertex_array_object
-  var vao
-  if(ext) {
-    vao = createVAONative(gl, ext)
-  } else {
-    vao = createVAOEmulated(gl)
-  }
-  vao.update(attributes, elements)
-  return vao
-}
-
-module.exports = createVAO
-},{"./lib/vao-emulated.js":92,"./lib/vao-native.js":93,"webglew":95}],97:[function(require,module,exports){
-"use strict"
-
-var pool = require("typedarray-pool")
-var uniq = require("uniq")
-var iota = require("iota-array")
-
-function generateMesher(order, skip, merge, append, num_options, options, useGetter) {
-  var code = []
-  var d = order.length
-  var i, j, k
-  
-  //Build arguments for append macro
-  var append_args = new Array(2*d+1+num_options)
-  for(i=0; i<d; ++i) {
-    append_args[i] = "i"+i
-  }
-  for(i=0; i<d; ++i) {
-    append_args[i+d] = "j"+i
-  }
-  append_args[2*d] = "oval"
-  
-  var opt_args = new Array(num_options)
-  for(i=0; i<num_options; ++i) {
-    opt_args[i] = "opt"+i
-    append_args[2*d+1+i] = "opt"+i
-  }
-
-  //Unpack stride and shape arrays into variables
-  code.push("var data=array.data,offset=array.offset,shape=array.shape,stride=array.stride")
-  for(var i=0; i<d; ++i) {
-    code.push(["var stride",i,"=stride[",order[i],"]|0,shape",i,"=shape[",order[i],"]|0"].join(""))
-    if(i > 0) {
-      code.push(["var astep",i,"=(stride",i,"-stride",i-1,"*shape",i-1,")|0"].join(""))
-    } else {
-      code.push(["var astep",i,"=stride",i,"|0"].join(""))
-    }
-    if(i > 0) {
-      code.push(["var vstep",i,"=(vstep",i-1,"*shape",i-1,")|0"].join(""))
-    } else {
-      code.push(["var vstep",i,"=1"].join(""))
-    }
-    code.push(["var i",i,"=0,j",i,"=0,k",i,"=0,ustep",i,"=vstep",i,"|0,bstep",i,"=astep",i,"|0"].join(""))
-  }
-  
-  //Initialize pointers
-  code.push("var a_ptr=offset>>>0,b_ptr=0,u_ptr=0,v_ptr=0,i=0,d=0,val=0,oval=0")
-  
-  //Initialize count
-  code.push("var count=" + iota(d).map(function(i) { return "shape"+i}).join("*"))
-  code.push("var visited=mallocUint8(count)")
-  
-  //Zero out visited map
-  code.push("for(;i<count;++i){visited[i]=0}")
-  
-  //Begin traversal
-  for(i=d-1; i>=0; --i) {
-    code.push(["for(i",i,"=0;i",i,"<shape",i,";++i",i,"){"].join(""))
-  }
-  code.push("if(!visited[v_ptr]){")
-  
-    if(useGetter) {
-      code.push("val=data.get(a_ptr)")
-    } else {
-      code.push("val=data[a_ptr]")
-    }
-  
-    if(skip) {
-      code.push("if(!skip(val)){")
-    } else {
-      code.push("if(val!==0){")
-    }
-  
-      //Save val to oval
-      code.push("oval = val")
-  
-      //Generate merging code
-      for(i=0; i<d; ++i) {
-        code.push("u_ptr=v_ptr+vstep"+i)
-        code.push("b_ptr=a_ptr+stride"+i)
-        code.push(["j",i,"_loop: for(j",i,"=1+i",i,";j",i,"<shape",i,";++j",i,"){"].join(""))
-        for(j=i-1; j>=0; --j) {
-          code.push(["for(k",j,"=i",j,";k",j,"<j",j,";++k",j,"){"].join(""))
-        }
-        
-          //Check if we can merge this voxel
-          code.push("if(visited[u_ptr]) { break j"+i+"_loop; }")
-        
-          if(useGetter) {
-            code.push("val=data.get(b_ptr)")
-          } else {
-            code.push("val=data[b_ptr]")
-          }
-        
-          if(skip && merge) {
-            code.push("if(skip(val) || !merge(oval,val)){ break j"+i+"_loop; }")
-          } else if(skip) {
-            code.push("if(skip(val) || val !== oval){ break j"+i+"_loop; }")
-          } else if(merge) {
-            code.push("if(val === 0 || !merge(oval,val)){ break j"+i+"_loop; }")
-          } else {
-            code.push("if(val === 0 || val !== oval){ break j"+i+"_loop; }")
-          }
-          
-          //Close off loop bodies
-          code.push("++u_ptr")
-          code.push("b_ptr+=stride0")
-        code.push("}")
-        
-        for(j=1; j<=i; ++j) {
-          code.push("u_ptr+=ustep"+j)
-          code.push("b_ptr+=bstep"+j)
-          code.push("}")
-        }
-        if(i < d-1) {
-          code.push("d=j"+i+"-i"+i)
-          code.push(["ustep",i+1,"=(vstep",i+1,"-vstep",i,"*d)|0"].join(""))
-          code.push(["bstep",i+1,"=(stride",i+1,"-stride",i,"*d)|0"].join(""))
-        }
-      }
-  
-      //Mark off visited table
-      code.push("u_ptr=v_ptr")
-      for(i=d-1; i>=0; --i) {
-        code.push(["for(k",i,"=i",i,";k",i,"<j",i,";++k",i,"){"].join(""))
-      }
-      code.push("visited[u_ptr++]=1")
-      code.push("}")
-      for(i=1; i<d; ++i) {
-        code.push("u_ptr+=ustep"+i)
-        code.push("}")
-      }
-  
-      //Append chunk to mesh
-      code.push("append("+ append_args.join(",")+ ")")
-    
-    code.push("}")
-  code.push("}")
-  code.push("++v_ptr")
-  for(var i=0; i<d; ++i) {
-    code.push("a_ptr+=astep"+i)
-    code.push("}")
-  }
-  
-  code.push("freeUint8(visited)")
-  
-  if(options.debug) {
-    console.log("GENERATING MESHER:")
-    console.log(code.join("\n"))
-  }
-  
-  //Compile procedure
-  var args = ["append", "mallocUint8", "freeUint8"]
-  if(merge) {
-    args.unshift("merge")
-  }
-  if(skip) {
-    args.unshift("skip")
-  }
-  
-  //Build wrapper
-  var local_args = ["array"].concat(opt_args)
-  var funcName = ["greedyMesher", d, "d_ord", order.join("s") , (skip ? "skip" : "") , (merge ? "merge" : "")].join("")
-  var gen_body = ["'use strict';function ", funcName, "(", local_args.join(","), "){", code.join("\n"), "};return ", funcName].join("")
-  args.push(gen_body)
-  var proc = Function.apply(undefined, args)
-  
-  if(skip && merge) {
-    return proc(skip, merge, append, pool.mallocUint8, pool.freeUint8)
-  } else if(skip) {
-    return proc(skip, append, pool.mallocUint8, pool.freeUint8)
-  } else if(merge) {
-    return proc(merge, append, pool.mallocUint8, pool.freeUint8)
-  } else {
-    return proc(append, pool.mallocUint8, pool.freeUint8)
-  }
-}
-
-//The actual mesh compiler
-function compileMesher(options) {
-  options = options || {}
-  if(!options.order) {
-    throw new Error("greedy-mesher: Missing order field")
-  }
-  if(!options.append) {
-    throw new Error("greedy-mesher: Missing append field")
-  }
-  return generateMesher(
-    options.order,
-    options.skip,
-    options.merge,
-    options.append,
-    options.extraArgs|0,
-    options,
-    !!options.useGetter
-  )
-}
-module.exports = compileMesher
-
-},{"iota-array":98,"typedarray-pool":109,"uniq":99}],98:[function(require,module,exports){
+},{"cwise-compiler":104}],104:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"./lib/thunk.js":106}],105:[function(require,module,exports){
+module.exports=require(29)
+},{"uniq":107}],106:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./compile.js":105}],107:[function(require,module,exports){
 module.exports=require(19)
-},{}],99:[function(require,module,exports){
-module.exports=require(20)
-},{}],100:[function(require,module,exports){
-arguments[4][81][0].apply(exports,arguments)
-},{"cwise-compiler":101}],101:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"./lib/thunk.js":103}],102:[function(require,module,exports){
-module.exports=require(30)
-},{"uniq":104}],103:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"./compile.js":102}],104:[function(require,module,exports){
-module.exports=require(20)
-},{}],105:[function(require,module,exports){
-module.exports=require(36)
-},{"buffer":281,"iota-array":106}],106:[function(require,module,exports){
-module.exports=require(19)
-},{}],107:[function(require,module,exports){
-module.exports=require(86)
 },{}],108:[function(require,module,exports){
-module.exports=require(87)
+module.exports=require(89)
 },{}],109:[function(require,module,exports){
+module.exports=require(90)
+},{}],110:[function(require,module,exports){
 (function (global){
 "use strict"
 
@@ -27118,7 +28405,7 @@ exports.clearCache = function clearCache() {
 }
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"bit-twiddle":107,"dup":108}],110:[function(require,module,exports){
+},{"bit-twiddle":108,"dup":109}],111:[function(require,module,exports){
 'use strict';
 
 module.exports = function(game, opts) {
@@ -27183,7 +28470,7 @@ function setStateForPlugin(self, name) {
   };
 }
 
-},{}],111:[function(require,module,exports){
+},{}],112:[function(require,module,exports){
 (function (process){
 'use strict';
 var EventEmitter = require('events').EventEmitter;
@@ -27500,7 +28787,7 @@ Plugins.prototype.destroy = function(name) {
 inherits(Plugins, EventEmitter);
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"events":284,"inherits":112,"tsort":113}],112:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"events":258,"inherits":113,"tsort":114}],113:[function(require,module,exports){
 module.exports = inherits
 
 function inherits (c, p, proto) {
@@ -27531,7 +28818,7 @@ function inherits (c, p, proto) {
 //inherits(Child, Parent)
 //new Child
 
-},{}],113:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 var util = require('util');
 
 module.exports = function tsort(initial) {
@@ -27605,7 +28892,7 @@ Graph.prototype.sort = function() {
   }
 };
 
-},{"util":297}],114:[function(require,module,exports){
+},{"util":271}],115:[function(require,module,exports){
 
 var toArray = require('toarray');
 
@@ -27844,12 +29131,12 @@ Registry.prototype.getTextureURL = function(name) {
 
 
 
-},{"toarray":115}],115:[function(require,module,exports){
+},{"toarray":116}],116:[function(require,module,exports){
 module.exports = function(item) {
   if(item === undefined)  return [];
   return Object.prototype.toString.call(item) === "[object Array]" ? item : [item];
 }
-},{}],116:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 var fs = require("fs")
 var createShader = require("gl-shader")
 
@@ -27953,7 +29240,7 @@ ShaderPlugin.prototype.createAOShader = function() {
     "precision highp float;\n\nuniform sampler2D tileMap;\nuniform float tileCount;\n\nvarying vec3  normal;\nvarying vec2  tileCoord;\nvarying float tileSize;\nvarying vec2  texCoord;\nvarying float ambientOcclusion;\n\nvoid main() {\n\n  vec2 uv      = texCoord;\n  vec4 color   = vec4(0,0,0,0);\n  float weight = 0.0;\n\n  vec2 tileOffset = 2.0 * pow(2.0, 4.0) * tileCoord;\n  float denom     = 2.0 * pow(2.0, 4.0) * tileCount;\n\n  for(int dx=0; dx<2; ++dx) {\n    for(int dy=0; dy<2; ++dy) {\n      vec2 offset = 2.0 * fract(0.5 * (uv + vec2(dx, dy)));\n      float w = pow(1.0 - max(abs(offset.x-1.0), abs(offset.y-1.0)), 16.0);\n      \n      vec2 tc = (tileOffset + tileSize * offset) / denom;\n      color  += w * texture2D(tileMap, tc);\n      weight += w;\n    }\n  }\n  color /= weight;\n  \n  if(color.w < 0.5) {\n    discard;\n  }\n  \n  float light = ambientOcclusion + max(0.15*dot(normal, vec3(1,1,1)), 0.0);\n  \n  gl_FragColor = vec4(color.xyz * light, color.w);\n}\n")
 };
 
-},{"fs":280,"gl-matrix":117,"gl-shader":118}],117:[function(require,module,exports){
+},{"fs":254,"gl-matrix":118,"gl-shader":119}],118:[function(require,module,exports){
 /**
  * @fileoverview gl-matrix - High performance matrix and vector operations
  * @author Brandon Jones
@@ -31026,7 +32313,7 @@ if(typeof(exports) !== 'undefined') {
   })(shim.exports);
 })();
 
-},{}],118:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 "use strict"
 
 var glslExports = require("glsl-exports")
@@ -31252,7 +32539,7 @@ function makeShader(gl, vert_source, frag_source) {
 
 module.exports = makeShader
 
-},{"glsl-exports":119,"uniq":130}],119:[function(require,module,exports){
+},{"glsl-exports":120,"uniq":131}],120:[function(require,module,exports){
 "use strict"
 
 var glslTokenizer = require("glsl-tokenizer")
@@ -31313,10 +32600,10 @@ function glslGlobals(src) {
 }
 
 module.exports = glslGlobals
-},{"glsl-parser":120,"glsl-tokenizer":125,"through":129}],120:[function(require,module,exports){
+},{"glsl-parser":121,"glsl-tokenizer":126,"through":130}],121:[function(require,module,exports){
 module.exports = require('./lib/index')
 
-},{"./lib/index":122}],121:[function(require,module,exports){
+},{"./lib/index":123}],122:[function(require,module,exports){
 var state
   , token
   , tokens
@@ -31583,7 +32870,7 @@ function fail(message) {
   return function() { return state.unexpected(message) }
 }
 
-},{}],122:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 module.exports = parser
 
 var through = require('through')
@@ -32543,7 +33830,7 @@ function is_precision(token) {
          token.data === 'lowp'
 }
 
-},{"./expr":121,"./scope":123,"through":124}],123:[function(require,module,exports){
+},{"./expr":122,"./scope":124,"through":125}],124:[function(require,module,exports){
 module.exports = scope
 
 function scope(state) {
@@ -32583,7 +33870,7 @@ proto.find = function(name, fail) {
   return null
 }
 
-},{}],124:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
 (function (process){
 var Stream = require('stream')
 
@@ -32685,7 +33972,7 @@ function through (write, end) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],125:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"stream":263}],126:[function(require,module,exports){
 module.exports = tokenize
 
 var through = require('through')
@@ -33019,7 +34306,7 @@ function tokenize() {
   }
 }
 
-},{"./lib/builtins":126,"./lib/literals":127,"./lib/operators":128,"through":129}],126:[function(require,module,exports){
+},{"./lib/builtins":127,"./lib/literals":128,"./lib/operators":129,"through":130}],127:[function(require,module,exports){
 module.exports = [
     'gl_Position'
   , 'gl_PointSize'
@@ -33165,7 +34452,7 @@ module.exports = [
   , 'textureCubeLod'
 ]
 
-},{}],127:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 module.exports = [
   // current
     'precision'
@@ -33260,7 +34547,7 @@ module.exports = [
   , 'using'
 ]
 
-},{}],128:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 module.exports = [
     '<<='
   , '>>='
@@ -33308,124 +34595,14 @@ module.exports = [
   , '}'
 ]
 
-},{}],129:[function(require,module,exports){
-(function (process){
-var Stream = require('stream')
-
-// through
-//
-// a stream that does nothing but re-emit the input.
-// useful for aggregating a series of changing but not ending streams into one stream)
-
-exports = module.exports = through
-through.through = through
-
-//create a readable writable stream.
-
-function through (write, end, opts) {
-  write = write || function (data) { this.queue(data) }
-  end = end || function () { this.queue(null) }
-
-  var ended = false, destroyed = false, buffer = [], _ended = false
-  var stream = new Stream()
-  stream.readable = stream.writable = true
-  stream.paused = false
-
-//  stream.autoPause   = !(opts && opts.autoPause   === false)
-  stream.autoDestroy = !(opts && opts.autoDestroy === false)
-
-  stream.write = function (data) {
-    write.call(this, data)
-    return !stream.paused
-  }
-
-  function drain() {
-    while(buffer.length && !stream.paused) {
-      var data = buffer.shift()
-      if(null === data)
-        return stream.emit('end')
-      else
-        stream.emit('data', data)
-    }
-  }
-
-  stream.queue = stream.push = function (data) {
-//    console.error(ended)
-    if(_ended) return stream
-    if(data == null) _ended = true
-    buffer.push(data)
-    drain()
-    return stream
-  }
-
-  //this will be registered as the first 'end' listener
-  //must call destroy next tick, to make sure we're after any
-  //stream piped from here.
-  //this is only a problem if end is not emitted synchronously.
-  //a nicer way to do this is to make sure this is the last listener for 'end'
-
-  stream.on('end', function () {
-    stream.readable = false
-    if(!stream.writable && stream.autoDestroy)
-      process.nextTick(function () {
-        stream.destroy()
-      })
-  })
-
-  function _end () {
-    stream.writable = false
-    end.call(stream)
-    if(!stream.readable && stream.autoDestroy)
-      stream.destroy()
-  }
-
-  stream.end = function (data) {
-    if(ended) return
-    ended = true
-    if(arguments.length) stream.write(data)
-    _end() // will emit or queue
-    return stream
-  }
-
-  stream.destroy = function () {
-    if(destroyed) return
-    destroyed = true
-    ended = true
-    buffer.length = 0
-    stream.writable = stream.readable = false
-    stream.emit('close')
-    return stream
-  }
-
-  stream.pause = function () {
-    if(stream.paused) return
-    stream.paused = true
-    return stream
-  }
-
-  stream.resume = function () {
-    if(stream.paused) {
-      stream.paused = false
-      stream.emit('resume')
-    }
-    drain()
-    //may have become paused again,
-    //as drain emits 'data'.
-    if(!stream.paused)
-      stream.emit('drain')
-    return stream
-  }
-  return stream
-}
-
-
-}).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],130:[function(require,module,exports){
-module.exports=require(20)
-},{}],131:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
+module.exports=require(44)
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"stream":263}],131:[function(require,module,exports){
+module.exports=require(19)
+},{}],132:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
-  var ArtPackArchive, ArtPacks, EventEmitter, ZIP, arrayBufferToString, binaryXHR, fs, getFrames, getPixels, graycolorize, path, savePixels, splitNamespace,
+  var ArtPackArchive, ArtPacks, Buffer, EventEmitter, ZIP, arrayBufferToString, binaryXHR, fs, getFrames, getPixels, graycolorize, path, savePixels, splitNamespace,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -33438,6 +34615,8 @@ module.exports=require(20)
   binaryXHR = require('binary-xhr');
 
   EventEmitter = (require('events')).EventEmitter;
+
+  Buffer = (require('native-buffer-browserify')).Buffer;
 
   getFrames = require('mcmeta');
 
@@ -33905,7 +35084,7 @@ module.exports=require(20)
 
 }).call(this);
 
-},{"binary-xhr":132,"events":284,"fs":280,"get-pixels":134,"graycolorize":137,"mcmeta":141,"path":287,"save-pixels":162,"zip":178}],132:[function(require,module,exports){
+},{"binary-xhr":133,"events":258,"fs":254,"get-pixels":167,"graycolorize":135,"mcmeta":137,"native-buffer-browserify":138,"path":261,"save-pixels":149,"zip":165}],133:[function(require,module,exports){
 var inherits = require('inherits')
 
 module.exports = function(url, cb) {
@@ -33933,394 +35112,9 @@ function BinaryXHR(url, cb) {
   xhr.send(null)
 }
 
-},{"inherits":133}],133:[function(require,module,exports){
-module.exports=require(112)
-},{}],134:[function(require,module,exports){
-"use strict"
-
-var ndarray = require("ndarray")
-
-module.exports = function getPixels(url, cb) {
-  var img = new Image()
-  img.onload = function() {
-    var canvas = document.createElement("canvas")
-    canvas.width = img.width
-    canvas.height = img.height
-    var context = canvas.getContext("2d")
-    context.drawImage(img, 0, 0)
-    var pixels = context.getImageData(0, 0, img.width, img.height)
-    cb(null, ndarray(new Uint8Array(pixels.data), [img.height, img.width, 4], [4*img.width, 4, 1], 0))
-  }
-  img.onerror = function(err) {
-    cb(err)
-  }
-  img.src = url
-}
-
-},{"ndarray":135}],135:[function(require,module,exports){
-(function (Buffer){
-"use strict"
-
-var iota = require("iota-array")
-
-var arrayMethods = [
-  "concat",
-  "join",
-  "slice",
-  "toString",
-  "indexOf",
-  "lastIndexOf",
-  "forEach",
-  "every",
-  "some",
-  "filter",
-  "map",
-  "reduce",
-  "reduceRight"
-]
-
-function compare1st(a, b) {
-  return a[0] - b[0]
-}
-
-function order() {
-  var stride = this.stride
-  var terms = new Array(stride.length)
-  var i
-  for(i=0; i<terms.length; ++i) {
-    terms[i] = [Math.abs(stride[i]), i]
-  }
-  terms.sort(compare1st)
-  var result = new Array(terms.length)
-  for(i=0; i<result.length; ++i) {
-    result[i] = terms[i][1]
-  }
-  return result
-}
-
-function compileConstructor(dtype, dimension) {
-  var className = ["View", dimension, "d", dtype].join("")
-  var useGetters = (dtype === "generic")
-  
-  //Special case for 0d arrays
-  if(dimension === 0) {
-    var code = [
-      "function ", className, "(a,d) {\
-this.data = a;\
-this.offset = d\
-};\
-var proto=", className, ".prototype;\
-proto.dtype='", dtype, "';\
-proto.index=function(){return this.offset};\
-proto.dimension=0;\
-proto.size=1;\
-proto.shape=\
-proto.stride=\
-proto.order=[];\
-proto.lo=\
-proto.hi=\
-proto.transpose=\
-proto.step=\
-proto.pick=function ", className, "_copy() {\
-return new ", className, "(this.data,this.offset)\
-};\
-proto.get=function ", className, "_get(){\
-return ", (useGetters ? "this.data.get(this.offset)" : "this.data[this.offset]"),
-"};\
-proto.set=function ", className, "_set(v){\
-return ", (useGetters ? "this.data.get(this.offset)" : "this.data[this.offset]"), "=v\
-};\
-return function construct_", className, "(a,b,c,d){return new ", className, "(a,d)}"].join("")
-    var procedure = new Function(code)
-    return procedure()
-  }
-
-  var code = ["'use strict'"]
-    
-  //Create constructor for view
-  var indices = iota(dimension)
-  var args = indices.map(function(i) { return "i"+i })
-  var index_str = "this.offset+" + indices.map(function(i) {
-        return ["this._stride", i, "*i",i].join("")
-      }).join("+")
-  code.push(["function ", className, "(a,",
-    indices.map(function(i) {
-      return "b"+i
-    }).join(","), ",",
-    indices.map(function(i) {
-      return "c"+i
-    }).join(","), ",d){this.data=a"].join(""))
-  for(var i=0; i<dimension; ++i) {
-    code.push(["this._shape",i,"=b",i,"|0"].join(""))
-  }
-  for(var i=0; i<dimension; ++i) {
-    code.push(["this._stride",i,"=c",i,"|0"].join(""))
-  }
-  code.push("this.offset=d|0}")
-  
-  //Get prototype
-  code.push(["var proto=",className,".prototype"].join(""))
-  
-  //view.dtype:
-  code.push(["proto.dtype='", dtype, "'"].join(""))
-  code.push("proto.dimension="+dimension)
-  
-  //view.stride and view.shape
-  var strideClassName = ["VStride", dimension, "d", dtype].join("")
-  var shapeClassName = ["VShape", dimension, "d", dtype].join("")
-  var props = {"stride":strideClassName, "shape":shapeClassName}
-  for(var prop in props) {
-    var arrayName = props[prop]
-    code.push(["function ", arrayName, "(v) {this._v=v} var aproto=", arrayName, ".prototype"].join(""))
-    code.push(["aproto.length=",dimension].join(""))
-    
-    var array_elements = []
-    for(var i=0; i<dimension; ++i) {
-      array_elements.push(["this._v._", prop, i].join(""))
-    }
-    code.push(["aproto.toJSON=function ", arrayName, "_toJSON(){return [", array_elements.join(","), "]}"].join(""))
-    code.push(["aproto.toString=function ", arrayName, "_toString(){return [", array_elements.join(","), "].join()}"].join(""))
-    
-    for(var i=0; i<dimension; ++i) {
-      code.push(["Object.defineProperty(aproto,", i, ",{get:function(){return this._v._", prop, i, "},set:function(v){return this._v._", prop, i, "=v|0},enumerable:true})"].join(""))
-    }
-    for(var i=0; i<arrayMethods.length; ++i) {
-      if(arrayMethods[i] in Array.prototype) {
-        code.push(["aproto.", arrayMethods[i], "=Array.prototype.", arrayMethods[i]].join(""))
-      }
-    }
-    code.push(["Object.defineProperty(proto,'",prop,"',{get:function ", arrayName, "_get(){return new ", arrayName, "(this)},set: function ", arrayName, "_set(v){"].join(""))
-    for(var i=0; i<dimension; ++i) {
-      code.push(["this._", prop, i, "=v[", i, "]|0"].join(""))
-    }
-    code.push("return v}})")
-  }
-  
-  //view.size:
-  code.push(["Object.defineProperty(proto,'size',{get:function ",className,"_size(){\
-return ", indices.map(function(i) { return ["this._shape", i].join("") }).join("*"),
-"}})"].join(""))
-
-  //view.order:
-  if(dimension === 1) {
-    code.push("proto.order=[0]")
-  } else {
-    code.push("Object.defineProperty(proto,'order',{get:")
-    if(dimension < 4) {
-      code.push(["function ",className,"_order(){"].join(""))
-      if(dimension === 2) {
-        code.push("return (Math.abs(this._stride0)>Math.abs(this._stride1))?[1,0]:[0,1]}})")
-      } else if(dimension === 3) {
-        code.push(
-"var s0=Math.abs(this._stride0),s1=Math.abs(this._stride1),s2=Math.abs(this._stride2);\
-if(s0>s1){\
-if(s1>s2){\
-return [2,1,0];\
-}else if(s0>s2){\
-return [1,2,0];\
-}else{\
-return [1,0,2];\
-}\
-}else if(s0>s2){\
-return [2,0,1];\
-}else if(s2>s1){\
-return [0,1,2];\
-}else{\
-return [0,2,1];\
-}}})")
-      }
-    } else {
-      code.push("ORDER})")
-    }
-  }
-  
-  //view.set(i0, ..., v):
-  code.push([
-"proto.set=function ",className,"_set(", args.join(","), ",v){"].join(""))
-  if(useGetters) {
-    code.push(["return this.data.set(", index_str, ",v)}"].join(""))
-  } else {
-    code.push(["return this.data[", index_str, "]=v}"].join(""))
-  }
-  
-  //view.get(i0, ...):
-  code.push(["proto.get=function ",className,"_get(", args.join(","), "){"].join(""))
-  if(useGetters) {
-    code.push(["return this.data.get(", index_str, ")}"].join(""))
-  } else {
-    code.push(["return this.data[", index_str, "]}"].join(""))
-  }
-  
-  //view.index:
-  code.push([
-    "proto.index=function ",
-      className,
-      "_index(", args.join(), "){return ", 
-      index_str, "}"].join(""))
-
-  //view.hi():
-  code.push(["proto.hi=function ",className,"_hi(",args.join(","),"){return new ", className, "(this.data,",
-    indices.map(function(i) {
-      return ["(typeof i",i,"!=='number'||i",i,"<0)?this._shape", i, ":i", i,"|0"].join("")
-    }).join(","), ",",
-    indices.map(function(i) {
-      return "this._stride"+i
-    }).join(","), ",this.offset)}"].join(""))
-  
-  //view.lo():
-  var a_vars = indices.map(function(i) { return "a"+i+"=this._shape"+i })
-  var c_vars = indices.map(function(i) { return "c"+i+"=this._stride"+i })
-  code.push(["proto.lo=function ",className,"_lo(",args.join(","),"){var b=this.offset,d=0,", a_vars.join(","), ",", c_vars.join(",")].join(""))
-  for(var i=0; i<dimension; ++i) {
-    code.push([
-"if(typeof i",i,"==='number'&&i",i,">=0){\
-d=i",i,"|0;\
-b+=c",i,"*d;\
-a",i,"-=d}"].join(""))
-  }
-  code.push(["return new ", className, "(this.data,",
-    indices.map(function(i) {
-      return "a"+i
-    }).join(","),",",
-    indices.map(function(i) {
-      return "c"+i
-    }).join(","), ",b)}"].join(""))
-  
-  //view.step():
-  code.push(["proto.step=function ",className,"_step(",args.join(","),"){var ",
-    indices.map(function(i) {
-      return "a"+i+"=this._shape"+i
-    }).join(","), ",",
-    indices.map(function(i) {
-      return "b"+i+"=this._stride"+i
-    }).join(","),",c=this.offset,d=0,ceil=Math.ceil"].join(""))
-  for(var i=0; i<dimension; ++i) {
-    code.push([
-"if(typeof i",i,"==='number'){\
-d=i",i,"|0;\
-if(d<0){\
-c+=b",i,"*(a",i,"-1);\
-a",i,"=ceil(-a",i,"/d)\
-}else{\
-a",i,"=ceil(a",i,"/d)\
-}\
-b",i,"*=d\
-}"].join(""))
-  }
-  code.push(["return new ", className, "(this.data,",
-    indices.map(function(i) {
-      return "a" + i
-    }).join(","), ",",
-    indices.map(function(i) {
-      return "b" + i
-    }).join(","), ",c)}"].join(""))
-  
-  //view.transpose():
-  var tShape = new Array(dimension)
-  var tStride = new Array(dimension)
-  for(var i=0; i<dimension; ++i) {
-    tShape[i] = ["a[i", i, "|0]"].join("")
-    tStride[i] = ["b[i", i, "|0]"].join("")
-  }
-  code.push(["proto.transpose=function ",className,"_transpose(",args,"){var a=this.shape,b=this.stride;return new ", className, "(this.data,", tShape.join(","), ",", tStride.join(","), ",this.offset)}"].join(""))
-  
-  //view.pick():
-  code.push(["proto.pick=function ",className,"_pick(",args,"){var a=[],b=[],c=this.offset"].join(""))
-  for(var i=0; i<dimension; ++i) {
-    code.push(["if(typeof i",i,"==='number'&&i",i,">=0){c=(c+this._stride",i,"*i",i,")|0}else{a.push(this._shape",i,");b.push(this._stride",i,")}"].join(""))
-  }
-  code.push("var ctor=CTOR_LIST[a.length];return ctor(this.data,a,b,c)}")
-    
-  //Add return statement
-  code.push(["return function construct_",className,"(data,shape,stride,offset){return new ", className,"(data,",
-    indices.map(function(i) {
-      return "shape["+i+"]"
-    }).join(","), ",",
-    indices.map(function(i) {
-      return "stride["+i+"]"
-    }).join(","), ",offset)}"].join(""))
-
-  //Compile procedure
-  var procedure = new Function("CTOR_LIST", "ORDER", code.join("\n"))
-  return procedure(CACHED_CONSTRUCTORS[dtype], order)
-}
-
-function arrayDType(data) {
-  if(data instanceof Float64Array) {
-    return "float64";
-  } else if(data instanceof Float32Array) {
-    return "float32"
-  } else if(data instanceof Int32Array) {
-    return "int32"
-  } else if(data instanceof Uint32Array) {
-    return "uint32"
-  } else if(data instanceof Uint8Array) {
-    return "uint8"
-  } else if(data instanceof Uint16Array) {
-    return "uint16"
-  } else if(data instanceof Int16Array) {
-    return "int16"
-  } else if(data instanceof Int8Array) {
-    return "int8"
-  } else if(data instanceof Uint8ClampedArray) {
-    return "uint8_clamped"
-  } else if((typeof Buffer !== "undefined") && (data instanceof Buffer)) {
-    return "buffer"
-  } else if(data instanceof Array) {
-    return "array"
-  }
-  return "generic"
-}
-
-var CACHED_CONSTRUCTORS = {
-  "float32":[],
-  "float64":[],
-  "int8":[],
-  "int16":[],
-  "int32":[],
-  "uint8":[],
-  "uint16":[],
-  "uint32":[],
-  "array":[],
-  "uint8_clamped":[],
-  "buffer":[],
-  "generic":[]
-}
-
-function wrappedNDArrayCtor(data, shape, stride, offset) {
-  if(shape === undefined) {
-    shape = [ data.length ]
-  }
-  var d = shape.length
-  if(stride === undefined) {
-    stride = new Array(d)
-    for(var i=d-1, sz=1; i>=0; --i) {
-      stride[i] = sz
-      sz *= shape[i]
-    }
-  }
-  if(offset === undefined) {
-    offset = 0
-    for(var i=0; i<d; ++i) {
-      if(stride[i] < 0) {
-        offset -= (shape[i]-1)*stride[i]
-      }
-    }
-  }
-  var dtype = arrayDType(data)
-  var ctor_list = CACHED_CONSTRUCTORS[dtype]
-  while(ctor_list.length <= d) {
-    ctor_list.push(compileConstructor(dtype, ctor_list.length))
-  }
-  var ctor = ctor_list[d]
-  return ctor(data, shape, stride, offset)
-}
-
-module.exports = wrappedNDArrayCtor
-}).call(this,require("buffer").Buffer)
-},{"buffer":281,"iota-array":136}],136:[function(require,module,exports){
-module.exports=require(19)
-},{}],137:[function(require,module,exports){
+},{"inherits":134}],134:[function(require,module,exports){
+module.exports=require(113)
+},{}],135:[function(require,module,exports){
 'use strict';
 
 var color = require('onecolor');
@@ -34404,11 +35198,7 @@ var graycolorize = function(pixels, colors) {
 module.exports = graycolorize;
 module.exports.generateMap = generateMap;
 
-},{"ndarray":138,"onecolor":140}],138:[function(require,module,exports){
-module.exports=require(135)
-},{"buffer":281,"iota-array":139}],139:[function(require,module,exports){
-module.exports=require(19)
-},{}],140:[function(require,module,exports){
+},{"ndarray":35,"onecolor":136}],136:[function(require,module,exports){
 /*jshint evil:true, onevar:false*/
 /*global define*/
 var installedColorSpaces = [],
@@ -35164,7 +35954,7 @@ ONECOLOR.installMethod('toAlpha', function (color) {
 // Convenience functions
 
 
-},{}],141:[function(require,module,exports){
+},{}],137:[function(require,module,exports){
 'use strict';
 
 var getPixels = require('get-pixels');
@@ -35306,1394 +36096,1347 @@ module.exports.getFrames = getFrames;
 module.exports.parseFramesInfo = parseFramesInfo;
 module.exports.splitTiles = splitTiles;
 
-},{"get-pixels":142,"save-pixels":153}],142:[function(require,module,exports){
-arguments[4][134][0].apply(exports,arguments)
-},{"ndarray":143}],143:[function(require,module,exports){
-module.exports=require(135)
-},{"buffer":281,"iota-array":144}],144:[function(require,module,exports){
-module.exports=require(19)
-},{}],145:[function(require,module,exports){
-(function (Buffer){
-// Copyright (c) 2012 Kuba Niegowski
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+},{"get-pixels":167,"save-pixels":149}],138:[function(require,module,exports){
+/**
+ * The buffer module from node.js, for the browser.
+ *
+ * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * License:  MIT
+ *
+ * `npm install buffer`
+ */
 
-'use strict';
+var base64 = require('base64-js')
+var ieee754 = require('ieee754')
 
+exports.Buffer = Buffer
+exports.SlowBuffer = Buffer
+exports.INSPECT_MAX_BYTES = 50
+Buffer.poolSize = 8192
 
-var util = require('util'),
-    Stream = require('stream');
+/**
+ * If `Buffer._useTypedArrays`:
+ *   === true    Use Uint8Array implementation (fastest)
+ *   === false   Use Object implementation (compatible down to IE6)
+ */
+Buffer._useTypedArrays = (function () {
+   // Detect if browser supports Typed Arrays. Supported browsers are IE 10+,
+   // Firefox 4+, Chrome 7+, Safari 5.1+, Opera 11.6+, iOS 4.2+.
+  if (typeof Uint8Array === 'undefined' || typeof ArrayBuffer === 'undefined')
+    return false
 
+  // Does the browser support adding properties to `Uint8Array` instances? If
+  // not, then that's the same as no `Uint8Array` support. We need to be able to
+  // add all the node Buffer API methods.
+  // Relevant Firefox bug: https://bugzilla.mozilla.org/show_bug.cgi?id=695438
+  try {
+    var arr = new Uint8Array(0)
+    arr.foo = function () { return 42 }
+    return 42 === arr.foo() &&
+        typeof arr.subarray === 'function' // Chrome 9-10 lack `subarray`
+  } catch (e) {
+    return false
+  }
+})()
 
-var ChunkStream = module.exports = function() {
-    Stream.call(this);
+/**
+ * Class: Buffer
+ * =============
+ *
+ * The Buffer constructor returns instances of `Uint8Array` that are augmented
+ * with function properties for all the node `Buffer` API functions. We use
+ * `Uint8Array` so that square bracket notation works as expected -- it returns
+ * a single octet.
+ *
+ * By augmenting the instances, we can avoid modifying the `Uint8Array`
+ * prototype.
+ */
+function Buffer (subject, encoding, noZero) {
+  if (!(this instanceof Buffer))
+    return new Buffer(subject, encoding, noZero)
 
-    this._buffers = [];
-    this._buffered = 0;
+  var type = typeof subject
 
-    this._reads = [];
-    this._paused = false;
-
-    this._encoding = 'utf8';
-    this.writable = true;
-};
-util.inherits(ChunkStream, Stream);
-
-
-ChunkStream.prototype.read = function(length, callback) {
-
-    this._reads.push({
-        length: Math.abs(length),  // if length < 0 then at most this length
-        allowLess: length < 0,
-        func: callback
-    });
-
-    this._process();
-
-    // its paused and there is not enought data then ask for more
-    if (this._paused && this._reads.length > 0) {
-        this._paused = false;
-
-        this.emit('drain');
+  // Workaround: node's base64 implementation allows for non-padded strings
+  // while base64-js does not.
+  if (encoding === 'base64' && type === 'string') {
+    subject = stringtrim(subject)
+    while (subject.length % 4 !== 0) {
+      subject = subject + '='
     }
-};
+  }
 
-ChunkStream.prototype.write = function(data, encoding) {
+  // Find the length
+  var length
+  if (type === 'number')
+    length = coerce(subject)
+  else if (type === 'string')
+    length = Buffer.byteLength(subject, encoding)
+  else if (type === 'object')
+    length = coerce(subject.length) // Assume object is an array
+  else
+    throw new Error('First argument needs to be a number, array or string.')
 
-    if (!this.writable) {
-        this.emit('error', new Error('Stream not writable'));
-        return false;
+  var buf
+  if (Buffer._useTypedArrays) {
+    // Preferred: Return an augmented `Uint8Array` instance for best performance
+    buf = augment(new Uint8Array(length))
+  } else {
+    // Fallback: Return THIS instance of Buffer (created by `new`)
+    buf = this
+    buf.length = length
+    buf._isBuffer = true
+  }
+
+  var i
+  if (Buffer._useTypedArrays && typeof Uint8Array === 'function' &&
+      subject instanceof Uint8Array) {
+    // Speed optimization -- use set if we're copying from a Uint8Array
+    buf._set(subject)
+  } else if (isArrayish(subject)) {
+    // Treat array-ish objects as a byte array
+    for (i = 0; i < length; i++) {
+      if (Buffer.isBuffer(subject))
+        buf[i] = subject.readUInt8(i)
+      else
+        buf[i] = subject[i]
     }
-
-    if (!Buffer.isBuffer(data))
-        data = new Buffer(data, encoding || this._encoding);
-
-    this._buffers.push(data);
-    this._buffered += data.length;
-
-    this._process();
-
-    // ok if there are no more read requests
-    if (this._reads && this._reads.length == 0)
-        this._paused = true;
-
-    return this.writable && !this._paused;
-};
-
-ChunkStream.prototype.end = function(data, encoding) {
-
-    if (data) this.write(data, encoding);
-
-    this.writable = false;
-
-    // already destroyed
-    if (!this._buffers) return;
-
-    // enqueue or handle end
-    if (this._buffers.length == 0) {
-        this._end();
-    } else {
-        this._buffers.push(null);
-        this._process();
+  } else if (type === 'string') {
+    buf.write(subject, 0, encoding)
+  } else if (type === 'number' && !Buffer._useTypedArrays && !noZero) {
+    for (i = 0; i < length; i++) {
+      buf[i] = 0
     }
-};
+  }
 
-ChunkStream.prototype.destroySoon = ChunkStream.prototype.end;
-
-ChunkStream.prototype._end = function() {
-
-    if (this._reads.length > 0) {
-        this.emit('error',
-            new Error('There are some read requests waitng on finished stream')
-        );
-    }
-
-    this.destroy();
-};
-
-ChunkStream.prototype.destroy = function() {
-
-    if (!this._buffers) return;
-
-    this.writable = false;
-    this._reads = null;
-    this._buffers = null;
-
-    this.emit('close');
-};
-
-ChunkStream.prototype._process = function() {
-
-    // as long as there is any data and read requests
-    while (this._buffered > 0 && this._reads && this._reads.length > 0) {
-
-        var read = this._reads[0];
-
-        // read any data (but no more than length)
-        if (read.allowLess) {
-
-            // ok there is any data so that we can satisfy this request
-            this._reads.shift(); // == read
-
-            // first we need to peek into first buffer
-            var buf = this._buffers[0];
-
-            // ok there is more data than we need
-            if (buf.length > read.length) {
-
-                this._buffered -= read.length;
-                this._buffers[0] = buf.slice(read.length);
-
-                read.func.call(this, buf.slice(0, read.length));
-
-            } else {
-                // ok this is less than maximum length so use it all
-                this._buffered -= buf.length;
-                this._buffers.shift(); // == buf
-
-                read.func.call(this, buf);
-            }
-
-        } else if (this._buffered >= read.length) {
-            // ok we can meet some expectations
-
-            this._reads.shift(); // == read
-
-            var pos = 0,
-                count = 0,
-                data = new Buffer(read.length);
-
-            // create buffer for all data
-            while (pos < read.length) {
-
-                var buf = this._buffers[count++],
-                    len = Math.min(buf.length, read.length - pos);
-
-                buf.copy(data, pos, 0, len);
-                pos += len;
-
-                // last buffer wasn't used all so just slice it and leave
-                if (len != buf.length)
-                    this._buffers[--count] = buf.slice(len);
-            }
-
-            // remove all used buffers
-            if (count > 0)
-                this._buffers.splice(0, count);
-
-            this._buffered -= read.length;
-
-            read.func.call(this, data);
-
-        } else {
-            // not enought data to satisfy first request in queue
-            // so we need to wait for more
-            break;
-        }
-    }
-
-    if (this._buffers && this._buffers.length > 0 && this._buffers[0] == null) {
-        this._end();
-    }
-};
-
-}).call(this,require("buffer").Buffer)
-},{"buffer":281,"stream":289,"util":297}],146:[function(require,module,exports){
-// Copyright (c) 2012 Kuba Niegowski
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
-'use strict';
-
-
-module.exports = {
-
-    PNG_SIGNATURE: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
-
-    TYPE_IHDR: 0x49484452,
-    TYPE_IEND: 0x49454e44,
-    TYPE_IDAT: 0x49444154,
-    TYPE_PLTE: 0x504c5445,
-    TYPE_tRNS: 0x74524e53,
-    TYPE_gAMA: 0x67414d41,
-
-    COLOR_PALETTE: 1,
-    COLOR_COLOR: 2,
-    COLOR_ALPHA: 4
-};
-
-},{}],147:[function(require,module,exports){
-// Copyright (c) 2012 Kuba Niegowski
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
-'use strict';
-
-var util = require('util'),
-    Stream = require('stream');
-
-
-var CrcStream = module.exports = function() {
-    Stream.call(this);
-
-    this._crc = -1;
-
-    this.writable = true;
-};
-util.inherits(CrcStream, Stream);
-
-
-CrcStream.prototype.write = function(data) {
-
-    for (var i = 0; i < data.length; i++) {
-        this._crc = crcTable[(this._crc ^ data[i]) & 0xff] ^ (this._crc >>> 8);
-    }
-    return true;
-};
-
-CrcStream.prototype.end = function(data) {
-    if (data) this.write(data);
-
-    this.emit('crc', this.crc32());
-};
-
-CrcStream.prototype.crc32 = function() {
-    return this._crc ^ -1;
-};
-
-
-CrcStream.crc32 = function(buf) {
-
-    var crc = -1;
-    for (var i = 0; i < buf.length; i++) {
-        crc = crcTable[(crc ^ buf[i]) & 0xff] ^ (crc >>> 8);
-    }
-    return crc ^ -1;
-};
-
-
-
-var crcTable = [];
-
-for (var i = 0; i < 256; i++) {
-    var c = i;
-    for (var j = 0; j < 8; j++) {
-        if (c & 1) {
-            c = 0xedb88320 ^ (c >>> 1);
-        } else {
-            c = c >>> 1;
-        }
-    }
-    crcTable[i] = c;
+  return buf
 }
 
-},{"stream":289,"util":297}],148:[function(require,module,exports){
-(function (Buffer){
-// Copyright (c) 2012 Kuba Niegowski
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// STATIC METHODS
+// ==============
 
-'use strict';
+Buffer.isEncoding = function (encoding) {
+  switch (String(encoding).toLowerCase()) {
+    case 'hex':
+    case 'utf8':
+    case 'utf-8':
+    case 'ascii':
+    case 'binary':
+    case 'base64':
+    case 'raw':
+    case 'ucs2':
+    case 'ucs-2':
+    case 'utf16le':
+    case 'utf-16le':
+      return true
+    default:
+      return false
+  }
+}
 
-var util = require('util'),
-    zlib = require('zlib'),
-    ChunkStream = require('./chunkstream');
+Buffer.isBuffer = function (b) {
+  return !!(b !== null && b !== undefined && b._isBuffer)
+}
 
+Buffer.byteLength = function (str, encoding) {
+  var ret
+  str = str + ''
+  switch (encoding || 'utf8') {
+    case 'hex':
+      ret = str.length / 2
+      break
+    case 'utf8':
+    case 'utf-8':
+      ret = utf8ToBytes(str).length
+      break
+    case 'ascii':
+    case 'binary':
+    case 'raw':
+      ret = str.length
+      break
+    case 'base64':
+      ret = base64ToBytes(str).length
+      break
+    case 'ucs2':
+    case 'ucs-2':
+    case 'utf16le':
+    case 'utf-16le':
+      ret = str.length * 2
+      break
+    default:
+      throw new Error('Unknown encoding')
+  }
+  return ret
+}
 
-var Filter = module.exports = function(width, height, Bpp, data, options) {
-    ChunkStream.call(this);
+Buffer.concat = function (list, totalLength) {
+  assert(isArray(list), 'Usage: Buffer.concat(list, [totalLength])\n' +
+      'list should be an Array.')
 
-    this._width = width;
-    this._height = height;
-    this._Bpp = Bpp;
-    this._data = data;
-    this._options = options;
+  if (list.length === 0) {
+    return new Buffer(0)
+  } else if (list.length === 1) {
+    return list[0]
+  }
 
-    this._line = 0;
-
-    if (!('filterType' in options) || options.filterType == -1) {
-        options.filterType = [0, 1, 2, 3, 4];
-    } else if (typeof options.filterType == 'number') {
-        options.filterType = [options.filterType];
+  var i
+  if (typeof totalLength !== 'number') {
+    totalLength = 0
+    for (i = 0; i < list.length; i++) {
+      totalLength += list[i].length
     }
+  }
 
-    this._filters = {
-        0: this._filterNone.bind(this),
-        1: this._filterSub.bind(this),
-        2: this._filterUp.bind(this),
-        3: this._filterAvg.bind(this),
-        4: this._filterPaeth.bind(this)
-    };
+  var buf = new Buffer(totalLength)
+  var pos = 0
+  for (i = 0; i < list.length; i++) {
+    var item = list[i]
+    item.copy(buf, pos)
+    pos += item.length
+  }
+  return buf
+}
 
-    this.read(this._width * Bpp + 1, this._reverseFilterLine.bind(this));
-};
-util.inherits(Filter, ChunkStream);
+// BUFFER INSTANCE METHODS
+// =======================
 
-
-var pixelBppMap = {
-    1: { // L
-        0: 0,
-        1: 0,
-        2: 0,
-        3: 0xff
-    },
-    2: { // LA
-        0: 0,
-        1: 0,
-        2: 0,
-        3: 1
-    },
-    3: { // RGB
-        0: 0,
-        1: 1,
-        2: 2,
-        3: 0xff
-    },
-    4: { // RGBA
-        0: 0,
-        1: 1,
-        2: 2,
-        3: 3
+function _hexWrite (buf, string, offset, length) {
+  offset = Number(offset) || 0
+  var remaining = buf.length - offset
+  if (!length) {
+    length = remaining
+  } else {
+    length = Number(length)
+    if (length > remaining) {
+      length = remaining
     }
-};
+  }
 
-Filter.prototype._reverseFilterLine = function(rawData) {
+  // must be an even number of digits
+  var strLen = string.length
+  assert(strLen % 2 === 0, 'Invalid hex string')
 
-    var pxData = this._data,
-        pxLineLength = this._width << 2,
-        pxRowPos = this._line * pxLineLength,
-        filter = rawData[0];
+  if (length > strLen / 2) {
+    length = strLen / 2
+  }
+  for (var i = 0; i < length; i++) {
+    var byte = parseInt(string.substr(i * 2, 2), 16)
+    assert(!isNaN(byte), 'Invalid hex string')
+    buf[offset + i] = byte
+  }
+  Buffer._charsWritten = i * 2
+  return i
+}
 
-    if (filter == 0) {
-        for (var x = 0; x < this._width; x++) {
-            var pxPos = pxRowPos + (x << 2),
-                rawPos = 1 + x * this._Bpp;
+function _utf8Write (buf, string, offset, length) {
+  var charsWritten = Buffer._charsWritten =
+    blitBuffer(utf8ToBytes(string), buf, offset, length)
+  return charsWritten
+}
 
-            for (var i = 0; i < 4; i++) {
-                var idx = pixelBppMap[this._Bpp][i];
-                pxData[pxPos + i] = idx != 0xff ? rawData[rawPos + idx] : 0xff;
-            }
-        }
+function _asciiWrite (buf, string, offset, length) {
+  var charsWritten = Buffer._charsWritten =
+    blitBuffer(asciiToBytes(string), buf, offset, length)
+  return charsWritten
+}
 
-    } else if (filter == 1) {
-        for (var x = 0; x < this._width; x++) {
-            var pxPos = pxRowPos + (x << 2),
-                rawPos = 1 + x * this._Bpp;
+function _binaryWrite (buf, string, offset, length) {
+  return _asciiWrite(buf, string, offset, length)
+}
 
-            for (var i = 0; i < 4; i++) {
-                var idx = pixelBppMap[this._Bpp][i],
-                    left = x > 0 ? pxData[pxPos + i - 4] : 0;
+function _base64Write (buf, string, offset, length) {
+  var charsWritten = Buffer._charsWritten =
+    blitBuffer(base64ToBytes(string), buf, offset, length)
+  return charsWritten
+}
 
-                pxData[pxPos + i] = idx != 0xff ? rawData[rawPos + idx] + left : 0xff;
-            }
-        }
+function _utf16leWrite (buf, string, offset, length) {
+  var charsWritten = Buffer._charsWritten =
+    blitBuffer(utf16leToBytes(string), buf, offset, length)
+  return charsWritten
+}
 
-    } else if (filter == 2) {
-        for (var x = 0; x < this._width; x++) {
-            var pxPos = pxRowPos + (x << 2),
-                rawPos = 1 + x * this._Bpp;
-
-            for (var i = 0; i < 4; i++) {
-                var idx = pixelBppMap[this._Bpp][i],
-                    up = this._line > 0 ? pxData[pxPos - pxLineLength + i] : 0;
-
-                pxData[pxPos + i] = idx != 0xff ? rawData[rawPos + idx] + up : 0xff;
-            }
-
-        }
-
-    } else if (filter == 3) {
-        for (var x = 0; x < this._width; x++) {
-            var pxPos = pxRowPos + (x << 2),
-                rawPos = 1 + x * this._Bpp;
-
-            for (var i = 0; i < 4; i++) {
-                var idx = pixelBppMap[this._Bpp][i],
-                    left = x > 0 ? pxData[pxPos + i - 4] : 0,
-                    up = this._line > 0 ? pxData[pxPos - pxLineLength + i] : 0,
-                    add = Math.floor((left + up) / 2);
-
-                 pxData[pxPos + i] = idx != 0xff ? rawData[rawPos + idx] + add : 0xff;
-            }
-
-        }
-
-    } else if (filter == 4) {
-        for (var x = 0; x < this._width; x++) {
-            var pxPos = pxRowPos + (x << 2),
-                rawPos = 1 + x * this._Bpp;
-
-            for (var i = 0; i < 4; i++) {
-                var idx = pixelBppMap[this._Bpp][i],
-                    left = x > 0 ? pxData[pxPos + i - 4] : 0,
-                    up = this._line > 0 ? pxData[pxPos - pxLineLength + i] : 0,
-                    upLeft = x > 0 && this._line > 0
-                            ? pxData[pxPos - pxLineLength + i - 4] : 0,
-                    add = PaethPredictor(left, up, upLeft);
-
-                pxData[pxPos + i] = idx != 0xff ? rawData[rawPos + idx] + add : 0xff;
-            }
-        }
+Buffer.prototype.write = function (string, offset, length, encoding) {
+  // Support both (string, offset, length, encoding)
+  // and the legacy (string, encoding, offset, length)
+  if (isFinite(offset)) {
+    if (!isFinite(length)) {
+      encoding = length
+      length = undefined
     }
+  } else {  // legacy
+    var swap = encoding
+    encoding = offset
+    offset = length
+    length = swap
+  }
 
-
-    this._line++;
-
-    if (this._line < this._height)
-        this.read(this._width * this._Bpp + 1, this._reverseFilterLine.bind(this));
-    else
-        this.emit('complete', this._data, this._width, this._height);
-};
-
-
-
-
-Filter.prototype.filter = function() {
-
-    var pxData = this._data,
-        rawData = new Buffer(((this._width << 2) + 1) * this._height);
-
-    for (var y = 0; y < this._height; y++) {
-
-        // find best filter for this line (with lowest sum of values)
-        var filterTypes = this._options.filterType,
-            min = Infinity,
-            sel = 0;
-
-        for (var i = 0; i < filterTypes.length; i++) {
-            var sum = this._filters[filterTypes[i]](pxData, y, null);
-            if (sum < min) {
-                sel = filterTypes[i];
-                min = sum;
-            }
-        }
-
-        this._filters[sel](pxData, y, rawData);
+  offset = Number(offset) || 0
+  var remaining = this.length - offset
+  if (!length) {
+    length = remaining
+  } else {
+    length = Number(length)
+    if (length > remaining) {
+      length = remaining
     }
-    return rawData;
-};
+  }
+  encoding = String(encoding || 'utf8').toLowerCase()
 
-Filter.prototype._filterNone = function(pxData, y, rawData) {
+  var ret
+  switch (encoding) {
+    case 'hex':
+      ret = _hexWrite(this, string, offset, length)
+      break
+    case 'utf8':
+    case 'utf-8':
+      ret = _utf8Write(this, string, offset, length)
+      break
+    case 'ascii':
+      ret = _asciiWrite(this, string, offset, length)
+      break
+    case 'binary':
+      ret = _binaryWrite(this, string, offset, length)
+      break
+    case 'base64':
+      ret = _base64Write(this, string, offset, length)
+      break
+    case 'ucs2':
+    case 'ucs-2':
+    case 'utf16le':
+    case 'utf-16le':
+      ret = _utf16leWrite(this, string, offset, length)
+      break
+    default:
+      throw new Error('Unknown encoding')
+  }
+  return ret
+}
 
-    var pxRowLength = this._width << 2,
-        rawRowLength = pxRowLength + 1,
-        sum = 0;
+Buffer.prototype.toString = function (encoding, start, end) {
+  var self = this
 
-    if (!rawData) {
-        for (var x = 0; x < pxRowLength; x++)
-            sum += Math.abs(pxData[y * pxRowLength + x]);
+  encoding = String(encoding || 'utf8').toLowerCase()
+  start = Number(start) || 0
+  end = (end !== undefined)
+    ? Number(end)
+    : end = self.length
 
+  // Fastpath empty strings
+  if (end === start)
+    return ''
+
+  var ret
+  switch (encoding) {
+    case 'hex':
+      ret = _hexSlice(self, start, end)
+      break
+    case 'utf8':
+    case 'utf-8':
+      ret = _utf8Slice(self, start, end)
+      break
+    case 'ascii':
+      ret = _asciiSlice(self, start, end)
+      break
+    case 'binary':
+      ret = _binarySlice(self, start, end)
+      break
+    case 'base64':
+      ret = _base64Slice(self, start, end)
+      break
+    case 'ucs2':
+    case 'ucs-2':
+    case 'utf16le':
+    case 'utf-16le':
+      ret = _utf16leSlice(self, start, end)
+      break
+    default:
+      throw new Error('Unknown encoding')
+  }
+  return ret
+}
+
+Buffer.prototype.toJSON = function () {
+  return {
+    type: 'Buffer',
+    data: Array.prototype.slice.call(this._arr || this, 0)
+  }
+}
+
+// copy(targetBuffer, targetStart=0, sourceStart=0, sourceEnd=buffer.length)
+Buffer.prototype.copy = function (target, target_start, start, end) {
+  var source = this
+
+  if (!start) start = 0
+  if (!end && end !== 0) end = this.length
+  if (!target_start) target_start = 0
+
+  // Copy 0 bytes; we're done
+  if (end === start) return
+  if (target.length === 0 || source.length === 0) return
+
+  // Fatal error conditions
+  assert(end >= start, 'sourceEnd < sourceStart')
+  assert(target_start >= 0 && target_start < target.length,
+      'targetStart out of bounds')
+  assert(start >= 0 && start < source.length, 'sourceStart out of bounds')
+  assert(end >= 0 && end <= source.length, 'sourceEnd out of bounds')
+
+  // Are we oob?
+  if (end > this.length)
+    end = this.length
+  if (target.length - target_start < end - start)
+    end = target.length - target_start + start
+
+  // copy!
+  for (var i = 0; i < end - start; i++)
+    target[i + target_start] = this[i + start]
+}
+
+function _base64Slice (buf, start, end) {
+  if (start === 0 && end === buf.length) {
+    return base64.fromByteArray(buf)
+  } else {
+    return base64.fromByteArray(buf.slice(start, end))
+  }
+}
+
+function _utf8Slice (buf, start, end) {
+  var res = ''
+  var tmp = ''
+  end = Math.min(buf.length, end)
+
+  for (var i = start; i < end; i++) {
+    if (buf[i] <= 0x7F) {
+      res += decodeUtf8Char(tmp) + String.fromCharCode(buf[i])
+      tmp = ''
     } else {
-        rawData[y * rawRowLength] = 0;
-        pxData.copy(rawData, rawRowLength * y + 1, pxRowLength * y, pxRowLength * (y + 1));
+      tmp += '%' + buf[i].toString(16)
     }
+  }
 
-    return sum;
-};
+  return res + decodeUtf8Char(tmp)
+}
 
-Filter.prototype._filterSub = function(pxData, y, rawData) {
+function _asciiSlice (buf, start, end) {
+  var ret = ''
+  end = Math.min(buf.length, end)
 
-    var pxRowLength = this._width << 2,
-        rawRowLength = pxRowLength + 1,
-        sum = 0;
+  for (var i = start; i < end; i++)
+    ret += String.fromCharCode(buf[i])
+  return ret
+}
 
-    if (rawData)
-        rawData[y * rawRowLength] = 1;
+function _binarySlice (buf, start, end) {
+  return _asciiSlice(buf, start, end)
+}
 
-    for (var x = 0; x < pxRowLength; x++) {
+function _hexSlice (buf, start, end) {
+  var len = buf.length
 
-        var left = x >= 4 ? pxData[y * pxRowLength + x - 4] : 0,
-            val = pxData[y * pxRowLength + x] - left;
+  if (!start || start < 0) start = 0
+  if (!end || end < 0 || end > len) end = len
 
-        if (!rawData) sum += Math.abs(val);
-        else rawData[y * rawRowLength + 1 + x] = val;
+  var out = ''
+  for (var i = start; i < end; i++) {
+    out += toHex(buf[i])
+  }
+  return out
+}
+
+function _utf16leSlice (buf, start, end) {
+  var bytes = buf.slice(start, end)
+  var res = ''
+  for (var i = 0; i < bytes.length; i += 2) {
+    res += String.fromCharCode(bytes[i] + bytes[i+1] * 256)
+  }
+  return res
+}
+
+Buffer.prototype.slice = function (start, end) {
+  var len = this.length
+  start = clamp(start, len, 0)
+  end = clamp(end, len, len)
+
+  if (Buffer._useTypedArrays) {
+    return augment(this.subarray(start, end))
+  } else {
+    var sliceLen = end - start
+    var newBuf = new Buffer(sliceLen, undefined, true)
+    for (var i = 0; i < sliceLen; i++) {
+      newBuf[i] = this[i + start]
     }
-    return sum;
-};
+    return newBuf
+  }
+}
 
-Filter.prototype._filterUp = function(pxData, y, rawData) {
+// `get` will be removed in Node 0.13+
+Buffer.prototype.get = function (offset) {
+  console.log('.get() is deprecated. Access using array indexes instead.')
+  return this.readUInt8(offset)
+}
 
-    var pxRowLength = this._width << 2,
-        rawRowLength = pxRowLength + 1,
-        sum = 0;
+// `set` will be removed in Node 0.13+
+Buffer.prototype.set = function (v, offset) {
+  console.log('.set() is deprecated. Access using array indexes instead.')
+  return this.writeUInt8(v, offset)
+}
 
-    if (rawData)
-        rawData[y * rawRowLength] = 2;
+Buffer.prototype.readUInt8 = function (offset, noAssert) {
+  if (!noAssert) {
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset < this.length, 'Trying to read beyond buffer length')
+  }
 
-    for (var x = 0; x < pxRowLength; x++) {
+  if (offset >= this.length)
+    return
 
-        var up = y > 0 ? pxData[(y - 1) * pxRowLength + x] : 0,
-            val = pxData[y * pxRowLength + x] - up;
+  return this[offset]
+}
 
-        if (!rawData) sum += Math.abs(val);
-        else rawData[y * rawRowLength + 1 + x] = val;
+function _readUInt16 (buf, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset + 1 < buf.length, 'Trying to read beyond buffer length')
+  }
+
+  var len = buf.length
+  if (offset >= len)
+    return
+
+  var val
+  if (littleEndian) {
+    val = buf[offset]
+    if (offset + 1 < len)
+      val |= buf[offset + 1] << 8
+  } else {
+    val = buf[offset] << 8
+    if (offset + 1 < len)
+      val |= buf[offset + 1]
+  }
+  return val
+}
+
+Buffer.prototype.readUInt16LE = function (offset, noAssert) {
+  return _readUInt16(this, offset, true, noAssert)
+}
+
+Buffer.prototype.readUInt16BE = function (offset, noAssert) {
+  return _readUInt16(this, offset, false, noAssert)
+}
+
+function _readUInt32 (buf, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset + 3 < buf.length, 'Trying to read beyond buffer length')
+  }
+
+  var len = buf.length
+  if (offset >= len)
+    return
+
+  var val
+  if (littleEndian) {
+    if (offset + 2 < len)
+      val = buf[offset + 2] << 16
+    if (offset + 1 < len)
+      val |= buf[offset + 1] << 8
+    val |= buf[offset]
+    if (offset + 3 < len)
+      val = val + (buf[offset + 3] << 24 >>> 0)
+  } else {
+    if (offset + 1 < len)
+      val = buf[offset + 1] << 16
+    if (offset + 2 < len)
+      val |= buf[offset + 2] << 8
+    if (offset + 3 < len)
+      val |= buf[offset + 3]
+    val = val + (buf[offset] << 24 >>> 0)
+  }
+  return val
+}
+
+Buffer.prototype.readUInt32LE = function (offset, noAssert) {
+  return _readUInt32(this, offset, true, noAssert)
+}
+
+Buffer.prototype.readUInt32BE = function (offset, noAssert) {
+  return _readUInt32(this, offset, false, noAssert)
+}
+
+Buffer.prototype.readInt8 = function (offset, noAssert) {
+  if (!noAssert) {
+    assert(offset !== undefined && offset !== null,
+        'missing offset')
+    assert(offset < this.length, 'Trying to read beyond buffer length')
+  }
+
+  if (offset >= this.length)
+    return
+
+  var neg = this[offset] & 0x80
+  if (neg)
+    return (0xff - this[offset] + 1) * -1
+  else
+    return this[offset]
+}
+
+function _readInt16 (buf, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset + 1 < buf.length, 'Trying to read beyond buffer length')
+  }
+
+  var len = buf.length
+  if (offset >= len)
+    return
+
+  var val = _readUInt16(buf, offset, littleEndian, true)
+  var neg = val & 0x8000
+  if (neg)
+    return (0xffff - val + 1) * -1
+  else
+    return val
+}
+
+Buffer.prototype.readInt16LE = function (offset, noAssert) {
+  return _readInt16(this, offset, true, noAssert)
+}
+
+Buffer.prototype.readInt16BE = function (offset, noAssert) {
+  return _readInt16(this, offset, false, noAssert)
+}
+
+function _readInt32 (buf, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset + 3 < buf.length, 'Trying to read beyond buffer length')
+  }
+
+  var len = buf.length
+  if (offset >= len)
+    return
+
+  var val = _readUInt32(buf, offset, littleEndian, true)
+  var neg = val & 0x80000000
+  if (neg)
+    return (0xffffffff - val + 1) * -1
+  else
+    return val
+}
+
+Buffer.prototype.readInt32LE = function (offset, noAssert) {
+  return _readInt32(this, offset, true, noAssert)
+}
+
+Buffer.prototype.readInt32BE = function (offset, noAssert) {
+  return _readInt32(this, offset, false, noAssert)
+}
+
+function _readFloat (buf, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset + 3 < buf.length, 'Trying to read beyond buffer length')
+  }
+
+  return ieee754.read(buf, offset, littleEndian, 23, 4)
+}
+
+Buffer.prototype.readFloatLE = function (offset, noAssert) {
+  return _readFloat(this, offset, true, noAssert)
+}
+
+Buffer.prototype.readFloatBE = function (offset, noAssert) {
+  return _readFloat(this, offset, false, noAssert)
+}
+
+function _readDouble (buf, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset + 7 < buf.length, 'Trying to read beyond buffer length')
+  }
+
+  return ieee754.read(buf, offset, littleEndian, 52, 8)
+}
+
+Buffer.prototype.readDoubleLE = function (offset, noAssert) {
+  return _readDouble(this, offset, true, noAssert)
+}
+
+Buffer.prototype.readDoubleBE = function (offset, noAssert) {
+  return _readDouble(this, offset, false, noAssert)
+}
+
+Buffer.prototype.writeUInt8 = function (value, offset, noAssert) {
+  if (!noAssert) {
+    assert(value !== undefined && value !== null, 'missing value')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset < this.length, 'trying to write beyond buffer length')
+    verifuint(value, 0xff)
+  }
+
+  if (offset >= this.length) return
+
+  this[offset] = value
+}
+
+function _writeUInt16 (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(value !== undefined && value !== null, 'missing value')
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset + 1 < buf.length, 'trying to write beyond buffer length')
+    verifuint(value, 0xffff)
+  }
+
+  var len = buf.length
+  if (offset >= len)
+    return
+
+  for (var i = 0, j = Math.min(len - offset, 2); i < j; i++) {
+    buf[offset + i] =
+        (value & (0xff << (8 * (littleEndian ? i : 1 - i)))) >>>
+            (littleEndian ? i : 1 - i) * 8
+  }
+}
+
+Buffer.prototype.writeUInt16LE = function (value, offset, noAssert) {
+  _writeUInt16(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeUInt16BE = function (value, offset, noAssert) {
+  _writeUInt16(this, value, offset, false, noAssert)
+}
+
+function _writeUInt32 (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(value !== undefined && value !== null, 'missing value')
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset + 3 < buf.length, 'trying to write beyond buffer length')
+    verifuint(value, 0xffffffff)
+  }
+
+  var len = buf.length
+  if (offset >= len)
+    return
+
+  for (var i = 0, j = Math.min(len - offset, 4); i < j; i++) {
+    buf[offset + i] =
+        (value >>> (littleEndian ? i : 3 - i) * 8) & 0xff
+  }
+}
+
+Buffer.prototype.writeUInt32LE = function (value, offset, noAssert) {
+  _writeUInt32(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeUInt32BE = function (value, offset, noAssert) {
+  _writeUInt32(this, value, offset, false, noAssert)
+}
+
+Buffer.prototype.writeInt8 = function (value, offset, noAssert) {
+  if (!noAssert) {
+    assert(value !== undefined && value !== null, 'missing value')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset < this.length, 'Trying to write beyond buffer length')
+    verifsint(value, 0x7f, -0x80)
+  }
+
+  if (offset >= this.length)
+    return
+
+  if (value >= 0)
+    this.writeUInt8(value, offset, noAssert)
+  else
+    this.writeUInt8(0xff + value + 1, offset, noAssert)
+}
+
+function _writeInt16 (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(value !== undefined && value !== null, 'missing value')
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset + 1 < buf.length, 'Trying to write beyond buffer length')
+    verifsint(value, 0x7fff, -0x8000)
+  }
+
+  var len = buf.length
+  if (offset >= len)
+    return
+
+  if (value >= 0)
+    _writeUInt16(buf, value, offset, littleEndian, noAssert)
+  else
+    _writeUInt16(buf, 0xffff + value + 1, offset, littleEndian, noAssert)
+}
+
+Buffer.prototype.writeInt16LE = function (value, offset, noAssert) {
+  _writeInt16(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeInt16BE = function (value, offset, noAssert) {
+  _writeInt16(this, value, offset, false, noAssert)
+}
+
+function _writeInt32 (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(value !== undefined && value !== null, 'missing value')
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset + 3 < buf.length, 'Trying to write beyond buffer length')
+    verifsint(value, 0x7fffffff, -0x80000000)
+  }
+
+  var len = buf.length
+  if (offset >= len)
+    return
+
+  if (value >= 0)
+    _writeUInt32(buf, value, offset, littleEndian, noAssert)
+  else
+    _writeUInt32(buf, 0xffffffff + value + 1, offset, littleEndian, noAssert)
+}
+
+Buffer.prototype.writeInt32LE = function (value, offset, noAssert) {
+  _writeInt32(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeInt32BE = function (value, offset, noAssert) {
+  _writeInt32(this, value, offset, false, noAssert)
+}
+
+function _writeFloat (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(value !== undefined && value !== null, 'missing value')
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset + 3 < buf.length, 'Trying to write beyond buffer length')
+    verifIEEE754(value, 3.4028234663852886e+38, -3.4028234663852886e+38)
+  }
+
+  var len = buf.length
+  if (offset >= len)
+    return
+
+  ieee754.write(buf, value, offset, littleEndian, 23, 4)
+}
+
+Buffer.prototype.writeFloatLE = function (value, offset, noAssert) {
+  _writeFloat(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeFloatBE = function (value, offset, noAssert) {
+  _writeFloat(this, value, offset, false, noAssert)
+}
+
+function _writeDouble (buf, value, offset, littleEndian, noAssert) {
+  if (!noAssert) {
+    assert(value !== undefined && value !== null, 'missing value')
+    assert(typeof littleEndian === 'boolean', 'missing or invalid endian')
+    assert(offset !== undefined && offset !== null, 'missing offset')
+    assert(offset + 7 < buf.length,
+        'Trying to write beyond buffer length')
+    verifIEEE754(value, 1.7976931348623157E+308, -1.7976931348623157E+308)
+  }
+
+  var len = buf.length
+  if (offset >= len)
+    return
+
+  ieee754.write(buf, value, offset, littleEndian, 52, 8)
+}
+
+Buffer.prototype.writeDoubleLE = function (value, offset, noAssert) {
+  _writeDouble(this, value, offset, true, noAssert)
+}
+
+Buffer.prototype.writeDoubleBE = function (value, offset, noAssert) {
+  _writeDouble(this, value, offset, false, noAssert)
+}
+
+// fill(value, start=0, end=buffer.length)
+Buffer.prototype.fill = function (value, start, end) {
+  if (!value) value = 0
+  if (!start) start = 0
+  if (!end) end = this.length
+
+  if (typeof value === 'string') {
+    value = value.charCodeAt(0)
+  }
+
+  assert(typeof value === 'number' && !isNaN(value), 'value is not a number')
+  assert(end >= start, 'end < start')
+
+  // Fill 0 bytes; we're done
+  if (end === start) return
+  if (this.length === 0) return
+
+  assert(start >= 0 && start < this.length, 'start out of bounds')
+  assert(end >= 0 && end <= this.length, 'end out of bounds')
+
+  for (var i = start; i < end; i++) {
+    this[i] = value
+  }
+}
+
+Buffer.prototype.inspect = function () {
+  var out = []
+  var len = this.length
+  for (var i = 0; i < len; i++) {
+    out[i] = toHex(this[i])
+    if (i === exports.INSPECT_MAX_BYTES) {
+      out[i + 1] = '...'
+      break
     }
-    return sum;
-};
-
-Filter.prototype._filterAvg = function(pxData, y, rawData) {
-
-    var pxRowLength = this._width << 2,
-        rawRowLength = pxRowLength + 1,
-        sum = 0;
-
-    if (rawData)
-        rawData[y * rawRowLength] = 3;
-
-    for (var x = 0; x < pxRowLength; x++) {
-
-        var left = x >= 4 ? pxData[y * pxRowLength + x - 4] : 0,
-            up = y > 0 ? pxData[(y - 1) * pxRowLength + x] : 0,
-            val = pxData[y * pxRowLength + x] - ((left + up) >> 1);
-
-        if (!rawData) sum += Math.abs(val);
-        else rawData[y * rawRowLength + 1 + x] = val;
-    }
-    return sum;
-};
-
-Filter.prototype._filterPaeth = function(pxData, y, rawData) {
-
-    var pxRowLength = this._width << 2,
-        rawRowLength = pxRowLength + 1,
-        sum = 0;
-
-    if (rawData)
-        rawData[y * rawRowLength] = 4;
-
-    for (var x = 0; x < pxRowLength; x++) {
-
-        var left = x >= 4 ? pxData[y * pxRowLength + x - 4] : 0,
-            up = y > 0 ? pxData[(y - 1) * pxRowLength + x] : 0,
-            upLeft = x >= 4 && y > 0 ? pxData[(y - 1) * pxRowLength + x - 4] : 0,
-            val = pxData[y * pxRowLength + x] - PaethPredictor(left, up, upLeft);
-
-        if (!rawData) sum += Math.abs(val);
-        else rawData[y * rawRowLength + 1 + x] = val;
-    }
-    return sum;
-};
-
-
-
-var PaethPredictor = function(left, above, upLeft) {
-
-    var p = left + above - upLeft,
-        pLeft = Math.abs(p - left),
-        pAbove = Math.abs(p - above),
-        pUpLeft = Math.abs(p - upLeft);
-
-    if (pLeft <= pAbove && pLeft <= pUpLeft) return left;
-    else if (pAbove <= pUpLeft) return above;
-    else return upLeft;
-};
-
-}).call(this,require("buffer").Buffer)
-},{"./chunkstream":145,"buffer":281,"util":297,"zlib":300}],149:[function(require,module,exports){
-(function (Buffer){
-// Copyright (c) 2012 Kuba Niegowski
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
-'use strict';
-
-
-var util = require('util'),
-    Stream = require('stream'),
-    zlib = require('zlib'),
-    Filter = require('./filter'),
-    CrcStream = require('./crc'),
-    constants = require('./constants');
-
-
-var Packer = module.exports = function(options) {
-    Stream.call(this);
-
-    this._options = options;
-
-    options.deflateChunkSize = options.deflateChunkSize || 32 * 1024;
-    options.deflateLevel = options.deflateLevel || 9;
-    options.deflateStrategy = options.deflateStrategy || 3;
-
-    this.readable = true;
-};
-util.inherits(Packer, Stream);
-
-
-Packer.prototype.pack = function(data, width, height) {
-
-    // Signature
-    this.emit('data', new Buffer(constants.PNG_SIGNATURE));
-    this.emit('data', this._packIHDR(width, height));
-
-    // filter pixel data
-    var filter = new Filter(width, height, 4, data, this._options);
-    var data = filter.filter();
-
-    // compress it
-    var deflate = zlib.createDeflate({
-            chunkSize: this._options.deflateChunkSize,
-            level: this._options.deflateLevel,
-            strategy: this._options.deflateStrategy
-        });
-    deflate.on('error', this.emit.bind(this, 'error'));
-
-    deflate.on('data', function(data) {
-        this.emit('data', this._packIDAT(data));
-    }.bind(this));
-
-    deflate.on('end', function() {
-        this.emit('data', this._packIEND());
-        this.emit('end');
-    }.bind(this));
-
-    deflate.end(data);
-};
-
-Packer.prototype._packChunk = function(type, data) {
-
-    var len = (data ? data.length : 0),
-        buf = new Buffer(len + 12);
-
-    buf.writeUInt32BE(len, 0);
-    buf.writeUInt32BE(type, 4);
-
-    if (data) data.copy(buf, 8);
-
-    buf.writeInt32BE(CrcStream.crc32(buf.slice(4, buf.length - 4)), buf.length - 4);
-    return buf;
-};
-
-Packer.prototype._packIHDR = function(width, height) {
-
-    var buf = new Buffer(13);
-    buf.writeUInt32BE(width, 0);
-    buf.writeUInt32BE(height, 4);
-    buf[8] = 8;
-    buf[9] = 6; // colorType
-    buf[10] = 0; // compression
-    buf[11] = 0; // filter
-    buf[12] = 0; // interlace
-
-    return this._packChunk(constants.TYPE_IHDR, buf);
-};
-
-Packer.prototype._packIDAT = function(data) {
-    return this._packChunk(constants.TYPE_IDAT, data);
-};
-
-Packer.prototype._packIEND = function() {
-    return this._packChunk(constants.TYPE_IEND, null);
-};
-
-}).call(this,require("buffer").Buffer)
-},{"./constants":146,"./crc":147,"./filter":148,"buffer":281,"stream":289,"util":297,"zlib":300}],150:[function(require,module,exports){
-(function (Buffer){
-// Copyright (c) 2012 Kuba Niegowski
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
-'use strict';
-
-
-var util = require('util'),
-    zlib = require('zlib'),
-    CrcStream = require('./crc'),
-    ChunkStream = require('./chunkstream'),
-    constants = require('./constants'),
-    Filter = require('./filter');
-
-
-var Parser = module.exports = function(options) {
-    ChunkStream.call(this);
-
-    this._options = options;
-    options.checkCRC = options.checkCRC !== false;
-
-    this._hasIHDR = false;
-    this._hasIEND = false;
-
-    this._inflate = null;
-    this._filter = null;
-    this._crc = null;
-
-    // input flags/metadata
-    this._palette = [];
-    this._colorType = 0;
-
-    this._chunks = {};
-    this._chunks[constants.TYPE_IHDR] = this._handleIHDR.bind(this);
-    this._chunks[constants.TYPE_IEND] = this._handleIEND.bind(this);
-    this._chunks[constants.TYPE_IDAT] = this._handleIDAT.bind(this);
-    this._chunks[constants.TYPE_PLTE] = this._handlePLTE.bind(this);
-    this._chunks[constants.TYPE_tRNS] = this._handleTRNS.bind(this);
-    this._chunks[constants.TYPE_gAMA] = this._handleGAMA.bind(this);
-
-    this.writable = true;
-
-    this.on('error', this._handleError.bind(this));
-    this._handleSignature();
-};
-util.inherits(Parser, ChunkStream);
-
-
-Parser.prototype._handleError = function() {
-
-    this.writable = false;
-
-    this.destroy();
-
-    if (this._inflate)
-        this._inflate.destroy();
-};
-
-Parser.prototype._handleSignature = function() {
-    this.read(constants.PNG_SIGNATURE.length,
-        this._parseSignature.bind(this)
-    );
-};
-
-Parser.prototype._parseSignature = function(data) {
-
-    var signature = constants.PNG_SIGNATURE;
-
-    for (var i = 0; i < signature.length; i++) {
-        if (data[i] != signature[i]) {
-            this.emit('error', new Error('Invalid file signature'));
-            return;
-        }
-    }
-    this.read(8, this._parseChunkBegin.bind(this));
-};
-
-Parser.prototype._parseChunkBegin = function(data) {
-
-    // chunk content length
-    var length = data.readUInt32BE(0);
-
-    // chunk type
-    var type = data.readUInt32BE(4),
-        name = '';
-    for (var i = 4; i < 8; i++)
-        name += String.fromCharCode(data[i]);
-
-    // console.log('chunk ', name, length);
-
-    // chunk flags
-    var ancillary  = !!(data[4] & 0x20),  // or critical
-        priv       = !!(data[5] & 0x20),  // or public
-        safeToCopy = !!(data[7] & 0x20);  // or unsafe
-
-    if (!this._hasIHDR && type != constants.TYPE_IHDR) {
-        this.emit('error', new Error('Expected IHDR on beggining'));
-        return;
-    }
-
-    this._crc = new CrcStream();
-    this._crc.write(new Buffer(name));
-
-    if (this._chunks[type]) {
-        return this._chunks[type](length);
-
-    } else if (!ancillary) {
-        this.emit('error', new Error('Unsupported critical chunk type ' + name));
-        return;
+  }
+  return '<Buffer ' + out.join(' ') + '>'
+}
+
+/**
+ * Creates a new `ArrayBuffer` with the *copied* memory of the buffer instance.
+ * Added in Node 0.12. Only available in browsers that support ArrayBuffer.
+ */
+Buffer.prototype.toArrayBuffer = function () {
+  if (typeof Uint8Array === 'function') {
+    if (Buffer._useTypedArrays) {
+      return (new Buffer(this)).buffer
     } else {
-        this.read(length + 4, this._skipChunk.bind(this));
-    }
-};
-
-Parser.prototype._skipChunk = function(data) {
-    this.read(8, this._parseChunkBegin.bind(this));
-};
-
-Parser.prototype._handleChunkEnd = function() {
-    this.read(4, this._parseChunkEnd.bind(this));
-};
-
-Parser.prototype._parseChunkEnd = function(data) {
-
-    var fileCrc = data.readInt32BE(0),
-        calcCrc = this._crc.crc32();
-
-    // check CRC
-    if (this._options.checkCRC && calcCrc != fileCrc) {
-        this.emit('error', new Error('Crc error'));
-        return;
-    }
-
-    if (this._hasIEND) {
-        this.destroySoon();
-
-    } else {
-        this.read(8, this._parseChunkBegin.bind(this));
-    }
-};
-
-
-Parser.prototype._handleIHDR = function(length) {
-    this.read(length, this._parseIHDR.bind(this));
-};
-Parser.prototype._parseIHDR = function(data) {
-
-    this._crc.write(data);
-
-    var width = data.readUInt32BE(0),
-        height = data.readUInt32BE(4),
-        depth = data[8],
-        colorType = data[9], // bits: 1 palette, 2 color, 4 alpha
-        compr = data[10],
-        filter = data[11],
-        interlace = data[12];
-
-    // console.log('    width', width, 'height', height,
-    //     'depth', depth, 'colorType', colorType,
-    //     'compr', compr, 'filter', filter, 'interlace', interlace
-    // );
-
-    if (depth != 8) {
-        this.emit('error', new Error('Unsupported bit depth ' + depth));
-        return;
-    }
-    if (!(colorType in colorTypeToBppMap)) {
-        this.emit('error', new Error('Unsupported color type'));
-        return;
-    }
-    if (compr != 0) {
-        this.emit('error', new Error('Unsupported compression method'));
-        return;
-    }
-    if (filter != 0) {
-        this.emit('error', new Error('Unsupported filter method'));
-        return;
-    }
-    if (interlace != 0) {
-        this.emit('error', new Error('Unsupported interlace method'));
-        return;
-    }
-
-    this._colorType = colorType;
-
-    this._data = new Buffer(width * height * 4);
-    this._filter = new Filter(
-        width, height,
-        colorTypeToBppMap[this._colorType],
-        this._data,
-        this._options
-    );
-
-    this._hasIHDR = true;
-
-    this.emit('metadata', {
-        width: width,
-        height: height,
-        palette: !!(colorType & constants.COLOR_PALETTE),
-        color: !!(colorType & constants.COLOR_COLOR),
-        alpha: !!(colorType & constants.COLOR_ALPHA),
-        data: this._data
-    });
-
-    this._handleChunkEnd();
-};
-
-
-Parser.prototype._handlePLTE = function(length) {
-    this.read(length, this._parsePLTE.bind(this));
-};
-Parser.prototype._parsePLTE = function(data) {
-
-    this._crc.write(data);
-
-    var entries = Math.floor(data.length / 3);
-    // console.log('Palette:', entries);
-
-    for (var i = 0; i < entries; i++) {
-        this._palette.push([
-            data.readUInt8(i * 3),
-            data.readUInt8(i * 3 + 1),
-            data.readUInt8(i * 3 + 2 ),
-            0xff
-        ]);
-    }
-
-    this._handleChunkEnd();
-};
-
-Parser.prototype._handleTRNS = function(length) {
-    this.read(length, this._parseTRNS.bind(this));
-};
-Parser.prototype._parseTRNS = function(data) {
-
-    this._crc.write(data);
-
-    // palette
-    if (this._colorType == 3) {
-        if (this._palette.length == 0) {
-            this.emit('error', new Error('Transparency chunk must be after palette'));
-            return;
-        }
-        if (data.length > this._palette.length) {
-            this.emit('error', new Error('More transparent colors than palette size'));
-            return;
-        }
-        for (var i = 0; i < this._palette.length; i++) {
-            this._palette[i][3] = i < data.length ? data.readUInt8(i) : 0xff;
-        }
-    }
-
-    // for colorType 0 (grayscale) and 2 (rgb)
-    // there might be one gray/color defined as transparent
-
-    this._handleChunkEnd();
-};
-
-Parser.prototype._handleGAMA = function(length) {
-    this.read(length, this._parseGAMA.bind(this));
-};
-Parser.prototype._parseGAMA = function(data) {
-
-    this._crc.write(data);
-    this.emit('gamma', data.readUInt32BE(0) / 100000);
-
-    this._handleChunkEnd();
-};
-
-Parser.prototype._handleIDAT = function(length) {
-    this.read(-length, this._parseIDAT.bind(this, length));
-};
-Parser.prototype._parseIDAT = function(length, data) {
-
-    this._crc.write(data);
-
-    if (this._colorType == 3 && this._palette.length == 0)
-        throw new Error('Expected palette not found');
-
-    if (!this._inflate) {
-        this._inflate = zlib.createInflate();
-
-        this._inflate.on('error', this.emit.bind(this, 'error'));
-        this._filter.on('complete', this._reverseFiltered.bind(this));
-
-        this._inflate.pipe(this._filter);
-    }
-
-    this._inflate.write(data);
-    length -= data.length;
-
-    if (length > 0)
-        this._handleIDAT(length);
-    else
-        this._handleChunkEnd();
-};
-
-
-Parser.prototype._handleIEND = function(length) {
-    this.read(length, this._parseIEND.bind(this));
-};
-Parser.prototype._parseIEND = function(data) {
-
-    this._crc.write(data);
-
-    // no more data to inflate
-    this._inflate.end();
-
-    this._hasIEND = true;
-    this._handleChunkEnd();
-};
-
-
-var colorTypeToBppMap = {
-    0: 1,
-    2: 3,
-    3: 1,
-    4: 2,
-    6: 4
-};
-
-Parser.prototype._reverseFiltered = function(data, width, height) {
-
-    if (this._colorType == 3) { // paletted
-
-        // use values from palette
-        var pxLineLength = width << 2;
-
-        for (var y = 0; y < height; y++) {
-            var pxRowPos = y * pxLineLength;
-
-            for (var x = 0; x < width; x++) {
-                var pxPos = pxRowPos + (x << 2),
-                    color = this._palette[data[pxPos]];
-
-                for (var i = 0; i < 4; i++)
-                    data[pxPos + i] = color[i];
-            }
-        }
-    }
-
-    this.emit('parsed', data);
-};
-
-}).call(this,require("buffer").Buffer)
-},{"./chunkstream":145,"./constants":146,"./crc":147,"./filter":148,"buffer":281,"util":297,"zlib":300}],151:[function(require,module,exports){
-(function (process,Buffer){
-// Copyright (c) 2012 Kuba Niegowski
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
-'use strict';
-
-
-var util = require('util'),
-    Stream = require('stream'),
-    Parser = require('./parser'),
-    Packer = require('./packer');
-
-
-var PNG = exports.PNG = function(options) {
-    Stream.call(this);
-
-    options = options || {};
-
-    this.width = options.width || 0;
-    this.height = options.height || 0;
-
-    this.data = this.width > 0 && this.height > 0
-            ? new Buffer(4 * this.width * this.height) : null;
-
-    this.gamma = 0;
-    this.readable = this.writable = true;
-
-    this._parser = new Parser(options || {});
-
-    this._parser.on('error', this.emit.bind(this, 'error'));
-    this._parser.on('close', this._handleClose.bind(this));
-    this._parser.on('metadata', this._metadata.bind(this));
-    this._parser.on('gamma', this._gamma.bind(this));
-    this._parser.on('parsed', function(data) {
-        this.data = data;
-        this.emit('parsed', data);
-    }.bind(this));
-
-    this._packer = new Packer(options);
-    this._packer.on('data', this.emit.bind(this, 'data'));
-    this._packer.on('end', this.emit.bind(this, 'end'));
-    this._parser.on('close', this._handleClose.bind(this));
-    this._packer.on('error', this.emit.bind(this, 'error'));
-
-};
-util.inherits(PNG, Stream);
-
-
-PNG.prototype.pack = function() {
-
-    process.nextTick(function() {
-        this._packer.pack(this.data, this.width, this.height);
-    }.bind(this));
-
-    return this;
-};
-
-
-PNG.prototype.parse = function(data, callback) {
-
-    if (callback) {
-        var onParsed = null, onError = null;
-
-        this.once('parsed', onParsed = function(data) {
-            this.removeListener('error', onError);
-
-            this.data = data;
-            callback(null, this);
-
-        }.bind(this));
-
-        this.once('error', onError = function(err) {
-            this.removeListener('parsed', onParsed);
-
-            callback(err, null);
-        }.bind(this));
-    }
-
-    this.end(data);
-    return this;
-};
-
-PNG.prototype.write = function(data) {
-    this._parser.write(data);
-    return true;
-};
-
-PNG.prototype.end = function(data) {
-    this._parser.end(data);
-};
-
-PNG.prototype._metadata = function(metadata) {
-    this.width = metadata.width;
-    this.height = metadata.height;
-    this.data = metadata.data;
-
-    delete metadata.data;
-    this.emit('metadata', metadata);
-};
-
-PNG.prototype._gamma = function(gamma) {
-    this.gamma = gamma;
-};
-
-PNG.prototype._handleClose = function() {
-    if (!this._parser.writable && !this._packer.readable)
-        this.emit('close');
-};
-
-
-PNG.prototype.bitblt = function(dst, sx, sy, w, h, dx, dy) {
-
-    var src = this;
-
-    if (sx > src.width || sy > src.height
-            || sx + w > src.width || sy + h > src.height)
-        throw new Error('bitblt reading outside image');
-    if (dx > dst.width || dy > dst.height
-            || dx + w > dst.width || dy + h > dst.height)
-        throw new Error('bitblt writing outside image');
-
-    for (var y = 0; y < h; y++) {
-        src.data.copy(dst.data,
-            ((dy + y) * dst.width + dx) << 2,
-            ((sy + y) * src.width + sx) << 2,
-            ((sy + y) * src.width + sx + w) << 2
-        );
-    }
-
-    return this;
-};
-
-}).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"./packer":149,"./parser":150,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"stream":289,"util":297}],152:[function(require,module,exports){
-module.exports=require(129)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],153:[function(require,module,exports){
-"use strict"
-
-var PNG = require("pngjs").PNG
-var through = require("through")
-
-function handleData(array, data) {
-  var i, j, ptr = 0, c
-  if(array.shape.length === 3) {
-    if(array.shape[2] === 3) {
-      for(i=0; i<array.shape[0]; ++i) {
-        for(j=0; j<array.shape[1]; ++j) {
-          data[ptr++] = array.get(i,j,0)>>>0
-          data[ptr++] = array.get(i,j,1)>>>0
-          data[ptr++] = array.get(i,j,2)>>>0
-          data[ptr++] = 255
-        }
-      }
-    } else if(array.shape[2] === 4) {
-      for(i=0; i<array.shape[0]; ++i) {
-        for(j=0; j<array.shape[1]; ++j) {
-          data[ptr++] = array.get(i,j,0)>>>0
-          data[ptr++] = array.get(i,j,1)>>>0
-          data[ptr++] = array.get(i,j,2)>>>0
-          data[ptr++] = array.get(i,j,3)>>>0
-        }
-      }
-    } else if(array.shape[3] === 1) {
-      for(i=0; i<array.shape[0]; ++i) {
-        for(j=0; j<array.shape[1]; ++j) {
-          var c = array.get(i,j,0)>>>0
-          data[ptr++] = c
-          data[ptr++] = c
-          data[ptr++] = c
-          data[ptr++] = 255
-        }
-      }
-    } else {
-      return new Error("Incompatible array shape")
-    }
-  } else if(array.shape.length === 2) {
-    for(i=0; i<array.shape[0]; ++i) {
-      for(j=0; j<array.shape[1]; ++j) {
-        var c = array.get(i,j,0)>>>0
-        data[ptr++] = c
-        data[ptr++] = c
-        data[ptr++] = c
-        data[ptr++] = 255
-      }
+      var buf = new Uint8Array(this.length)
+      for (var i = 0, len = buf.length; i < len; i += 1)
+        buf[i] = this[i]
+      return buf.buffer
     }
   } else {
-    return new Error("Incompatible array shape")
-  }
-  return data
-}
-
-function haderror(err) {
-  var result = through()
-  result.emit("error", err)
-  return result
-}
-
-module.exports = function savePixels(array, type) {
-  switch(type.toUpperCase()) {
-    case "PNG":
-    case ".PNG":
-      var png = new PNG({
-        width: array.shape[1],
-        height: array.shape[0]
-      })
-      var data = handleData(array, png.data)
-      if (typeof data === "Error") return haderror(data)
-      png.data = data
-      return png.pack()
-
-    case "CANVAS":
-      var canvas = document.createElement("canvas")
-      var context = canvas.getContext("2d")
-      canvas.width = array.shape[1]
-      canvas.height = array.shape[0]
-      var imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-      var data = imageData.data
-      data = handleData(array, data)
-      if (typeof data === "Error") return haderror(data)
-      context.putImageData(imageData, 0, 0)
-      return canvas
-    
-    default:
-      return haderror(new Error("Unsupported file type: " + type))
+    throw new Error('Buffer.toArrayBuffer not supported in this browser')
   }
 }
 
-},{"pngjs":151,"through":152}],154:[function(require,module,exports){
-module.exports=require(145)
-},{"buffer":281,"stream":289,"util":297}],155:[function(require,module,exports){
-module.exports=require(146)
-},{}],156:[function(require,module,exports){
-module.exports=require(147)
-},{"stream":289,"util":297}],157:[function(require,module,exports){
-module.exports=require(148)
-},{"./chunkstream":154,"buffer":281,"util":297,"zlib":300}],158:[function(require,module,exports){
-arguments[4][149][0].apply(exports,arguments)
-},{"./constants":155,"./crc":156,"./filter":157,"buffer":281,"stream":289,"util":297,"zlib":300}],159:[function(require,module,exports){
-arguments[4][150][0].apply(exports,arguments)
-},{"./chunkstream":154,"./constants":155,"./crc":156,"./filter":157,"buffer":281,"util":297,"zlib":300}],160:[function(require,module,exports){
-arguments[4][151][0].apply(exports,arguments)
-},{"./packer":158,"./parser":159,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"stream":289,"util":297}],161:[function(require,module,exports){
-module.exports=require(129)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],162:[function(require,module,exports){
-arguments[4][153][0].apply(exports,arguments)
-},{"pngjs":160,"through":161}],163:[function(require,module,exports){
+// HELPER FUNCTIONS
+// ================
+
+function stringtrim (str) {
+  if (str.trim) return str.trim()
+  return str.replace(/^\s+|\s+$/g, '')
+}
+
+var BP = Buffer.prototype
+
+/**
+ * Augment the Uint8Array *instance* (not the class!) with Buffer methods
+ */
+function augment (arr) {
+  arr._isBuffer = true
+
+  // save reference to original Uint8Array get/set methods before overwriting
+  arr._get = arr.get
+  arr._set = arr.set
+
+  // deprecated, will be removed in node 0.13+
+  arr.get = BP.get
+  arr.set = BP.set
+
+  arr.write = BP.write
+  arr.toString = BP.toString
+  arr.toLocaleString = BP.toString
+  arr.toJSON = BP.toJSON
+  arr.copy = BP.copy
+  arr.slice = BP.slice
+  arr.readUInt8 = BP.readUInt8
+  arr.readUInt16LE = BP.readUInt16LE
+  arr.readUInt16BE = BP.readUInt16BE
+  arr.readUInt32LE = BP.readUInt32LE
+  arr.readUInt32BE = BP.readUInt32BE
+  arr.readInt8 = BP.readInt8
+  arr.readInt16LE = BP.readInt16LE
+  arr.readInt16BE = BP.readInt16BE
+  arr.readInt32LE = BP.readInt32LE
+  arr.readInt32BE = BP.readInt32BE
+  arr.readFloatLE = BP.readFloatLE
+  arr.readFloatBE = BP.readFloatBE
+  arr.readDoubleLE = BP.readDoubleLE
+  arr.readDoubleBE = BP.readDoubleBE
+  arr.writeUInt8 = BP.writeUInt8
+  arr.writeUInt16LE = BP.writeUInt16LE
+  arr.writeUInt16BE = BP.writeUInt16BE
+  arr.writeUInt32LE = BP.writeUInt32LE
+  arr.writeUInt32BE = BP.writeUInt32BE
+  arr.writeInt8 = BP.writeInt8
+  arr.writeInt16LE = BP.writeInt16LE
+  arr.writeInt16BE = BP.writeInt16BE
+  arr.writeInt32LE = BP.writeInt32LE
+  arr.writeInt32BE = BP.writeInt32BE
+  arr.writeFloatLE = BP.writeFloatLE
+  arr.writeFloatBE = BP.writeFloatBE
+  arr.writeDoubleLE = BP.writeDoubleLE
+  arr.writeDoubleBE = BP.writeDoubleBE
+  arr.fill = BP.fill
+  arr.inspect = BP.inspect
+  arr.toArrayBuffer = BP.toArrayBuffer
+
+  return arr
+}
+
+// slice(start, end)
+function clamp (index, len, defaultValue) {
+  if (typeof index !== 'number') return defaultValue
+  index = ~~index;  // Coerce to integer.
+  if (index >= len) return len
+  if (index >= 0) return index
+  index += len
+  if (index >= 0) return index
+  return 0
+}
+
+function coerce (length) {
+  // Coerce length to a number (possibly NaN), round up
+  // in case it's fractional (e.g. 123.456) then do a
+  // double negate to coerce a NaN to 0. Easy, right?
+  length = ~~Math.ceil(+length)
+  return length < 0 ? 0 : length
+}
+
+function isArray (subject) {
+  return (Array.isArray || function (subject) {
+    return Object.prototype.toString.call(subject) === '[object Array]'
+  })(subject)
+}
+
+function isArrayish (subject) {
+  return isArray(subject) || Buffer.isBuffer(subject) ||
+      subject && typeof subject === 'object' &&
+      typeof subject.length === 'number'
+}
+
+function toHex (n) {
+  if (n < 16) return '0' + n.toString(16)
+  return n.toString(16)
+}
+
+function utf8ToBytes (str) {
+  var byteArray = []
+  for (var i = 0; i < str.length; i++) {
+    var b = str.charCodeAt(i)
+    if (b <= 0x7F)
+      byteArray.push(str.charCodeAt(i))
+    else {
+      var start = i
+      if (b >= 0xD800 && b <= 0xDFFF) i++
+      var h = encodeURIComponent(str.slice(start, i+1)).substr(1).split('%')
+      for (var j = 0; j < h.length; j++)
+        byteArray.push(parseInt(h[j], 16))
+    }
+  }
+  return byteArray
+}
+
+function asciiToBytes (str) {
+  var byteArray = []
+  for (var i = 0; i < str.length; i++) {
+    // Node's code seems to be doing this and not & 0x7F..
+    byteArray.push(str.charCodeAt(i) & 0xFF)
+  }
+  return byteArray
+}
+
+function utf16leToBytes (str) {
+  var c, hi, lo
+  var byteArray = []
+  for (var i = 0; i < str.length; i++) {
+    c = str.charCodeAt(i)
+    hi = c >> 8
+    lo = c % 256
+    byteArray.push(lo)
+    byteArray.push(hi)
+  }
+
+  return byteArray
+}
+
+function base64ToBytes (str) {
+  return base64.toByteArray(str)
+}
+
+function blitBuffer (src, dst, offset, length) {
+  var pos
+  for (var i = 0; i < length; i++) {
+    if ((i + offset >= dst.length) || (i >= src.length))
+      break
+    dst[i + offset] = src[i]
+  }
+  return i
+}
+
+function decodeUtf8Char (str) {
+  try {
+    return decodeURIComponent(str)
+  } catch (err) {
+    return String.fromCharCode(0xFFFD) // UTF 8 invalid char
+  }
+}
+
+/*
+ * We have to make sure that the value is a valid integer. This means that it
+ * is non-negative. It has no fractional component and that it does not
+ * exceed the maximum allowed value.
+ */
+function verifuint (value, max) {
+  assert(typeof value === 'number', 'cannot write a non-number as a number')
+  assert(value >= 0,
+      'specified a negative value for writing an unsigned value')
+  assert(value <= max, 'value is larger than maximum value for type')
+  assert(Math.floor(value) === value, 'value has a fractional component')
+}
+
+function verifsint (value, max, min) {
+  assert(typeof value === 'number', 'cannot write a non-number as a number')
+  assert(value <= max, 'value larger than maximum allowed value')
+  assert(value >= min, 'value smaller than minimum allowed value')
+  assert(Math.floor(value) === value, 'value has a fractional component')
+}
+
+function verifIEEE754 (value, max, min) {
+  assert(typeof value === 'number', 'cannot write a non-number as a number')
+  assert(value <= max, 'value larger than maximum allowed value')
+  assert(value >= min, 'value smaller than minimum allowed value')
+}
+
+function assert (test, message) {
+  if (!test) throw new Error(message || 'Failed assertion')
+}
+
+},{"base64-js":139,"ieee754":140}],139:[function(require,module,exports){
+var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+;(function (exports) {
+	'use strict';
+
+  var Arr = (typeof Uint8Array !== 'undefined')
+    ? Uint8Array
+    : Array
+
+	var ZERO   = '0'.charCodeAt(0)
+	var PLUS   = '+'.charCodeAt(0)
+	var SLASH  = '/'.charCodeAt(0)
+	var NUMBER = '0'.charCodeAt(0)
+	var LOWER  = 'a'.charCodeAt(0)
+	var UPPER  = 'A'.charCodeAt(0)
+
+	function decode (elt) {
+		var code = elt.charCodeAt(0)
+		if (code === PLUS)
+			return 62 // '+'
+		if (code === SLASH)
+			return 63 // '/'
+		if (code < NUMBER)
+			return -1 //no match
+		if (code < NUMBER + 10)
+			return code - NUMBER + 26 + 26
+		if (code < UPPER + 26)
+			return code - UPPER
+		if (code < LOWER + 26)
+			return code - LOWER + 26
+	}
+
+	function b64ToByteArray (b64) {
+		var i, j, l, tmp, placeHolders, arr
+
+		if (b64.length % 4 > 0) {
+			throw new Error('Invalid string. Length must be a multiple of 4')
+		}
+
+		// the number of equal signs (place holders)
+		// if there are two placeholders, than the two characters before it
+		// represent one byte
+		// if there is only one, then the three characters before it represent 2 bytes
+		// this is just a cheap hack to not do indexOf twice
+		var len = b64.length
+		placeHolders = '=' === b64.charAt(len - 2) ? 2 : '=' === b64.charAt(len - 1) ? 1 : 0
+
+		// base64 is 4/3 + up to two characters of the original data
+		arr = new Arr(b64.length * 3 / 4 - placeHolders)
+
+		// if there are placeholders, only get up to the last complete 4 chars
+		l = placeHolders > 0 ? b64.length - 4 : b64.length
+
+		var L = 0
+
+		function push (v) {
+			arr[L++] = v
+		}
+
+		for (i = 0, j = 0; i < l; i += 4, j += 3) {
+			tmp = (decode(b64.charAt(i)) << 18) | (decode(b64.charAt(i + 1)) << 12) | (decode(b64.charAt(i + 2)) << 6) | decode(b64.charAt(i + 3))
+			push((tmp & 0xFF0000) >> 16)
+			push((tmp & 0xFF00) >> 8)
+			push(tmp & 0xFF)
+		}
+
+		if (placeHolders === 2) {
+			tmp = (decode(b64.charAt(i)) << 2) | (decode(b64.charAt(i + 1)) >> 4)
+			push(tmp & 0xFF)
+		} else if (placeHolders === 1) {
+			tmp = (decode(b64.charAt(i)) << 10) | (decode(b64.charAt(i + 1)) << 4) | (decode(b64.charAt(i + 2)) >> 2)
+			push((tmp >> 8) & 0xFF)
+			push(tmp & 0xFF)
+		}
+
+		return arr
+	}
+
+	function uint8ToBase64 (uint8) {
+		var i,
+			extraBytes = uint8.length % 3, // if we have 1 byte left, pad 2 bytes
+			output = "",
+			temp, length
+
+		function encode (num) {
+			return lookup.charAt(num)
+		}
+
+		function tripletToBase64 (num) {
+			return encode(num >> 18 & 0x3F) + encode(num >> 12 & 0x3F) + encode(num >> 6 & 0x3F) + encode(num & 0x3F)
+		}
+
+		// go through the array every three bytes, we'll deal with trailing stuff later
+		for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
+			temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+			output += tripletToBase64(temp)
+		}
+
+		// pad the end with zeros, but make sure to not forget the extra bytes
+		switch (extraBytes) {
+			case 1:
+				temp = uint8[uint8.length - 1]
+				output += encode(temp >> 2)
+				output += encode((temp << 4) & 0x3F)
+				output += '=='
+				break
+			case 2:
+				temp = (uint8[uint8.length - 2] << 8) + (uint8[uint8.length - 1])
+				output += encode(temp >> 10)
+				output += encode((temp >> 4) & 0x3F)
+				output += encode((temp << 2) & 0x3F)
+				output += '='
+				break
+		}
+
+		return output
+	}
+
+	module.exports.toByteArray = b64ToByteArray
+	module.exports.fromByteArray = uint8ToBase64
+}())
+
+},{}],140:[function(require,module,exports){
+exports.read = function(buffer, offset, isLE, mLen, nBytes) {
+  var e, m,
+      eLen = nBytes * 8 - mLen - 1,
+      eMax = (1 << eLen) - 1,
+      eBias = eMax >> 1,
+      nBits = -7,
+      i = isLE ? (nBytes - 1) : 0,
+      d = isLE ? -1 : 1,
+      s = buffer[offset + i];
+
+  i += d;
+
+  e = s & ((1 << (-nBits)) - 1);
+  s >>= (-nBits);
+  nBits += eLen;
+  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8);
+
+  m = e & ((1 << (-nBits)) - 1);
+  e >>= (-nBits);
+  nBits += mLen;
+  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8);
+
+  if (e === 0) {
+    e = 1 - eBias;
+  } else if (e === eMax) {
+    return m ? NaN : ((s ? -1 : 1) * Infinity);
+  } else {
+    m = m + Math.pow(2, mLen);
+    e = e - eBias;
+  }
+  return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
+};
+
+exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
+  var e, m, c,
+      eLen = nBytes * 8 - mLen - 1,
+      eMax = (1 << eLen) - 1,
+      eBias = eMax >> 1,
+      rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0),
+      i = isLE ? 0 : (nBytes - 1),
+      d = isLE ? 1 : -1,
+      s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0;
+
+  value = Math.abs(value);
+
+  if (isNaN(value) || value === Infinity) {
+    m = isNaN(value) ? 1 : 0;
+    e = eMax;
+  } else {
+    e = Math.floor(Math.log(value) / Math.LN2);
+    if (value * (c = Math.pow(2, -e)) < 1) {
+      e--;
+      c *= 2;
+    }
+    if (e + eBias >= 1) {
+      value += rt / c;
+    } else {
+      value += rt * Math.pow(2, 1 - eBias);
+    }
+    if (value * c >= 2) {
+      e++;
+      c /= 2;
+    }
+
+    if (e + eBias >= eMax) {
+      m = 0;
+      e = eMax;
+    } else if (e + eBias >= 1) {
+      m = (value * c - 1) * Math.pow(2, mLen);
+      e = e + eBias;
+    } else {
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
+      e = 0;
+    }
+  }
+
+  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8);
+
+  e = (e << mLen) | m;
+  eLen += mLen;
+  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8);
+
+  buffer[offset + i - d] |= s * 128;
+};
+
+},{}],141:[function(require,module,exports){
+module.exports=require(37)
+},{"buffer":255,"stream":263,"util":271}],142:[function(require,module,exports){
+module.exports=require(38)
+},{}],143:[function(require,module,exports){
+module.exports=require(39)
+},{"stream":263,"util":271}],144:[function(require,module,exports){
+module.exports=require(40)
+},{"./chunkstream":141,"buffer":255,"util":271,"zlib":274}],145:[function(require,module,exports){
+arguments[4][41][0].apply(exports,arguments)
+},{"./constants":142,"./crc":143,"./filter":144,"buffer":255,"stream":263,"util":271,"zlib":274}],146:[function(require,module,exports){
+arguments[4][42][0].apply(exports,arguments)
+},{"./chunkstream":141,"./constants":142,"./crc":143,"./filter":144,"buffer":255,"util":271,"zlib":274}],147:[function(require,module,exports){
+arguments[4][43][0].apply(exports,arguments)
+},{"./packer":145,"./parser":146,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"buffer":255,"stream":263,"util":271}],148:[function(require,module,exports){
+module.exports=require(44)
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"stream":263}],149:[function(require,module,exports){
+arguments[4][45][0].apply(exports,arguments)
+},{"pngjs":147,"through":148}],150:[function(require,module,exports){
 
 var bops = require("bops");
 
@@ -36752,7 +37495,7 @@ function consolidate(buffers) {
 }
 
 
-},{"bops":165}],164:[function(require,module,exports){
+},{"bops":152}],151:[function(require,module,exports){
 /* Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>
  * Version: 1.0.0.1
  * LastModified: Dec 25 1999
@@ -37508,7 +38251,7 @@ exports.inflate = function (input) {
 };
 
 
-},{"./buffer-io":163,"bops":165}],165:[function(require,module,exports){
+},{"./buffer-io":150,"bops":152}],152:[function(require,module,exports){
 var proto = {}
 module.exports = proto
 
@@ -37529,7 +38272,7 @@ function mix(from, into) {
   }
 }
 
-},{"./copy.js":168,"./create.js":169,"./from.js":170,"./is.js":171,"./join.js":172,"./read.js":174,"./subarray.js":175,"./to.js":176,"./write.js":177}],166:[function(require,module,exports){
+},{"./copy.js":155,"./create.js":156,"./from.js":157,"./is.js":158,"./join.js":159,"./read.js":161,"./subarray.js":162,"./to.js":163,"./write.js":164}],153:[function(require,module,exports){
 (function (exports) {
 	'use strict';
 
@@ -37615,7 +38358,7 @@ function mix(from, into) {
 	module.exports.fromByteArray = uint8ToBase64;
 }());
 
-},{}],167:[function(require,module,exports){
+},{}],154:[function(require,module,exports){
 module.exports = to_utf8
 
 var out = []
@@ -37690,7 +38433,7 @@ function reduced(list) {
   return out
 }
 
-},{}],168:[function(require,module,exports){
+},{}],155:[function(require,module,exports){
 module.exports = copy
 
 var slice = [].slice
@@ -37744,12 +38487,12 @@ function slow_copy(from, to, j, i, jend) {
   }
 }
 
-},{}],169:[function(require,module,exports){
+},{}],156:[function(require,module,exports){
 module.exports = function(size) {
   return new Uint8Array(size)
 }
 
-},{}],170:[function(require,module,exports){
+},{}],157:[function(require,module,exports){
 module.exports = from
 
 var base64 = require('base64-js')
@@ -37885,13 +38628,13 @@ function from_base64(str) {
   return new Uint8Array(base64.toByteArray(str)) 
 }
 
-},{"base64-js":166}],171:[function(require,module,exports){
+},{"base64-js":153}],158:[function(require,module,exports){
 
 module.exports = function(buffer) {
   return buffer instanceof Uint8Array;
 }
 
-},{}],172:[function(require,module,exports){
+},{}],159:[function(require,module,exports){
 module.exports = join
 
 function join(targets, hint) {
@@ -37929,7 +38672,7 @@ function get_length(targets) {
   return size
 }
 
-},{}],173:[function(require,module,exports){
+},{}],160:[function(require,module,exports){
 var proto
   , map
 
@@ -37951,7 +38694,7 @@ function get(target) {
   return out
 }
 
-},{}],174:[function(require,module,exports){
+},{}],161:[function(require,module,exports){
 module.exports = {
     readUInt8:      read_uint8
   , readInt8:       read_int8
@@ -38040,14 +38783,14 @@ function read_double_be(target, at) {
   return dv.getFloat64(at + target.byteOffset, false)
 }
 
-},{"./mapped.js":173}],175:[function(require,module,exports){
+},{"./mapped.js":160}],162:[function(require,module,exports){
 module.exports = subarray
 
 function subarray(buf, from, to) {
   return buf.subarray(from || 0, to || buf.length)
 }
 
-},{}],176:[function(require,module,exports){
+},{}],163:[function(require,module,exports){
 module.exports = to
 
 var base64 = require('base64-js')
@@ -38085,7 +38828,7 @@ function to_base64(buf) {
 }
 
 
-},{"base64-js":166,"to-utf8":167}],177:[function(require,module,exports){
+},{"base64-js":153,"to-utf8":154}],164:[function(require,module,exports){
 module.exports = {
     writeUInt8:      write_uint8
   , writeInt8:       write_int8
@@ -38173,7 +38916,7 @@ function write_double_be(target, value, at) {
   return dv.setFloat64(at + target.byteOffset, value, false)
 }
 
-},{"./mapped.js":173}],178:[function(require,module,exports){
+},{"./mapped.js":160}],165:[function(require,module,exports){
 (function (process){
 // Tom Robinson
 // Kris Kowal
@@ -38638,7 +39381,7 @@ var decodeDateTime = function (date, time) {
 
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./inflate":164,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"bops":165,"fs":280}],179:[function(require,module,exports){
+},{"./inflate":151,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"bops":152,"fs":254}],166:[function(require,module,exports){
 /*
  * atlaspack
  * https://github.com/shama/atlaspack
@@ -38896,29 +39639,49 @@ Atlas.prototype._debug = function() {
   });
 };
 
-},{}],180:[function(require,module,exports){
-arguments[4][134][0].apply(exports,arguments)
-},{"ndarray":193}],181:[function(require,module,exports){
-module.exports=require(86)
-},{}],182:[function(require,module,exports){
-arguments[4][81][0].apply(exports,arguments)
-},{"cwise-compiler":183}],183:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"./lib/thunk.js":185}],184:[function(require,module,exports){
-module.exports=require(30)
-},{"uniq":186}],185:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"./compile.js":184}],186:[function(require,module,exports){
-module.exports=require(20)
-},{}],187:[function(require,module,exports){
-module.exports=require(87)
-},{}],188:[function(require,module,exports){
-module.exports=require(88)
-},{"bit-twiddle":181,"buffer":281,"dup":187}],189:[function(require,module,exports){
+},{}],167:[function(require,module,exports){
+"use strict"
+
+var ndarray = require("ndarray")
+
+module.exports = function getPixels(url, cb) {
+  var img = new Image()
+  img.onload = function() {
+    var canvas = document.createElement("canvas")
+    canvas.width = img.width
+    canvas.height = img.height
+    var context = canvas.getContext("2d")
+    context.drawImage(img, 0, 0)
+    var pixels = context.getImageData(0, 0, img.width, img.height)
+    cb(null, ndarray(new Uint8Array(pixels.data), [img.height, img.width, 4], [4*img.width, 4, 1], 0))
+  }
+  img.onerror = function(err) {
+    cb(err)
+  }
+  img.src = url
+}
+
+},{"ndarray":35}],168:[function(require,module,exports){
+module.exports=require(89)
+},{}],169:[function(require,module,exports){
+arguments[4][103][0].apply(exports,arguments)
+},{"cwise-compiler":170}],170:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"./lib/thunk.js":172}],171:[function(require,module,exports){
+module.exports=require(29)
+},{"uniq":173}],172:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./compile.js":171}],173:[function(require,module,exports){
+module.exports=require(19)
+},{}],174:[function(require,module,exports){
+module.exports=require(90)
+},{}],175:[function(require,module,exports){
+module.exports=require(91)
+},{"bit-twiddle":168,"buffer":255,"dup":174}],176:[function(require,module,exports){
+module.exports=require(22)
+},{}],177:[function(require,module,exports){
 module.exports=require(23)
-},{}],190:[function(require,module,exports){
-module.exports=require(24)
-},{"weakmap":189}],191:[function(require,module,exports){
+},{"weakmap":176}],178:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -39340,13 +40103,9 @@ function createTexture2D(gl) {
 }
 module.exports = createTexture2D
 
-},{"ndarray":193,"ndarray-ops":182,"typedarray-pool":188,"webglew":190}],192:[function(require,module,exports){
-module.exports=require(71)
-},{}],193:[function(require,module,exports){
-module.exports=require(36)
-},{"buffer":281,"iota-array":194}],194:[function(require,module,exports){
-module.exports=require(19)
-},{}],195:[function(require,module,exports){
+},{"ndarray":35,"ndarray-ops":169,"typedarray-pool":175,"webglew":177}],179:[function(require,module,exports){
+module.exports=require(79)
+},{}],180:[function(require,module,exports){
 'use strict';
 
 var ndarray = require('ndarray');
@@ -39462,7 +40221,7 @@ var makeMipMaps = function(array, rects, maxLevels) {
 
 module.exports = makeMipMaps;
 
-},{"ndarray":224,"ndarray-downsample2x":196,"ndarray-ops":219}],196:[function(require,module,exports){
+},{"ndarray":35,"ndarray-downsample2x":181,"ndarray-ops":204}],181:[function(require,module,exports){
 "use strict"
 
 var fft = require("ndarray-fft")
@@ -39547,23 +40306,23 @@ function downsample2x(out, inp, clamp_lo, clamp_hi) {
 }
 
 module.exports = downsample2x
-},{"cwise":197,"ndarray-fft":205,"ndarray-ops":210,"ndarray-scratch":218}],197:[function(require,module,exports){
+},{"cwise":182,"ndarray-fft":190,"ndarray-ops":195,"ndarray-scratch":203}],182:[function(require,module,exports){
+arguments[4][27][0].apply(exports,arguments)
+},{"cwise-compiler":183,"cwise-parser":187}],183:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"cwise-compiler":198,"cwise-parser":202}],198:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"./lib/thunk.js":200}],199:[function(require,module,exports){
-module.exports=require(30)
-},{"uniq":201}],200:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"./compile.js":199}],201:[function(require,module,exports){
-module.exports=require(20)
-},{}],202:[function(require,module,exports){
+},{"./lib/thunk.js":185}],184:[function(require,module,exports){
+module.exports=require(29)
+},{"uniq":186}],185:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./compile.js":184}],186:[function(require,module,exports){
+module.exports=require(19)
+},{}],187:[function(require,module,exports){
+module.exports=require(32)
+},{"esprima":188,"uniq":189}],188:[function(require,module,exports){
 module.exports=require(33)
-},{"esprima":203,"uniq":204}],203:[function(require,module,exports){
-module.exports=require(34)
-},{}],204:[function(require,module,exports){
-module.exports=require(20)
-},{}],205:[function(require,module,exports){
+},{}],189:[function(require,module,exports){
+module.exports=require(19)
+},{}],190:[function(require,module,exports){
 "use strict"
 
 var ops = require("ndarray-ops")
@@ -39648,7 +40407,7 @@ function ndfft(dir, x, y) {
 
 module.exports = ndfft
 
-},{"./lib/fft-matrix.js":206,"cwise":197,"ndarray":224,"ndarray-ops":210,"typedarray-pool":209}],206:[function(require,module,exports){
+},{"./lib/fft-matrix.js":191,"cwise":182,"ndarray":35,"ndarray-ops":195,"typedarray-pool":194}],191:[function(require,module,exports){
 var bits = require("bit-twiddle")
 
 function fft(dir, nrows, ncols, buffer, x_ptr, y_ptr, scratch_ptr) {
@@ -39867,13 +40626,13 @@ function fftBluestein(dir, nrows, ncols, buffer, x_ptr, y_ptr, scratch_ptr) {
   }
 }
 
-},{"bit-twiddle":207}],207:[function(require,module,exports){
-module.exports=require(86)
-},{}],208:[function(require,module,exports){
-module.exports=require(87)
-},{}],209:[function(require,module,exports){
-module.exports=require(109)
-},{"bit-twiddle":207,"dup":208}],210:[function(require,module,exports){
+},{"bit-twiddle":192}],192:[function(require,module,exports){
+module.exports=require(89)
+},{}],193:[function(require,module,exports){
+module.exports=require(90)
+},{}],194:[function(require,module,exports){
+module.exports=require(110)
+},{"bit-twiddle":192,"dup":193}],195:[function(require,module,exports){
 "use strict"
 
 var compile = require("cwise-compiler")
@@ -40322,21 +41081,21 @@ exports.assigns = makeOp({
   funcName: "assigns" })
 
 
-},{"cwise-compiler":211}],211:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"./lib/thunk.js":213}],212:[function(require,module,exports){
-module.exports=require(30)
-},{"uniq":214}],213:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"./compile.js":212}],214:[function(require,module,exports){
-module.exports=require(20)
-},{}],215:[function(require,module,exports){
-module.exports=require(86)
-},{}],216:[function(require,module,exports){
-module.exports=require(87)
-},{}],217:[function(require,module,exports){
-module.exports=require(109)
-},{"bit-twiddle":215,"dup":216}],218:[function(require,module,exports){
+},{"cwise-compiler":196}],196:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"./lib/thunk.js":198}],197:[function(require,module,exports){
+module.exports=require(29)
+},{"uniq":199}],198:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./compile.js":197}],199:[function(require,module,exports){
+module.exports=require(19)
+},{}],200:[function(require,module,exports){
+module.exports=require(89)
+},{}],201:[function(require,module,exports){
+module.exports=require(90)
+},{}],202:[function(require,module,exports){
+module.exports=require(110)
+},{"bit-twiddle":200,"dup":201}],203:[function(require,module,exports){
 "use strict"
 
 var ndarray = require("ndarray")
@@ -40360,41 +41119,19 @@ function free(array) {
   pool.free(array.data)
 }
 exports.free = free
-},{"ndarray":224,"typedarray-pool":217}],219:[function(require,module,exports){
-arguments[4][81][0].apply(exports,arguments)
-},{"cwise-compiler":220}],220:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"./lib/thunk.js":222}],221:[function(require,module,exports){
-module.exports=require(30)
-},{"uniq":223}],222:[function(require,module,exports){
-arguments[4][31][0].apply(exports,arguments)
-},{"./compile.js":221}],223:[function(require,module,exports){
-module.exports=require(20)
-},{}],224:[function(require,module,exports){
-module.exports=require(36)
-},{"buffer":281,"iota-array":225}],225:[function(require,module,exports){
+},{"ndarray":35,"typedarray-pool":202}],204:[function(require,module,exports){
+arguments[4][103][0].apply(exports,arguments)
+},{"cwise-compiler":205}],205:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"./lib/thunk.js":207}],206:[function(require,module,exports){
+module.exports=require(29)
+},{"uniq":208}],207:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./compile.js":206}],208:[function(require,module,exports){
 module.exports=require(19)
-},{}],226:[function(require,module,exports){
-module.exports=require(145)
-},{"buffer":281,"stream":289,"util":297}],227:[function(require,module,exports){
-module.exports=require(146)
-},{}],228:[function(require,module,exports){
-module.exports=require(147)
-},{"stream":289,"util":297}],229:[function(require,module,exports){
-module.exports=require(148)
-},{"./chunkstream":226,"buffer":281,"util":297,"zlib":300}],230:[function(require,module,exports){
-arguments[4][149][0].apply(exports,arguments)
-},{"./constants":227,"./crc":228,"./filter":229,"buffer":281,"stream":289,"util":297,"zlib":300}],231:[function(require,module,exports){
-arguments[4][150][0].apply(exports,arguments)
-},{"./chunkstream":226,"./constants":227,"./crc":228,"./filter":229,"buffer":281,"util":297,"zlib":300}],232:[function(require,module,exports){
-arguments[4][151][0].apply(exports,arguments)
-},{"./packer":230,"./parser":231,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"stream":289,"util":297}],233:[function(require,module,exports){
-module.exports=require(129)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],234:[function(require,module,exports){
-arguments[4][153][0].apply(exports,arguments)
-},{"pngjs":232,"through":233}],235:[function(require,module,exports){
-module.exports=require(115)
-},{}],236:[function(require,module,exports){
+},{}],209:[function(require,module,exports){
+module.exports=require(116)
+},{}],210:[function(require,module,exports){
 // Generated by CoffeeScript 1.7.0
 (function() {
   var createCanvas, crop, overallSize, overlay, repeat, scale;
@@ -40484,7 +41221,7 @@ module.exports=require(115)
 
 }).call(this);
 
-},{}],237:[function(require,module,exports){
+},{}],211:[function(require,module,exports){
 'use strict';
 
 var createArtpacks = require('artpacks');
@@ -40801,7 +41538,7 @@ StitchPlugin.prototype.showAtlas = function() {
 
 
 
-},{"artpacks":131,"atlaspack":179,"events":284,"get-pixels":180,"gl-texture2d":191,"inherits":192,"ndarray":193,"rect-mip-map":195,"save-pixels":234,"toarray":235,"touchup":236}],238:[function(require,module,exports){
+},{"artpacks":132,"atlaspack":166,"events":258,"get-pixels":167,"gl-texture2d":178,"inherits":179,"ndarray":35,"rect-mip-map":180,"save-pixels":45,"toarray":209,"touchup":210}],212:[function(require,module,exports){
 (function (process,Buffer){
 "use strict"
 
@@ -40849,7 +41586,7 @@ function compileShader(gl, vertexSource, fragmentSource) {
   return createShader(gl, vertexSource, fragmentSource, uniforms, attributes)
 }
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"gl-shader-core":244,"glsl-extract":245,"through":276,"uniq":277}],239:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"buffer":255,"gl-shader-core":218,"glsl-extract":219,"through":250,"uniq":251}],213:[function(require,module,exports){
 "use strict"
 
 module.exports = coallesceUniforms
@@ -40894,7 +41631,7 @@ function coallesceUniforms(uniforms) {
   }
   return obj
 }
-},{}],240:[function(require,module,exports){
+},{}],214:[function(require,module,exports){
 "use strict"
 
 module.exports = createAttributeWrapper
@@ -40991,7 +41728,7 @@ function createAttributeWrapper(gl, program, attributes, doLink) {
   return obj
 }
 
-},{}],241:[function(require,module,exports){
+},{}],215:[function(require,module,exports){
 "use strict"
 
 var dup = require("dup")
@@ -41173,7 +41910,7 @@ function createUniformWrapper(gl, program, uniforms, locations) {
   }
 }
 
-},{"./coallesce-uniforms.js":239,"dup":243}],242:[function(require,module,exports){
+},{"./coallesce-uniforms.js":213,"dup":217}],216:[function(require,module,exports){
 "use strict"
 
 module.exports = makeReflectTypes
@@ -41218,9 +41955,9 @@ function makeReflectTypes(uniforms) {
   }
   return obj
 }
-},{}],243:[function(require,module,exports){
-module.exports=require(87)
-},{}],244:[function(require,module,exports){
+},{}],217:[function(require,module,exports){
+module.exports=require(90)
+},{}],218:[function(require,module,exports){
 "use strict"
 
 var createUniformWrapper = require("./lib/create-uniforms.js")
@@ -41322,7 +42059,7 @@ function createShader(
 
 module.exports = createShader
 
-},{"./lib/create-attributes.js":240,"./lib/create-uniforms.js":241,"./lib/reflect.js":242}],245:[function(require,module,exports){
+},{"./lib/create-attributes.js":214,"./lib/create-uniforms.js":215,"./lib/reflect.js":216}],219:[function(require,module,exports){
 (function (process,Buffer){
 'use strict'
 
@@ -41406,7 +42143,7 @@ function tostring() {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"./lib/collect":246,"./lib/format":248,"./lib/preprocess":249,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"glsl-parser":257,"glsl-tokenizer":262,"through":276,"utf8-stream":266}],246:[function(require,module,exports){
+},{"./lib/collect":220,"./lib/format":222,"./lib/preprocess":223,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"buffer":255,"glsl-parser":231,"glsl-tokenizer":236,"through":250,"utf8-stream":240}],220:[function(require,module,exports){
 'use strict'
 
 module.exports = collect_storages
@@ -41448,7 +42185,7 @@ function collect_storages(structs, uniforms, attributes) {
 }
 
 
-},{"cssauron-glsl":250,"through":276}],247:[function(require,module,exports){
+},{"cssauron-glsl":224,"through":250}],221:[function(require,module,exports){
 'use strict'
 
 module.exports = deparse
@@ -41476,7 +42213,7 @@ function deparse(node) {
   }
 }
 
-},{"glsl-deparser":253,"through":276}],248:[function(require,module,exports){
+},{"glsl-deparser":227,"through":250}],222:[function(require,module,exports){
 'use strict'
 
 module.exports = format
@@ -41604,7 +42341,7 @@ function roll_quantifiers_into_names(lhs, rhs) {
 }
 
 
-},{"./deparse":247}],249:[function(require,module,exports){
+},{"./deparse":221}],223:[function(require,module,exports){
 'use strict'
 
 module.exports = preprocess
@@ -42012,7 +42749,7 @@ function defined_to_op() {
   })
 }
 
-},{"glsl-parser":257,"glsl-tokenizer":262,"through":276}],250:[function(require,module,exports){
+},{"glsl-parser":231,"glsl-tokenizer":236,"through":250}],224:[function(require,module,exports){
 module.exports = require('cssauron')({
   tag: 'type'
 , parent: 'parent'
@@ -42021,7 +42758,7 @@ module.exports = require('cssauron')({
 , attr: function(node, attr) { return node[attr] }
 })
 
-},{"cssauron":251}],251:[function(require,module,exports){
+},{"cssauron":225}],225:[function(require,module,exports){
 module.exports = language
 
 var tokenizer = require('./tokenizer')
@@ -42381,7 +43118,7 @@ function check_dsh(l, r) {
   return l.split('-').indexOf(r) > -1
 }
 
-},{"./tokenizer":252}],252:[function(require,module,exports){
+},{"./tokenizer":226}],226:[function(require,module,exports){
 module.exports = tokenize
 
 var through = require('through')
@@ -42707,9 +43444,9 @@ function tokenize() {
   }
 }
 
-},{"through":276}],253:[function(require,module,exports){
-arguments[4][120][0].apply(exports,arguments)
-},{"./lib/index":254}],254:[function(require,module,exports){
+},{"through":250}],227:[function(require,module,exports){
+arguments[4][121][0].apply(exports,arguments)
+},{"./lib/index":228}],228:[function(require,module,exports){
 module.exports = deparse_stream
 
 var through = require('through')
@@ -43195,7 +43932,7 @@ function deparse_ternary(node) {
   deparse(node.children[2])
 }
 
-},{"./ws":255,"cssauron-glsl":250,"through":256}],255:[function(require,module,exports){
+},{"./ws":229,"cssauron-glsl":224,"through":230}],229:[function(require,module,exports){
 module.exports = Manager
 
 var Nothing = ''
@@ -43252,13 +43989,13 @@ proto.tab = function() {
   return this.tabcache[len] = _
 }
 
-},{}],256:[function(require,module,exports){
-module.exports=require(124)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],257:[function(require,module,exports){
-arguments[4][120][0].apply(exports,arguments)
-},{"./lib/index":259}],258:[function(require,module,exports){
-module.exports=require(121)
-},{}],259:[function(require,module,exports){
+},{}],230:[function(require,module,exports){
+module.exports=require(125)
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"stream":263}],231:[function(require,module,exports){
+arguments[4][121][0].apply(exports,arguments)
+},{"./lib/index":233}],232:[function(require,module,exports){
+module.exports=require(122)
+},{}],233:[function(require,module,exports){
 module.exports = parser
 
 var through = require('through')
@@ -44218,19 +44955,19 @@ function is_precision(token) {
          token.data === 'lowp'
 }
 
-},{"./expr":258,"./scope":260,"through":261}],260:[function(require,module,exports){
-module.exports=require(123)
-},{}],261:[function(require,module,exports){
+},{"./expr":232,"./scope":234,"through":235}],234:[function(require,module,exports){
 module.exports=require(124)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],262:[function(require,module,exports){
+},{}],235:[function(require,module,exports){
 module.exports=require(125)
-},{"./lib/builtins":263,"./lib/literals":264,"./lib/operators":265,"through":276}],263:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"stream":263}],236:[function(require,module,exports){
 module.exports=require(126)
-},{}],264:[function(require,module,exports){
+},{"./lib/builtins":237,"./lib/literals":238,"./lib/operators":239,"through":250}],237:[function(require,module,exports){
 module.exports=require(127)
-},{}],265:[function(require,module,exports){
+},{}],238:[function(require,module,exports){
 module.exports=require(128)
-},{}],266:[function(require,module,exports){
+},{}],239:[function(require,module,exports){
+module.exports=require(129)
+},{}],240:[function(require,module,exports){
 (function (Buffer){
 var Transform = require('readable-stream/transform');
 
@@ -44294,7 +45031,7 @@ function nbytes (b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":281,"readable-stream/transform":275}],267:[function(require,module,exports){
+},{"buffer":255,"readable-stream/transform":249}],241:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -44387,7 +45124,7 @@ function forEach (xs, f) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./_stream_readable":268,"./_stream_writable":270,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"core-util-is":271,"inherits":272}],268:[function(require,module,exports){
+},{"./_stream_readable":242,"./_stream_writable":244,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"core-util-is":245,"inherits":246}],242:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -45350,7 +46087,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"core-util-is":271,"events":284,"inherits":272,"isarray":273,"stream":289,"string_decoder/":274}],269:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"buffer":255,"core-util-is":245,"events":258,"inherits":246,"isarray":247,"stream":263,"string_decoder/":248}],243:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -45562,7 +46299,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":267,"core-util-is":271,"inherits":272}],270:[function(require,module,exports){
+},{"./_stream_duplex":241,"core-util-is":245,"inherits":246}],244:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -45953,7 +46690,7 @@ function endWritable(stream, state, cb) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./_stream_duplex":267,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"core-util-is":271,"inherits":272,"stream":289}],271:[function(require,module,exports){
+},{"./_stream_duplex":241,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"buffer":255,"core-util-is":245,"inherits":246,"stream":263}],245:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -46063,14 +46800,14 @@ function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
 }).call(this,require("buffer").Buffer)
-},{"buffer":281}],272:[function(require,module,exports){
-module.exports=require(71)
-},{}],273:[function(require,module,exports){
+},{"buffer":255}],246:[function(require,module,exports){
+module.exports=require(79)
+},{}],247:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],274:[function(require,module,exports){
+},{}],248:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -46272,14 +47009,14 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":281}],275:[function(require,module,exports){
+},{"buffer":255}],249:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":269}],276:[function(require,module,exports){
-module.exports=require(129)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"stream":289}],277:[function(require,module,exports){
-module.exports=require(20)
-},{}],278:[function(require,module,exports){
+},{"./lib/_stream_transform.js":243}],250:[function(require,module,exports){
+module.exports=require(44)
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"stream":263}],251:[function(require,module,exports){
+module.exports=require(19)
+},{}],252:[function(require,module,exports){
 'use strict';
 
 var createWireShader = require('./wireShader.js');
@@ -46344,7 +47081,7 @@ WireframePlugin.prototype.render = function() {
 };
 
 
-},{"./wireShader.js":279}],279:[function(require,module,exports){
+},{"./wireShader.js":253}],253:[function(require,module,exports){
 "use strict"
 var createShader = require("gl-shader")
 
@@ -46361,9 +47098,9 @@ void main() {\
   gl_FragColor = vec4(0, 1, 0, 1);\
 }")
 }
-},{"gl-shader":238}],280:[function(require,module,exports){
+},{"gl-shader":212}],254:[function(require,module,exports){
 
-},{}],281:[function(require,module,exports){
+},{}],255:[function(require,module,exports){
 /**
  * The buffer module from node.js, for the browser.
  *
@@ -47475,216 +48212,11 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":282,"ieee754":283}],282:[function(require,module,exports){
-var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-
-;(function (exports) {
-	'use strict';
-
-  var Arr = (typeof Uint8Array !== 'undefined')
-    ? Uint8Array
-    : Array
-
-	var ZERO   = '0'.charCodeAt(0)
-	var PLUS   = '+'.charCodeAt(0)
-	var SLASH  = '/'.charCodeAt(0)
-	var NUMBER = '0'.charCodeAt(0)
-	var LOWER  = 'a'.charCodeAt(0)
-	var UPPER  = 'A'.charCodeAt(0)
-
-	function decode (elt) {
-		var code = elt.charCodeAt(0)
-		if (code === PLUS)
-			return 62 // '+'
-		if (code === SLASH)
-			return 63 // '/'
-		if (code < NUMBER)
-			return -1 //no match
-		if (code < NUMBER + 10)
-			return code - NUMBER + 26 + 26
-		if (code < UPPER + 26)
-			return code - UPPER
-		if (code < LOWER + 26)
-			return code - LOWER + 26
-	}
-
-	function b64ToByteArray (b64) {
-		var i, j, l, tmp, placeHolders, arr
-
-		if (b64.length % 4 > 0) {
-			throw new Error('Invalid string. Length must be a multiple of 4')
-		}
-
-		// the number of equal signs (place holders)
-		// if there are two placeholders, than the two characters before it
-		// represent one byte
-		// if there is only one, then the three characters before it represent 2 bytes
-		// this is just a cheap hack to not do indexOf twice
-		var len = b64.length
-		placeHolders = '=' === b64.charAt(len - 2) ? 2 : '=' === b64.charAt(len - 1) ? 1 : 0
-
-		// base64 is 4/3 + up to two characters of the original data
-		arr = new Arr(b64.length * 3 / 4 - placeHolders)
-
-		// if there are placeholders, only get up to the last complete 4 chars
-		l = placeHolders > 0 ? b64.length - 4 : b64.length
-
-		var L = 0
-
-		function push (v) {
-			arr[L++] = v
-		}
-
-		for (i = 0, j = 0; i < l; i += 4, j += 3) {
-			tmp = (decode(b64.charAt(i)) << 18) | (decode(b64.charAt(i + 1)) << 12) | (decode(b64.charAt(i + 2)) << 6) | decode(b64.charAt(i + 3))
-			push((tmp & 0xFF0000) >> 16)
-			push((tmp & 0xFF00) >> 8)
-			push(tmp & 0xFF)
-		}
-
-		if (placeHolders === 2) {
-			tmp = (decode(b64.charAt(i)) << 2) | (decode(b64.charAt(i + 1)) >> 4)
-			push(tmp & 0xFF)
-		} else if (placeHolders === 1) {
-			tmp = (decode(b64.charAt(i)) << 10) | (decode(b64.charAt(i + 1)) << 4) | (decode(b64.charAt(i + 2)) >> 2)
-			push((tmp >> 8) & 0xFF)
-			push(tmp & 0xFF)
-		}
-
-		return arr
-	}
-
-	function uint8ToBase64 (uint8) {
-		var i,
-			extraBytes = uint8.length % 3, // if we have 1 byte left, pad 2 bytes
-			output = "",
-			temp, length
-
-		function encode (num) {
-			return lookup.charAt(num)
-		}
-
-		function tripletToBase64 (num) {
-			return encode(num >> 18 & 0x3F) + encode(num >> 12 & 0x3F) + encode(num >> 6 & 0x3F) + encode(num & 0x3F)
-		}
-
-		// go through the array every three bytes, we'll deal with trailing stuff later
-		for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
-			temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
-			output += tripletToBase64(temp)
-		}
-
-		// pad the end with zeros, but make sure to not forget the extra bytes
-		switch (extraBytes) {
-			case 1:
-				temp = uint8[uint8.length - 1]
-				output += encode(temp >> 2)
-				output += encode((temp << 4) & 0x3F)
-				output += '=='
-				break
-			case 2:
-				temp = (uint8[uint8.length - 2] << 8) + (uint8[uint8.length - 1])
-				output += encode(temp >> 10)
-				output += encode((temp >> 4) & 0x3F)
-				output += encode((temp << 2) & 0x3F)
-				output += '='
-				break
-		}
-
-		return output
-	}
-
-	module.exports.toByteArray = b64ToByteArray
-	module.exports.fromByteArray = uint8ToBase64
-}())
-
-},{}],283:[function(require,module,exports){
-exports.read = function(buffer, offset, isLE, mLen, nBytes) {
-  var e, m,
-      eLen = nBytes * 8 - mLen - 1,
-      eMax = (1 << eLen) - 1,
-      eBias = eMax >> 1,
-      nBits = -7,
-      i = isLE ? (nBytes - 1) : 0,
-      d = isLE ? -1 : 1,
-      s = buffer[offset + i];
-
-  i += d;
-
-  e = s & ((1 << (-nBits)) - 1);
-  s >>= (-nBits);
-  nBits += eLen;
-  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8);
-
-  m = e & ((1 << (-nBits)) - 1);
-  e >>= (-nBits);
-  nBits += mLen;
-  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8);
-
-  if (e === 0) {
-    e = 1 - eBias;
-  } else if (e === eMax) {
-    return m ? NaN : ((s ? -1 : 1) * Infinity);
-  } else {
-    m = m + Math.pow(2, mLen);
-    e = e - eBias;
-  }
-  return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
-};
-
-exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
-  var e, m, c,
-      eLen = nBytes * 8 - mLen - 1,
-      eMax = (1 << eLen) - 1,
-      eBias = eMax >> 1,
-      rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0),
-      i = isLE ? 0 : (nBytes - 1),
-      d = isLE ? 1 : -1,
-      s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0;
-
-  value = Math.abs(value);
-
-  if (isNaN(value) || value === Infinity) {
-    m = isNaN(value) ? 1 : 0;
-    e = eMax;
-  } else {
-    e = Math.floor(Math.log(value) / Math.LN2);
-    if (value * (c = Math.pow(2, -e)) < 1) {
-      e--;
-      c *= 2;
-    }
-    if (e + eBias >= 1) {
-      value += rt / c;
-    } else {
-      value += rt * Math.pow(2, 1 - eBias);
-    }
-    if (value * c >= 2) {
-      e++;
-      c /= 2;
-    }
-
-    if (e + eBias >= eMax) {
-      m = 0;
-      e = eMax;
-    } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen);
-      e = e + eBias;
-    } else {
-      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
-      e = 0;
-    }
-  }
-
-  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8);
-
-  e = (e << mLen) | m;
-  eLen += mLen;
-  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8);
-
-  buffer[offset + i - d] |= s * 128;
-};
-
-},{}],284:[function(require,module,exports){
+},{"base64-js":256,"ieee754":257}],256:[function(require,module,exports){
+module.exports=require(139)
+},{}],257:[function(require,module,exports){
+module.exports=require(140)
+},{}],258:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -47986,9 +48518,9 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],285:[function(require,module,exports){
-module.exports=require(71)
-},{}],286:[function(require,module,exports){
+},{}],259:[function(require,module,exports){
+module.exports=require(79)
+},{}],260:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -48050,7 +48582,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],287:[function(require,module,exports){
+},{}],261:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -48278,7 +48810,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286}],288:[function(require,module,exports){
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260}],262:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -48352,7 +48884,7 @@ function onend() {
   });
 }
 
-},{"./readable.js":292,"./writable.js":294,"inherits":285,"process/browser.js":290}],289:[function(require,module,exports){
+},{"./readable.js":266,"./writable.js":268,"inherits":259,"process/browser.js":264}],263:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -48481,7 +49013,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"./duplex.js":288,"./passthrough.js":291,"./readable.js":292,"./transform.js":293,"./writable.js":294,"events":284,"inherits":285}],290:[function(require,module,exports){
+},{"./duplex.js":262,"./passthrough.js":265,"./readable.js":266,"./transform.js":267,"./writable.js":268,"events":258,"inherits":259}],264:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -48536,7 +49068,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],291:[function(require,module,exports){
+},{}],265:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -48579,7 +49111,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./transform.js":293,"inherits":285}],292:[function(require,module,exports){
+},{"./transform.js":267,"inherits":259}],266:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -49516,7 +50048,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"./index.js":289,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281,"events":284,"inherits":285,"process/browser.js":290,"string_decoder":295}],293:[function(require,module,exports){
+},{"./index.js":263,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"buffer":255,"events":258,"inherits":259,"process/browser.js":264,"string_decoder":269}],267:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -49722,7 +50254,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./duplex.js":288,"inherits":285}],294:[function(require,module,exports){
+},{"./duplex.js":262,"inherits":259}],268:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -50110,7 +50642,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./index.js":289,"buffer":281,"inherits":285,"process/browser.js":290}],295:[function(require,module,exports){
+},{"./index.js":263,"buffer":255,"inherits":259,"process/browser.js":264}],269:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -50303,14 +50835,14 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":281}],296:[function(require,module,exports){
+},{"buffer":255}],270:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],297:[function(require,module,exports){
+},{}],271:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -50900,7 +51432,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":296,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"inherits":285}],298:[function(require,module,exports){
+},{"./support/isBuffer":270,"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"inherits":259}],272:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -51040,7 +51572,7 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":299}],299:[function(require,module,exports){
+},{"indexof":273}],273:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -51051,7 +51583,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],300:[function(require,module,exports){
+},{}],274:[function(require,module,exports){
 (function (Buffer){
 var Zlib = module.exports = require('./zlib');
 
@@ -51098,7 +51630,7 @@ Zlib.gzip = function gzip(stringOrBuffer, callback) {
 };
 
 }).call(this,require("buffer").Buffer)
-},{"./zlib":301,"buffer":281}],301:[function(require,module,exports){
+},{"./zlib":275,"buffer":255}],275:[function(require,module,exports){
 (function (process,Buffer){
 /** @license zlib.js 0.1.7 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */(function() {'use strict';function q(b){throw b;}var t=void 0,u=!0;var A="undefined"!==typeof Uint8Array&&"undefined"!==typeof Uint16Array&&"undefined"!==typeof Uint32Array;function E(b,a){this.index="number"===typeof a?a:0;this.m=0;this.buffer=b instanceof(A?Uint8Array:Array)?b:new (A?Uint8Array:Array)(32768);2*this.buffer.length<=this.index&&q(Error("invalid index"));this.buffer.length<=this.index&&this.f()}E.prototype.f=function(){var b=this.buffer,a,c=b.length,d=new (A?Uint8Array:Array)(c<<1);if(A)d.set(b);else for(a=0;a<c;++a)d[a]=b[a];return this.buffer=d};
 E.prototype.d=function(b,a,c){var d=this.buffer,f=this.index,e=this.m,g=d[f],k;c&&1<a&&(b=8<a?(G[b&255]<<24|G[b>>>8&255]<<16|G[b>>>16&255]<<8|G[b>>>24&255])>>32-a:G[b]>>8-a);if(8>a+e)g=g<<a|b,e+=a;else for(k=0;k<a;++k)g=g<<1|b>>a-k-1&1,8===++e&&(e=0,d[f++]=G[g],g=0,f===d.length&&(d=this.f()));d[f]=g;this.buffer=d;this.m=e;this.index=f};E.prototype.finish=function(){var b=this.buffer,a=this.index,c;0<this.m&&(b[a]<<=8-this.m,b[a]=G[b[a]],a++);A?c=b.subarray(0,a):(b.length=a,c=b);return c};
@@ -51156,4 +51688,4 @@ function xb(b,a){var c;b.subarray=b.slice;c=(new pb(b)).i();a||(a={});return a.n
 function Cb(b){var a=new Buffer(b.length),c,d;c=0;for(d=b.length;c<d;++c)a[c]=b[c];return a};}).call(this); //@ sourceMappingURL=node-zlib.js.map
 
 }).call(this,require("/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),require("buffer").Buffer)
-},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":286,"buffer":281}]},{},[1])
+},{"/usr/local/lib/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":260,"buffer":255}]},{},[1])
