@@ -1,3 +1,9 @@
+***This repository is deprecated; merged into [deathcap/voxel-engine#ndarray](https://github.com/deathcap/voxel-engine/tree/ndarray) branch
+and [voxel-example](https://github.com/deathcap/voxel-example).***
+
+---
+---
+
 game-shell-voxel
 ================
 
